@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Banderas</title>
+<style>
+    :root {
+        --bg-color: #121212;
+        --card-color: #1e1e1e;
+        --text-color: #ffffff;
+        --correct-color: #4caf50;
+        --wrong-color: #f44336;
+        --accent-color: #2196f3;
+    }
+
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    #game-container {
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .screen { display: none; }
+    .active { display: block; }
+
+    .btn-start {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 10px 0;
+    }
+
+    /* CONTENEDOR EQUILIBRADO */
+    .flag-container {
+        width: 100%;
+        height: 220px;
+        background-color: #1a1a1a; /* Un tono más oscuro para que resalte la bandera */
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 25px;
+        overflow: hidden;
+        border: 2px solid #333;
+        /* Un pequeño respiro de 5px para que no toque el borde físico */
+        padding: 5px; 
+        box-sizing: border-box;
+    }
+
+    /* LA IMAGEN: GRANDE PERO RESPETUOSA */
+    .flag-container img {
+        width: 100%;
+        height: 100%;
+        /* 'contain' hace que la bandera se vea ENTERA y con su calidad original */
+        object-fit: contain; 
+        display: block;
+        /* Esto suaviza los bordes si la imagen es de baja resolución */
+        image-rendering: auto; 
+    }
+
+    .options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .option-btn {
+        background-color: var(--card-color);
+        color: white;
+        border: 2px solid #333;
+        padding: 18px 5px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .correct { background-color: var(--correct-color) !important; border-color: var(--correct-color) !important; }
+    .wrong { background-color: var(--wrong-color) !important; border-color: var(--wrong-color) !important; }
+
+    #score-counter {
+        margin-top: 25px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #aaa;
+    }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+
+    <!-- PANTALLA INICIO -->
+    <div id="start-screen" class="screen active">
+        <h1>Flags Quiz</h1>
+        <button class="btn-start" onclick="startGame('pack1')">WORLD</button>
+        <button class="btn-start" onclick="startGame('pack2')">BIZKAIA</button>
+        <button class="btn-start" onclick="startGame('pack3')">EUSKADI</button>
+    </div>
+
+    <!-- PANTALLA QUIZ -->
+    <div id="quiz-screen" class="screen">
+        <div class="flag-container">
+            <img id="flag-img" src="" alt="Bandera">
+        </div>
+        <div class="options-grid" id="options-container"></div>
+        <div id="score-counter">Aciertos: <span id="hits">0</span> / <span id="current-q">1</span></div>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="end-screen" class="screen">
+        <h2>¡Completado!</h2>
+        <p id="final-result"></p>
+        <button class="btn-start" onclick="location.reload()">VOLVER A JUGAR</button>
+    </div>
+
+</div>
+
+<script>
+    const packs = {
+        pack1: [
+             { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Flag_of_Biafra.svg/250px-Flag_of_Biafra.svg.png", opciones: ["Biafra", "Republic of Benin", "Malaui", "Kenya"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Flag_of_Bophuthatswana_%281972%E2%80%931994%29.svg/250px-Flag_of_Bophuthatswana_%281972%E2%80%931994%29.svg.png", opciones: ["Bophuthatswana", "South Africa", "Namibia", "Venda"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Kokbayraq_flag.svg/250px-Kokbayraq_flag.svg.png", opciones: ["East Turkestan", "Turkey", "Libya", "Republic of Hatay"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Flag_of_the_Basque_Country.svg/250px-Flag_of_the_Basque_Country.svg.png", opciones: ["Basque Country", "United Kingdom", "Seychelles", "Brittany"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Flag_of_the_Kingdom_of_Tahiti.svg/250px-Flag_of_the_Kingdom_of_Tahiti.svg.png", opciones: ["Kingdom of Tahiti", "French Polynesia", "Tonga", "Hawaii"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Flag_of_East_Germany.svg/250px-Flag_of_East_Germany.svg.png", opciones: ["East Germany", "West Germany", "German Empire", "Soviet Union"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Heiliges_R%C3%B6misches_Reich_-_Reichssturmfahne_vor_1433_%28Nimbierter_Adler%29.svg/250px-Heiliges_R%C3%B6misches_Reich_-_Reichssturmfahne_vor_1433_%28Nimbierter_Adler%29.svg.png", opciones: ["Holy Roman Empire", "Austrian Empire", "Habsburg Monarchy", "German Confederation"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Flag_of_Italy_%281861-1946%29_crowned.svg/250px-Flag_of_Italy_%281861-1946%29_crowned.svg.png", opciones: ["Kingdom of Sardinia", "Kingdom of Italy", "Savoy", "Kingdom of Two Sicilies"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Flag_of_Spain_%281931%E2%80%931939%29.svg/250px-Flag_of_Spain_%281931%E2%80%931939%29.svg.png", opciones: ["Second Spanish Republic", "Spain", "First Spanish Republic", "Romania"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Flag_of_the_United_Arab_Republic_%281958%E2%80%931971%29%2C_Flag_of_Syria_%281980%E2%80%932024%29.svg/250px-Flag_of_the_United_Arab_Republic_%281958%E2%80%931971%29%2C_Flag_of_Syria_%281980%E2%80%932024%29.svg.png", opciones: ["United Arab Republic", "Syria", "Egypt", "Iraq"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Kurdish_flag_%28Khoiboun%29.svg/250px-Kurdish_flag_%28Khoiboun%29.svg.png", opciones: ["Republic of Ararat", "Armenia", "Kurdistan", "Ethiopia"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Flag_of_Christmas_Island.svg/250px-Flag_of_Christmas_Island.svg.png", opciones: ["Christmas Island", "Cocos Islands", "Norfolk Island", "Solomon Islands"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Flag_of_Puerto_Rico.svg/250px-Flag_of_Puerto_Rico.svg.png", opciones: ["Puerto Rico", "Cuba", "Chile", "Texas"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Flag_of_Brandenburg.svg/250px-Flag_of_Brandenburg.svg.png", opciones: ["Brandenburg", "Poland", "Monaco", "Prussia"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Kroaz_Du.svg/250px-Kroaz_Du.svg.png", opciones: ["Brittany", "Cornwall", "Isle of Man", "Basque Country"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Flag_of_Chechen_Republic_of_Ichkeria.svg/250px-Flag_of_Chechen_Republic_of_Ichkeria.svg.png", opciones: ["Chechen Rep. of Ichkeria", "Chechen Republic", "Tatarstan", "Dagestan"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Flag_of_Eastern_Rumelia.svg/250px-Flag_of_Eastern_Rumelia.svg.png", opciones: ["Eastern Rumelia", "Netherlands", "Ottoman Empire", "Principality of Bulgaria"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Flag_of_the_Soviet_Union.svg/250px-Flag_of_the_Soviet_Union.svg.png", opciones: ["URSS", "China", "Vietnam", "Commune of Paris"], correcta: 0 },
+            { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Flag_of_Yugoslavia_%281918%E2%80%931941%29.svg/250px-Flag_of_Yugoslavia_%281918%E2%80%931941%29.svg.png", opciones: ["Kingdom of Yugoslavia", "SFR Yugoslavia", "Kingdom of Serbia", "Netherlands"], correcta: 0 }
+        ],
+        pack2: [
+            // 1. Arrigorriaga
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Arrigorriaga_bandera.svg/120px-Arrigorriaga_bandera.svg.png", opciones: ["Arrigorriaga", "Arakaldo", "Etxebarri", "Arrankudiaga"], correcta: 0 },
+
+// 2. Portugalete
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Portugalete_bandera.svg/120px-Portugalete_bandera.svg.png", opciones: ["Busturia", "Portugalete", "Sukarrieta", "Mendexa"], correcta: 1 },
+
+// 3. Zalla
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Flag_of_Zalla.svg/120px-Flag_of_Zalla.svg.png", opciones: ["Amorebieta", "Gatika", "Zalla", "Mungia"], correcta: 2 },
+
+// 4. Ibarrangelu
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Ibarrangelu_bandera.svg/120px-Ibarrangelu_bandera.svg.png", opciones: ["Gernika-Lumo", "Aulesti", "Erandio", "Ibarrangelu"], correcta: 3 },
+
+// 5. Derio
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Bandera_de_Derio.svg/120px-Bandera_de_Derio.svg.png", opciones: ["Derio", "Getxo", "Sondika", "Lezama"], correcta: 0 },
+
+// 6. Berango
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Bandera_de_Berango.svg/120px-Bandera_de_Berango.svg.png", opciones: ["Abadiño", "Berango", "Zeberio", "Bakio"], correcta: 1 },
+
+// 7. Barrika
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Barrika_bandera.svg/120px-Barrika_bandera.svg.png", opciones: ["Iurreta", "Larrabetzu", "Barrika", "Kortezubi"], correcta: 2 },
+
+// 8. Meñaca
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Menaka_bandera.svg/120px-Menaka_bandera.svg.png", opciones: ["Orduña", "Gueñes", "Areatza", "Meñaka"], correcta: 3 },
+
+// 9. Mendeja
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mendexako_udal-ikurri%C3%B1a.svg/120px-Mendexako_udal-ikurri%C3%B1a.svg.png", opciones: ["Mendexa", "Mundaka", "Plentzia", "Lekeitio"], correcta: 0 },
+
+// 10. Sestao
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Bandera_de_Sestao.svg/120px-Bandera_de_Sestao.svg.png", opciones: ["Barakaldo", "Sestao", "Ortuella", "Trapagaran"], correcta: 1 },
+
+// 11. Balmaseda
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Bandera_de_Balmaseda.svg/250px-Bandera_de_Balmaseda.svg.png", opciones: ["Muskiz", "Alonsotegi", "Balmaseda", "Abanto"], correcta: 2 },
+
+// 12. Galdakao
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Bandera_de_Galdakao.svg/120px-Bandera_de_Galdakao.svg.png", opciones: ["Elorrio", "Mallabia", "Berriz", "Galdakao"], correcta: 3 },
+
+// 13. Forua
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Foruko_udal_ikurrina.svg/120px-Foruko_udal_ikurrina.svg.png", opciones: ["Forua", "Busturia", "Arantzazu", "Murueta"], correcta: 0 },
+
+// 14. Zierbena
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Zierbenako_udal_ikurrina.svg/250px-Zierbenako_udal_ikurrina.svg.png", opciones: ["Lanestosa", "Zierbena", "Karrantza", "Turtzioz"], correcta: 1 },
+
+// 15. Basauri
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Bandera_de_Basauri.svg/120px-Bandera_de_Basauri.svg.png", opciones: ["Leioa", "Erandio", "Basauri", "Zamudio"], correcta: 2 },
+
+// 16. Bermeo
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Bandera_de_Bermeo.svg/120px-Bandera_de_Bermeo.svg.png", opciones: ["Ondarroa", "Elantxobe", "Mundaka", "Bermeo"], correcta: 3 },
+
+// 17. Ea
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Bandera_de_Ea.svg/120px-Bandera_de_Ea.svg.png", opciones: ["Ea", "Bedaron", "Ispaster", "Amoroto"], correcta: 0 },
+
+// 18. Ermua
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Ermua_bandera.gif/120px-Ermua_bandera.gif", opciones: ["Durango", "Ermua", "Garai", "Izurtza"], correcta: 1 },
+
+// 19. Gorliz
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gorliz_bandera.svg/120px-Gorliz_bandera.svg.png", opciones: ["Sopela", "Urduliz", "Gorliz", "Lemoiz"], correcta: 2 },
+
+// 20. Ugao
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Flag_of_Ugao-Miraballes_%282022%E2%80%93%29.svg/120px-Flag_of_Ugao-Miraballes_%282022%E2%80%93%29.svg.png", opciones: ["Zeanuri", "Dima", "Igorre", "Ugao"], correcta: 3 },
+
+// 21. Orozko
+{ img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Orozkoko_udal_ikurrina.svg/120px-Orozkoko_udal_ikurrina.svg.png", opciones: ["Orozko", "Markina-Xemein", "Etxebarria", "Gizaburuaga"], correcta: 0 }
+         
+        ],
+    pack3: [  
+  // BLOQUE: LOBOS Y ÁRBOLES
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Escudo_de_Loiu.svg/120px-Escudo_de_Loiu.svg.png", opciones: ["Sondika", "Gatika", "Loiu", "Marquina-Jeméin"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Escudo_de_Areatza_2007.svg/120px-Escudo_de_Areatza_2007.svg.png", opciones: ["Trucios-Turtzioz", "Balmaseda", "Munguía", "Areatza"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Escudo_de_Otxandio.svg/120px-Escudo_de_Otxandio.svg.png", opciones: ["Otxandio", "Munguía", "Dima", "Marquina-Jeméin"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Escudo_de_Berriz.svg/120px-Escudo_de_Berriz.svg.png", opciones: ["Izurtza", "Bérriz", "Garai", "Munguía"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Escudo_de_Izurtza.svg/120px-Escudo_de_Izurtza.svg.png", opciones: ["Bérriz", "Garai", "Izurtza", "Mañaria"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Escudo_de_Garai.svg/120px-Escudo_de_Garai.svg.png", opciones: ["Garai", "Bérriz", "Izurtza", "Mallabia"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Escudo_de_Mallabia.svg/120px-Escudo_de_Mallabia.svg.png", opciones: ["Garai", "Mallabia", "Ermua", "Zaldibar"], correcta: 1 },
+
+  // BLOQUE: TORRES Y MURALLAS
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Escudo_de_Bilbao_%28ovalado%29.svg/120px-Escudo_de_Bilbao_%28ovalado%29.svg.png", opciones: ["Portugalete", "Bilbao", "Trapagaran", "Plentzia"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Escudo_de_Portugalete.svg/120px-Escudo_de_Portugalete.svg.png", opciones: ["Bilbao", "Ondarroa", "Portugalete", "Lekeitio"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Escudo_de_Ermua.svg/120px-Escudo_de_Ermua.svg.png", opciones: ["Zaldibar", "Durango", "Elorrio", "Ermua"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Escudo_de_Durango.svg/120px-Escudo_de_Durango.svg.png", opciones: ["Durango", "Ermua", "Elorrio", "Iurreta"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Escudo_de_Elorrio.svg/120px-Escudo_de_Elorrio.svg.png", opciones: ["Durango", "Elorrio", "Ermua", "Gordexola"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Escudo_de_Balmaseda.svg/120px-Escudo_de_Balmaseda.svg.png", opciones: ["Portugalete", "Areatza", "Balmaseda", "Bilbao"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Escudo_de_Lanestosa.svg/120px-Escudo_de_Lanestosa.svg.png", opciones: ["Balmaseda", "Karrantza", "Orduña", "Lanestosa"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Urdu%C3%B1ako_armarri_ofiziala.svg/120px-Urdu%C3%B1ako_armarri_ofiziala.svg.png", opciones: ["Orduña", "Lanestosa", "Balmaseda", "Bilbao"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Escudo_de_Sestao.svg/120px-Escudo_de_Sestao.svg.png", opciones: ["Barakaldo", "Sestao", "Abanto-Zierbena", "Erandio"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Escudo_de_Barakaldo.svg/250px-Escudo_de_Barakaldo.svg.png", opciones: ["Sestao", "Erandio", "Barakaldo", "Bilbao"], correcta: 2 },
+
+  // BLOQUE: COSTA Y MAR
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Escudo_de_Bermeo.svg/120px-Escudo_de_Bermeo.svg.png", opciones: ["Lekeitio", "Getaria", "Ondarroa", "Bermeo"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Escudo_de_Ondarroa_2000.svg/120px-Escudo_de_Ondarroa_2000.svg.png", opciones: ["Lekeitio", "Ondarroa", "Mutriku", "Bermeo"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Escudo_de_Plentzia.svg/120px-Escudo_de_Plentzia.svg.png", opciones: ["Mundaka", "Bakio", "Plentzia", "Bermeo"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Escudo_de_Mundaka.svg/120px-Escudo_de_Mundaka.svg.png", opciones: ["Plentzia", "Busturia", "Sukarrieta", "Mundaka"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Escudo_de_Sukarrieta.svg/120px-Escudo_de_Sukarrieta.svg.png", opciones: ["Sukarrieta", "Mundaka", "Busturia", "Murueta"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Escudo_de_Bakio.svg/120px-Escudo_de_Bakio.svg.png", opciones: ["Plentzia", "Bakio", "Gorliz", "Sopela"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Escudo_de_Gorliz.svg/120px-Escudo_de_Gorliz.svg.png", opciones: ["Bakio", "Sopela", "Gorliz", "Berango"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Escudo_de_Sopelana.svg/120px-Escudo_de_Sopelana.svg.png", opciones: ["Gorliz", "Berango", "Getxo", "Sopela"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Escudo_de_Getxo.svg/120px-Escudo_de_Getxo.svg.png", opciones: ["Getxo", "Sopela", "Leioa", "Erandio"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Escudo_de_Zierbena.svg/120px-Escudo_de_Zierbena.svg.png", opciones: ["Santurtzi", "Abanto-Zierbena", "Zierbena", "Muskiz"], correcta: 2 },
+
+  // BLOQUE: PANELAS Y CRUCES
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Escudo_de_Galdakao.svg/120px-Escudo_de_Galdakao.svg.png", opciones: ["Morga", "Gordexola", "Zaratamo", "Galdakao"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Escudo_de_Morga.svg/120px-Escudo_de_Morga.svg.png", opciones: ["Morga", "Galdakao", "Muxika", "Arrieta"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Escudo_de_Gordexola.svg/120px-Escudo_de_Gordexola.svg.png", opciones: ["Galdakao", "Gordexola", "Artzentales", "Güeñes"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Escudo_de_Zaratamo.svg/120px-Escudo_de_Zaratamo.svg.png", opciones: ["Galdakao", "Zeberio", "Zaratamo", "Ugao-Miraballes"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Escudo_de_Gue%C3%B1es.svg/120px-Escudo_de_Gue%C3%B1es.svg.png", opciones: ["Gordexola", "Zalla", "Artzentales", "Güeñes"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Escudo_de_Zalla.svg/120px-Escudo_de_Zalla.svg.png", opciones: ["Zalla", "Güeñes", "Artzentales", "Balmaseda"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Escudo_de_Artzentales.svg/120px-Escudo_de_Artzentales.svg.png", opciones: ["Gordexola", "Artzentales", "Zalla", "Karrantza"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Escudo_de_Carranza.svg/120px-Escudo_de_Carranza.svg.png", opciones: ["Artzentales", "Lanestosa", "Karrantza", "Valle de Mena"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Escudo_de_Muxika.svg/120px-Escudo_de_Muxika.svg.png", opciones: ["Morga", "Arratzu", "Mendeja", "Muxika"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Escudo_de_Arrieta.svg/250px-Escudo_de_Arrieta.svg.png", opciones: ["Arrieta", "Morga", "Meñaka", "Busturia"], correcta: 0 },
+
+  // BLOQUE: NATURALEZA Y PAISAJE
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Escudo_de_Ajangiz.svg/120px-Escudo_de_Ajangiz.svg.png", opciones: ["Gernika-Lumo", "Forua", "Ajangiz", "Arratzu"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Escudo_de_Forua.svg/120px-Escudo_de_Forua.svg.png", opciones: ["Ajangiz", "Murueta", "Kortezubi", "Forua"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Escudo_de_Kortezubi.svg/120px-Escudo_de_Kortezubi.svg.png", opciones: ["Kortezubi", "Forua", "Nabarniz", "Ereño"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Escudo_de_Nabarniz.svg/120px-Escudo_de_Nabarniz.svg.png", opciones: ["Kortezubi", "Nabarniz", "Ereño", "Mendeja"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Escudo_de_Ere%C3%B1o.svg/120px-Escudo_de_Ere%C3%B1o.svg.png", opciones: ["Nabarniz", "Kortezubi", "Ereño", "Gautegiz Arteaga"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Escudo_de_Murueta.svg/120px-Escudo_de_Murueta.svg.png", opciones: ["Gernika-Lumo", "Forua", "Gautegiz Arteaga", "Murueta"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Escudo_de_Ispaster.svg/120px-Escudo_de_Ispaster.svg.png", opciones: ["Ispaster", "Ea", "Mendeja", "Amoroto"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Escudo_de_Amoroto.svg/120px-Escudo_de_Amoroto.svg.png", opciones: ["Ispaster", "Amoroto", "Gizaburuaga", "Ea"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Escudo_de_Gizaburuaga.svg/120px-Escudo_de_Gizaburuaga.svg.png", opciones: ["Amoroto", "Aulesti", "Gizaburuaga", "Ziortza-Bolibar"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Escudo_de_Aulesti.svg/120px-Escudo_de_Aulesti.svg.png", opciones: ["Gizaburuaga", "Munitibar", "Ziortza-Bolibar", "Aulesti"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Escudo_de_Munitibar-Arbatzegi_Gerrikaitz.svg/120px-Escudo_de_Munitibar-Arbatzegi_Gerrikaitz.svg.png", opciones: ["Munitibar", "Aulesti", "Arbacegi", "Guerricaiz"], correcta: 0 },
+
+  // BLOQUE: GRAN BILBAO Y VALLES
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Escudo_de_Erandio.svg/120px-Escudo_de_Erandio.svg.png", opciones: ["Leioa", "Erandio", "Barakaldo", "Sestao"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Escudo_de_Leioa.svg/250px-Escudo_de_Leioa.svg.png", opciones: ["Erandio", "Getxo", "Leioa", "Derio"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Escudo_de_Derio.svg/120px-Escudo_de_Derio.svg.png", opciones: ["Zamudio", "Sondika", "Loiu", "Derio"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Escudo_de_Zamudio.svg/250px-Escudo_de_Zamudio.svg.png", opciones: ["Zamudio", "Derio", "Lezama", "Sondika"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Escudo_de_Lezama.svg/120px-Escudo_de_Lezama.svg.png", opciones: ["Zamudio", "Lezama", "Larrabetzu", "Galdakao"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Escudo_de_Larrabetzu.svg/120px-Escudo_de_Larrabetzu.svg.png", opciones: ["Lezama", "Galdakao", "Larrabetzu", "Morga"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Escudo_de_Sondika.svg/120px-Escudo_de_Sondika.svg.png", opciones: ["Derio", "Erandio", "Loiu", "Sondika"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Escudo_de_Basauri.svg/120px-Escudo_de_Basauri.svg.png", opciones: ["Basauri", "Etxebarri", "Galdakao", "Arrankudiaga"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Escudo_de_Etxebarri.svg/120px-Escudo_de_Etxebarri.svg.png", opciones: ["Basauri", "Etxebarri", "Galdakao", "Ugao-Miraballes"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Escudo_de_Ugao_Miraballes.svg/120px-Escudo_de_Ugao_Miraballes.svg.png", opciones: ["Arrankudiaga", "Arrigorriaga", "Ugao-Miraballes", "Basauri"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Escudo_de_Arrigorriaga_%282001%29.svg/120px-Escudo_de_Arrigorriaga_%282001%29.svg.png", opciones: ["Ugao-Miraballes", "Zeberio", "Basauri", "Arrigorriaga"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Escudo_de_Zeberio.svg/120px-Escudo_de_Zeberio.svg.png", opciones: ["Zeberio", "Arrigorriaga", "Ugao-Miraballes", "Orozko"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Escudo_de_Arrankudiaga.svg/120px-Escudo_de_Arrankudiaga.svg.png", opciones: ["Ugao-Miraballes", "Arrankudiaga", "Orozko", "Lemoa"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Escudo_de_Orozko_2008.svg/250px-Escudo_de_Orozko_2008.svg.png", opciones: ["Arrankudiaga", "Arrigorriaga", "Orozko", "Lemoa"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Escudo_de_Lemoa.svg/120px-Escudo_de_Lemoa.svg.png", opciones: ["Igorre", "Arratia", "Amorebieta", "Lemoa"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Escudo_de_Igorre.svg/120px-Escudo_de_Igorre.svg.png", opciones: ["Igorre", "Lemoa", "Arratia", "Dima"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Escudo_de_Iurreta.svg/120px-Escudo_de_Iurreta.svg.png", opciones: ["Igorre", "Iurreta", "Amorebieta", "Lemoa"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Escudo_de_Abadi%C3%B1o.svg/120px-Escudo_de_Abadi%C3%B1o.svg.png", opciones: ["Elorrio", "Berriz", "Durango", "Abadiño"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Escudo_de_Ma%C3%B1aria.svg/120px-Escudo_de_Ma%C3%B1aria.svg.png", opciones: ["Mañaria", "Izurtza", "Garai", "Dima"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Escudo_de_Ea.svg/120px-Escudo_de_Ea.svg.png", opciones: ["Ispaster", "Ea", "Elantxobe", "Bermeo"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Escudo_de_Elantxobe.svg/120px-Escudo_de_Elantxobe.svg.png", opciones: ["Ea", "Bermeo", "Elantxobe", "Mundaka"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Escudo_de_Errigoiti.svg/120px-Escudo_de_Errigoiti.svg.png", opciones: ["Arrieta", "Morga", "Meñaka", "Errigoiti"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Escudo_de_Me%C3%B1aka.svg/120px-Escudo_de_Me%C3%B1aka.svg.png", opciones: ["Meñaka", "Errigoiti", "Arrieta", "Fruiz"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Escudo_de_Fruiz.svg/120px-Escudo_de_Fruiz.svg.png", opciones: ["Meñaka", "Ugao", "Gamiz-Fika", "Arrieta"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Escudo_de_Gamiz_Fika.svg/120px-Escudo_de_Gamiz_Fika.svg.png", opciones: ["Fruiz", "Meñaka", "Gamiz-Fika", "Munguía"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Escudo_de_Lemoiz.svg/120px-Escudo_de_Lemoiz.svg.png", opciones: ["Gorliz", "Bakio", "Maruri", "Lemoiz"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Escudo_de_Maruri_Jatabe.svg/120px-Escudo_de_Maruri_Jatabe.svg.png", opciones: ["Maruri-Jatabe", "Gatika", "Laukiz", "Lemoiz"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Escudo_de_Laukiz.svg/120px-Escudo_de_Laukiz.svg.png", opciones: ["Maruri-Jatabe", "Laukiz", "Gatika", "Urduliz"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Escudo_de_Urduliz.svg/120px-Escudo_de_Urduliz.svg.png", opciones: ["Sopela", "Berango", "Urduliz", "Laukiz"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Escudo_de_Berango.svg/120px-Escudo_de_Berango.svg.png", opciones: ["Urduliz", "Sopela", "Getxo", "Berango"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Escudo_de_Trucios.svg/120px-Escudo_de_Trucios.svg.png", opciones: ["Trucios-Turtzioz", "Artzentales", "Galdames", "Muskiz"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Escudo_de_Galdames.svg/120px-Escudo_de_Galdames.svg.png", opciones: ["Muskiz", "Galdames", "Abanto-Zierbena", "Sopuerta"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Escudo_de_Sopuerta_%28Juntas_de_Avellaneda%29.svg/120px-Escudo_de_Sopuerta_%28Juntas_de_Avellaneda%29.svg.png", opciones: ["Galdames", "Muskiz", "Sopuerta", "Artzentales"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Escudo_de_Muskiz.svg/120px-Escudo_de_Muskiz.svg.png", opciones: ["Zierbena", "Galdames", "Sopuerta", "Muskiz"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Escudo_de_Abanto_Vizcaya.svg/120px-Escudo_de_Abanto_Vizcaya.svg.png", opciones: ["Abanto-Zierbena", "Muskiz", "Zierbena", "Ortuella"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Escudo_de_Ortuella.svg/120px-Escudo_de_Ortuella.svg.png", opciones: ["Trapagaran", "Ortuella", "Abanto-Zierbena", "Santurtzi"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Escudo_de_Trapagaran.svg/120px-Escudo_de_Trapagaran.svg.png", opciones: ["Ortuella", "Sestao", "Valle de Trápaga", "Barakaldo"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Escudo_de_Arakaldo.svg/120px-Escudo_de_Arakaldo.svg.png", opciones: ["Arrankudiaga", "Orozko", "Zeberio", "Arakaldo"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Escudo_de_Arratzu.svg/120px-Escudo_de_Arratzu.svg.png", opciones: ["Arratzu", "Kortezubi", "Nabarniz", "Mendata"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Escudo_de_Mendata.svg/120px-Escudo_de_Mendata.svg.png", opciones: ["Arratzu", "Mendata", "Kortezubi", "Nabarniz"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bolibarko_armarria.png/120px-Bolibarko_armarria.png", opciones: ["Munitibar", "Arbacegi", "Ziortza-Bolibar", "Aulesti"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Escudo_de_Mendexa.svg/120px-Escudo_de_Mendexa.svg.png", opciones: ["Ispaster", "Amoroto", "Lekeitio", "Mendeja"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Escudo_de_Gautegiz_Arteaga.svg/120px-Escudo_de_Gautegiz_Arteaga.svg.png", opciones: ["Forua", "Murueta", "Gautegiz Arteaga", "Kortezubi"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Escudo_de_Busturia.svg/120px-Escudo_de_Busturia.svg.png", opciones: ["Sukarrieta", "Murueta", "Mundaka", "Busturia"], correcta: 3 }
+    ],
+    };
+    
+    Object.values(packs).forEach(pack => {
+        while (pack.length < 15) {
+            pack.push({...pack[Math.floor(Math.random() * pack.length)]});
+        }
+    });
+
+    let indiceActual = 0;
+    let aciertos = 0;
+    let preguntasMezcladas = [];
+    let interactuable = true;
+    let indiceCorrectoActual = 0;
+
+    function startGame(packElegido) {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('quiz-screen').classList.add('active');
+
+        preguntasMezcladas = packs[packElegido].sort(() => Math.random() - 0.5).slice(0, 15);
+
+        indiceActual = 0;
+        aciertos = 0;
+
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        interactuable = true;
+        const data = preguntasMezcladas[indiceActual];
+
+        let opcionesConEstado = data.opciones.map((opt, i) => ({ texto: opt, esCorrecta: i === data.correcta }));
+        opcionesConEstado.sort(() => Math.random() - 0.5);
+        indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
+
+        document.getElementById('flag-img').src = data.img;
+        document.getElementById('current-q').innerText = indiceActual + 1;
+        document.getElementById('hits').innerText = aciertos;
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        opcionesConEstado.forEach((obj, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = obj.texto;
+            btn.onclick = () => checkAnswer(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(elegida, btn) {
+        if (!interactuable) return;
+        interactuable = false;
+
+        const botones = document.querySelectorAll('.option-btn');
+
+        if (elegida === indiceCorrectoActual) {
+            btn.classList.add('correct');
+            aciertos++;
+            document.getElementById('hits').innerText = aciertos;
+        } else {
+            btn.classList.add('wrong');
+            botones[indiceCorrectoActual].classList.add('correct');
+        }
+
+        setTimeout(() => {
+            indiceActual++;
+            if (indiceActual < 15) {
+                renderQuestion();
+            } else {
+                finishGame();
+            }
+        }, 3000);
+    }
+
+    function finishGame() {
+        document.getElementById('quiz-screen').classList.remove('active');
+        document.getElementById('end-screen').classList.add('active');
+        document.getElementById('final-result').innerText = `Puntuación final: ${aciertos} de 15`;
+    }
+</script>
+
+</body>
+</html>
