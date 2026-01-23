@@ -382,6 +382,36 @@ async function mostrarRankingActualizado(nombrePack) {
         `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
     ).join('');
 }
+async function cargarMejoresPorCategoria() {
+    const packs = ['pack1', 'pack2', 'pack3', 'pack4'];
+
+    for (const pack of packs) {
+        const { data, error } = await _supabase
+            .from('ranking')
+            .select('username, score')
+            .eq('pack_name', pack)
+            .order('score', { ascending: false })
+            .limit(1) // Solo el mejor
+            .maybeSingle(); // Trae un solo objeto o null
+
+        const contenedor = document.getElementById(`best-${pack}`);
+        
+        if (error) {
+            console.error("Error:", error);
+            if (contenedor) contenedor.innerText = "";
+            continue;
+        }
+
+        if (data) {
+            contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b>`;
+        } else {
+            contenedor.innerText = "Sin récords aún";
+        }
+    }
+}
+
+// Llamar a la función cuando cargue la página
+window.onload = cargarMejoresPorCategoria;
 function finishGame() {
     document.getElementById('quiz-screen').classList.remove('active');
     document.getElementById('end-screen').classList.add('active');
