@@ -108,6 +108,23 @@
     text-align: left;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+    .btn-start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px; /* Un poco más de espacio */
+    font-size: 1.5rem; /* El nombre del pack grande */
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.best-player {
+    font-size: 0.9rem; /* El récord un poco más pequeño */
+    font-weight: normal;
+    margin-top: 8px;
+    color: #ffcc00; /* Un color dorado para resaltar al campeón */
+    text-transform: uppercase;
+}
 
 #lista-ranking li {
     background: #252525;
@@ -176,13 +193,30 @@
 <div id="game-container">
 
     <!-- PANTALLA INICIO -->
-    <div id="start-screen" class="screen active">
-        <h1>Flags Quiz</h1>
-     <button class="btn-start" onclick="seleccionarPack('pack1')">WORLD</button>
-<button class="btn-start" onclick="seleccionarPack('pack2')">BIZKAIA</button>
-<button class="btn-start" onclick="seleccionarPack('pack3')">ARMARRI</button>
-<button class="btn-start" onclick="seleccionarPack('pack4')">PROVINCIAS</button>
-    </div>
+ 
+   <div id="start-screen" class="screen active">
+    <h1>Flags Quiz</h1>
+    
+    <button class="btn-start" onclick="seleccionarPack('pack1')">
+        WORLD
+        <div id="best-pack1" class="best-player">Cargando récord...</div>
+    </button>
+
+    <button class="btn-start" onclick="seleccionarPack('pack2')">
+        BIZKAIA
+        <div id="best-pack2" class="best-player">Cargando récord...</div>
+    </button>
+
+    <button class="btn-start" onclick="seleccionarPack('pack3')">
+        ARMARRI
+        <div id="best-pack3" class="best-player">Cargando récord...</div>
+    </button>
+
+    <button class="btn-start" onclick="seleccionarPack('pack4')">
+        PROVINCIAS
+        <div id="best-pack4" class="best-player">Cargando récord...</div>
+    </button>
+</div>
 
     <!-- PANTALLA QUIZ -->
     <div id="quiz-screen" class="screen">
