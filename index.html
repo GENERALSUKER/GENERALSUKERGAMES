@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Banderas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    :root {
+        --bg-color: #121212;
+        --card-color: #1e1e1e;
+        --text-color: #ffffff;
+        --correct-color: #4caf50;
+        --wrong-color: #f44336;
+        --accent-color: #2196f3;
+    }
+
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    #game-container {
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .screen { display: none; }
+    .active { display: block; }
+
+    .btn-start {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 10px 0;
+    }
+
+    /* CONTENEDOR EQUILIBRADO */
+    .flag-container {
+        width: 100%;
+        height: 220px;
+        background-color: #1a1a1a; /* Un tono más oscuro para que resalte la bandera */
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 25px;
+        overflow: hidden;
+        border: 2px solid #333;
+        /* Un pequeño respiro de 5px para que no toque el borde físico */
+        padding: 5px; 
+        box-sizing: border-box;
+    }
+
+    /* LA IMAGEN: GRANDE PERO RESPETUOSA */
+    .flag-container img {
+        width: 100%;
+        height: 100%;
+        /* 'contain' hace que la bandera se vea ENTERA y con su calidad original */
+        object-fit: contain; 
+        display: block;
+        /* Esto suaviza los bordes si la imagen es de baja resolución */
+        image-rendering: auto; 
+    }
+
+    .options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .option-btn {
+        background-color: var(--card-color);
+        color: white;
+        border: 2px solid #333;
+        padding: 18px 5px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .correct { background-color: var(--correct-color) !important; border-color: var(--correct-color) !important; }
+    .wrong { background-color: var(--wrong-color) !important; border-color: var(--wrong-color) !important; }
+
+    #score-counter {
+        margin-top: 25px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #aaa;
+    }
+   #lista-ranking {
+    list-style: none;
+    padding: 0;
+    max-width: 280px; /* Un poco más ancho para que luzca mejor */
+    margin: 20px auto;
+    text-align: left;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#lista-ranking li {
+    background: #252525;
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #333;
+    transition: transform 0.2s; /* Efecto suave al pasar el ratón */
+}
+
+/* Efecto al pasar el ratón por encima */
+#lista-ranking li:hover {
+    transform: scale(1.02);
+    background: #2a2a2a;
+}
+
+/* Estilo general para el número del puesto */
+#lista-ranking li span {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* 🥇 PRIMER PUESTO (ORO) */
+#lista-ranking li:nth-child(1) {
+    border: 1px solid #ffd700;
+    background: linear-gradient(90deg, #252525, #3a3200);
+}
+#lista-ranking li:nth-child(1) span {
+    color: #ffd700; /* Oro */
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* 🥈 SEGUNDO PUESTO (PLATA) */
+#lista-ranking li:nth-child(2) {
+    border: 1px solid #c0c0c0;
+}
+#lista-ranking li:nth-child(2) span {
+    color: #c0c0c0; /* Plata */
+}
+
+/* 🥉 TERCER PUESTO (BRONCE) */
+#lista-ranking li:nth-child(3) {
+    border: 1px solid #cd7f32;
+}
+#lista-ranking li:nth-child(3) span {
+    color: #cd7f32; /* Bronce */
+}
+
+/* Resto de puestos (4 al 10) */
+#lista-ranking li:nth-child(n+4) span {
+    color: #2196f3; /* Tu azul original */
+}
+
+/* Estilo para los puntos */
+#lista-ranking li b {
+    color: #fff;
+    font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+
+<div id="game-container">
+
+    <!-- PANTALLA INICIO -->
+    <div id="start-screen" class="screen active">
+        <h1>Flags Quiz</h1>
+     <button class="btn-start" onclick="seleccionarPack('pack1')">WORLD</button>
+<button class="btn-start" onclick="seleccionarPack('pack2')">BIZKAIA</button>
+<button class="btn-start" onclick="seleccionarPack('pack3')">ARMARRI</button>
+<button class="btn-start" onclick="seleccionarPack('pack4')">PROVINCIAS</button>
+    </div>
+
+    <!-- PANTALLA QUIZ -->
+    <div id="quiz-screen" class="screen">
+        <div class="flag-container">
+            <img id="flag-img" src="" alt="Bandera">
+        </div>
+        <div class="options-grid" id="options-container"></div>
+        <div id="score-counter">Aciertos: <span id="hits">0</span> / <span id="current-q">1</span></div>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+ <div id="end-screen" class="screen">
+    <h2>¡Completado!</h2>
+    <p id="final-result"></p>
+    
+    <div id="save-score-zone">
+        <input type="text" id="player-name" placeholder="Escribe tu nombre" style="padding: 10px; border-radius: 5px; border: none;">
+        <button class="btn-start" onclick="enviarPuntuacion()">ENVIAR PUNTUACIÓN</button>
+    </div>
+<div id="ranking-container">
+    <h3>🏆 TOP 10 MUNDIAL</h3>
+    <ul id="lista-ranking">
+        </ul>
+</div>
+    <ul id="lista-ranking"></ul>
+    <button class="btn-start" onclick="location.reload()">VOLVER A JUGAR</button>
+</div>
+
+</div>
+<script src="script.js"></script>
+
+</body>
+</html>
