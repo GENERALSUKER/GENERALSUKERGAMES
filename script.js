@@ -428,7 +428,7 @@ async function mostrarRankingActualizado(nombrePack) {
         'pack1': 'MUNDIAL',
         'pack2': 'BIZKAIA',
         'pack3': 'ARMARRI',
-        'pack4': 'PROVINCIAS'
+        'pack4': 'PROVINCIAS',
         'pack5': 'ESPAÑA 100K'
     };
 
@@ -453,7 +453,7 @@ async function mostrarRankingActualizado(nombrePack) {
     ).join('');
 }
     async function cargarMejoresPorCategoria() {
-    const packs = ['pack1', 'pack2', 'pack3', 'pack4'];
+    const packs = ['pack1', 'pack2', 'pack3', 'pack4','pack5'];
 
     for (const pack of packs) {
         const { data, error } = await _supabase
@@ -481,7 +481,6 @@ async function mostrarRankingActualizado(nombrePack) {
 }
 
 // Llamar a la función cuando cargue la página
-window.onload = cargarMejoresPorCategoria;
 function finishGame() {
     document.getElementById('quiz-screen').classList.remove('active');
     document.getElementById('end-screen').classList.add('active');
@@ -601,4 +600,7 @@ async function deleteNews(id) {
 }
 
 // Iniciar al cargar la página
-document.addEventListener('DOMContentLoaded', renderNews);
+document.addEventListener('DOMContentLoaded', () => {
+    renderNews();
+    cargarMejoresPorCategoria();
+});
