@@ -319,7 +319,7 @@ const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.c
         };
     
     Object.values(packs).forEach(pack => {
-        while (pack.length < 15) {
+        while (pack.length < 25) {
             pack.push({...pack[Math.floor(Math.random() * pack.length)]});
         }
     });
@@ -343,7 +343,7 @@ function startGame(packElegido) {
     document.getElementById('quiz-screen').classList.add('active');
 
     // Usamos el packElegido para sacar las preguntas
-    preguntasMezcladas = packs[packElegido].sort(() => Math.random() - 0.5).slice(0, 15);
+    preguntasMezcladas = packs[packElegido].sort(() => Math.random() - 0.5).slice(0, 25);
 
     indiceActual = 0;
     aciertos = 0;
@@ -429,6 +429,7 @@ async function mostrarRankingActualizado(nombrePack) {
         'pack2': 'BIZKAIA',
         'pack3': 'ARMARRI',
         'pack4': 'PROVINCIAS'
+        'pack5': 'ESPAÑA 100K'
     };
 
     const { data: ranking, error } = await _supabase
