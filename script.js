@@ -1,3 +1,7 @@
+const supabaseUrl = 'https://obwmxhzbpprllnngsitr.supabase.co';
+const supabaseKey = 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC';
+// Configuración de conexión
+const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.co', 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC');
     const packs = {
         pack1: [
              { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Flag_of_Biafra.svg/250px-Flag_of_Biafra.svg.png", opciones: ["Biafra", "Republic of Benin", "Malaui", "Kenya"], correcta: 0 },
@@ -228,11 +232,11 @@
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Escudo_de_Navarra_%28oficial%29.svg/120px-Escudo_de_Navarra_%28oficial%29.svg.png", opciones: ["Valladolid", "Navarra", "Almería", "Granada"], correcta: 1 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Provincia_de_Ourense_-_Escudo.svg/120px-Provincia_de_Ourense_-_Escudo.svg.png", opciones: ["Lugo", "Pontevedra", "Orense", "A Coruña"], correcta: 2 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Coat_of_Arms_of_Palencia_Province.svg/250px-Coat_of_Arms_of_Palencia_Province.svg.png", opciones: ["Valladolid", "Burgos", "Soria", "Palencia"], correcta: 3 },
-  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Provincia_de_Las_Palmas_-_Escudo.svg/120px-Provincia_de_Las_Palmas_-_Escudo.svg.png", opciones: ["Las Palmas", "Tenerife", "Ceuta", "Baleares"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Provincia_de_Las_Palmas_-_Escudo.svg/120px-Provincia_de_Las_Palmas_-_Escudo.svg.png", opciones: ["Las Palmas", "Tenerife", "Canarias", "Baleares"], correcta: 0 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Escudo_de_la_provincia_de_Pontevedra.svg/250px-Escudo_de_la_provincia_de_Pontevedra.svg.png", opciones: ["A Coruña", "Pontevedra", "Lugo", "Orense"], correcta: 1 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Escudo_de_la_Comunidad_Autonoma_de_La_Rioja.svg/120px-Escudo_de_la_Comunidad_Autonoma_de_La_Rioja.svg.png", opciones: ["Madrid", "Álava", "La Rioja", "Soria"], correcta: 2 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Escudo_de_la_Provincia_de_Salamanca.svg/120px-Escudo_de_la_Provincia_de_Salamanca.svg.png", opciones: ["Zamora", "Burgos", "Palencia", "Salamanca"], correcta: 3 },
-  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Provincia_de_Santa_Cruz_de_Tenerife_-_Escudo.svg/120px-Provincia_de_Santa_Cruz_de_Tenerife_-_Escudo.svg.png", opciones: ["Sta. Cruz de Tenerife", "Las Palmas", "Asturias", "Melilla"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Provincia_de_Santa_Cruz_de_Tenerife_-_Escudo.svg/120px-Provincia_de_Santa_Cruz_de_Tenerife_-_Escudo.svg.png", opciones: ["Sta. Cruz de Tenerife", "Las Palmas", "Asturias", "Canarias"], correcta: 0 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Escudo_de_la_provincia_de_Segovia.svg/250px-Escudo_de_la_provincia_de_Segovia.svg.png", opciones: ["Ávila", "Segovia", "Albacete", "Cuenca"], correcta: 1 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Escudo_de_la_provincia_de_Sevilla.svg/250px-Escudo_de_la_provincia_de_Sevilla.svg.png", opciones: ["Cantabria", "Badajoz", "Sevilla", "Granada"], correcta: 2 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Escudo_de_la_provincia_de_Soria2.svg/120px-Escudo_de_la_provincia_de_Soria2.svg.png", opciones: ["Guadalajara", "Burgos", "Segovia", "Soria"], correcta: 3 },
@@ -245,6 +249,73 @@
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Escudo_de_la_provincia_de_Zamora.svg/120px-Escudo_de_la_provincia_de_Zamora.svg.png", opciones: ["Salamanca", "Orense", "Zamora", "Pontevedra"], correcta: 2 },
   { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Escudo_d%27a_probinzia_de_Zaragoza.svg/120px-Escudo_d%27a_probinzia_de_Zaragoza.svg.png", opciones: ["León", "Córdoba", "Cáceres", "Zaragoza"], correcta: 3 }
 ],
+        pack5: [
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Bandera_de_la_ciudad_de_Madrid.svg/120px-Bandera_de_la_ciudad_de_Madrid.svg.png", opciones: ["Murcia", "Valladolid", "Madrid", "Alcorcón"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Flag_of_Barcelona.svg/120px-Flag_of_Barcelona.svg.png", opciones: ["Barcelona", "L'Hospitalet", "Badalona", "Girona"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Flag_of_the_Land_of_Valencia_%28official%29.svg/120px-Flag_of_the_Land_of_Valencia_%28official%29.svg.png", opciones: ["Torrent", "Valencia", "Castellón", "Zaragoza"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Zaragoza_%28ciudad%29.svg/120px-Zaragoza_%28ciudad%29.svg.png", opciones: ["Jaén", "Córdoba", "Sevilla", "Cartagena"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Zaragoza_%28ciudad%29.svg/120px-Zaragoza_%28ciudad%29.svg.png", opciones: ["Palma", "Zaragoza", "Lleida", "Huesca"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Flag_of_M%C3%A1laga%2C_Spain.svg/120px-Flag_of_M%C3%A1laga%2C_Spain.svg.png", opciones: ["Granada", "Málaga", "Algeciras", "Las Palmas"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Flag_of_Murcia.svg/120px-Flag_of_Murcia.svg.png", opciones: ["Madrid", "Albacete", "Cartagena", "Murcia"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Flag_of_Mallorca.svg/120px-Flag_of_Mallorca.svg.png", opciones: ["Palma de Mallorca", "Zaragoza", "Tarragona", "Lorca"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Flag_of_Las_Palmas_de_Gran_Canaria.svg/120px-Flag_of_Las_Palmas_de_Gran_Canaria.svg.png", opciones: ["Telde", "Las Palmas de Gran Canaria", "Málaga", "S.C. Tenerife"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Bandera_de_Bilbao.svg/120px-Bandera_de_Bilbao.svg.png", opciones: ["Logroño", "San Sebastián", "Bilbao", "Vitoria"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Bandera_d%27Alacant.svg/120px-Bandera_d%27Alacant.svg.png", opciones: ["Alicante", "San Sebastián", "S.C. Tenerife", "Elche"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Flag_of_C%C3%B3rdoba%2C_Spain.svg/120px-Flag_of_C%C3%B3rdoba%2C_Spain.svg.png", opciones: ["Sevilla", "Córdoba", "Jaén", "Almería"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Bandera_valladolid.svg/120px-Bandera_valladolid.svg.png", opciones: ["Madrid", "Móstoles", "Valladolid", "Alcalá de Henares"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Vigo_bandera_2.png/120px-Vigo_bandera_2.png", opciones: ["Vigo", "A Coruña", "Santiago", "Pontevedra"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Bandera_gijon.svg/120px-Bandera_gijon.svg.png", opciones: ["Gijón", "Oviedo", "Avilés", "Santander"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Bandera_de_l%27Hospitalet_de_Llobregat.svg/120px-Bandera_de_l%27Hospitalet_de_Llobregat.svg.png", opciones: ["L'Hospitalet de Llobregat", "Barcelona", "Cornellà", "Badalona"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Vitoria.svg/120px-Flag_of_Vitoria.svg.png", opciones: ["Bilbao", "Logroño", "San Sebastián", "Vitoria-Gasteiz"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Flag_of_Elx.svg/120px-Flag_of_Elx.svg.png", opciones: ["Alicante", "Granada", "Elche", "Orihuela"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Bandera_de_Granada_%28Granada%29.svg/120px-Bandera_de_Granada_%28Granada%29.svg.png", opciones: ["Granada", "Málaga", "Algeciras", "Elche"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Flag_of_Terrassa%2C_Barcelona.svg/120px-Flag_of_Terrassa%2C_Barcelona.svg.png", opciones: ["Sabadell", "Terrassa", "Manresa", "Barcelona"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bandera_Badalona.svg/120px-Bandera_Badalona.svg.png", opciones: ["Barcelona", "Girona", "Badalona", "Mataró"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Uvieu_flag.svg/120px-Uvieu_flag.svg.png", opciones: ["Gijón", "Avilés", "El Ejido", "Oviedo"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Bandera_Cartagena.svg/120px-Bandera_Cartagena.svg.png", opciones: ["Murcia", "Sevilla", "Cartagena", "Almería"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Flag_of_Sabadell.svg/120px-Flag_of_Sabadell.svg.png", opciones: ["Terrassa", "Sabadell", "Sant Cugat", "Reus"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Flag_of_Jerez.svg/120px-Flag_of_Jerez.svg.png", opciones: ["Marbella", "Sanlúcar", "Jerez de la Frontera", "Cádiz"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/M%C3%B3stoles_%28bandera%29.svg/120px-M%C3%B3stoles_%28bandera%29.svg.png", opciones: ["Valladolid", "Móstoles", "Fuenlabrada", "Leganés"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Flag_Santa_Cruz_de_Tenerife_city.svg/120px-Flag_Santa_Cruz_de_Tenerife_city.svg.png", opciones: ["Santander", "Alicante", "Santa Cruz de Tenerife", "Arona"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Bandera_Pamplona.svg/120px-Bandera_Pamplona.svg.png", opciones: ["Madrid", "Guadalajara", "Pamplona", "Burgos"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Bandera_de_Almer%C3%ADa.svg/120px-Bandera_de_Almer%C3%ADa.svg.png", opciones: ["Almería", "Huelva", "Logroño", "Bilbao"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Flag_of_Alcal%C3%A1_de_Henares.svg/120px-Flag_of_Alcal%C3%A1_de_Henares.svg.png", opciones: ["Burgos", "Guadalajara", "Alcalá de Henares", "Parla"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Flag_of_Fuenlabrada.svg/120px-Flag_of_Fuenlabrada.svg.png", opciones: ["Fuenlabrada", "Getafe", "Móstoles", "Leganés"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Bandera_de_Leganes.svg/120px-Bandera_de_Leganes.svg.png", opciones: ["Fuenlabrada", "Getafe", "Alcorcón", "Leganés"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Bandera_de_San_Sebasti%C3%A1n.svg/120px-Bandera_de_San_Sebasti%C3%A1n.svg.png", opciones: ["Alicante", "Santander", "Bilbao", "San Sebastián"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Bandera_de_Getafe.svg/120px-Bandera_de_Getafe.svg.png", opciones: ["Leganés", "Getafe", "Fuenlabrada", "Parla"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Bandera_de_la_ciudad_de_Burgos_%28Espa%C3%B1a%29.svg/120px-Bandera_de_la_ciudad_de_Burgos_%28Espa%C3%B1a%29.svg.png", opciones: ["Alcalá de Henares", "Valdemoro", "Burgos", "Valladolid"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Flag_of_Albacete_%28city%29_Spain.svg/120px-Flag_of_Albacete_%28city%29_Spain.svg.png", opciones: ["Murcia", "Albacete", "Linares", "Madrid"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Bandera_de_Castell%C3%B3_de_la_Plana-2.svg/120px-Bandera_de_Castell%C3%B3_de_la_Plana-2.svg.png", opciones: ["Valencia", "Vila-real", "Alicante", "Castellón de la Plana"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Santander.svg/120px-Santander.svg.png", opciones: ["San Sebastián", "Santander", "S.C. Tenerife", "Alicante"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Flag_of_Alcorc%C3%B3n.svg/120px-Flag_of_Alcorc%C3%B3n.svg.png", opciones: ["Madrid", "Torrejón", "Alcorcón", "Jaén"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Flag_of_San_Crist%C3%B3bal_de_la_Laguna.svg/120px-Flag_of_San_Crist%C3%B3bal_de_la_Laguna.svg.png", opciones: ["S.C. Tenerife", "Las Palmas", "San Cristóbal de La Laguna", "Arona"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Bandera_de_Logro%C3%B1o.svg/120px-Bandera_de_Logro%C3%B1o.svg.png", opciones: ["Bilbao", "Logroño", "Vitoria", "Almería"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_Badajoz.svg/120px-Flag_of_Badajoz.svg.png", opciones: ["Málaga", "Granada", "Badajoz", "Mérida"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Marbella_Spain.svg/120px-Marbella_Spain.svg.png", opciones: ["Jerez", "Estepona", "Marbella", "Dos Hermanas"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Bandera_de_Salamanca.svg/120px-Bandera_de_Salamanca.svg.png", opciones: ["Ávila", "Salamanca", "Palencia", "Madrid"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Bandera_de_Huelva1.svg/120px-Bandera_de_Huelva1.svg.png", opciones: ["Almería", "Huelva", "Cádiz", "San Fernando"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Flag_of_Lleida.svg/120px-Flag_of_Lleida.svg.png", opciones: ["Zaragoza", "Lleida", "Girona", "Tarragona"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bandera_de_Tarragona.svg/120px-Bandera_de_Tarragona.svg.png", opciones: ["Lleida", "Reus", "Tarragona", "Girona"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Flag_of_Dos_Hermanas_Spain.svg/120px-Flag_of_Dos_Hermanas_Spain.svg.png", opciones: ["Marbella", "Alcalá de Guadaíra", "Sevilla", "Dos Hermanas"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bandera_de_Parla_2017.svg/120px-Bandera_de_Parla_2017.svg.png", opciones: ["Getafe", "Alcalá de Henares", "Parla", "Fuenlabrada"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Bandera_de_Torrej%C3%B3n_de_Ardoz.svg/120px-Bandera_de_Torrej%C3%B3n_de_Ardoz.svg.png", opciones: ["Alcorcón", "Leganés", "Torrejón de Ardoz", "S. Fernando"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Flag_of_Matar%C3%B3.svg/120px-Flag_of_Matar%C3%B3.svg.png", opciones: ["Badalona", "Girona", "Mataró", "Barcelona"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Flag_of_Algeciras.svg/120px-Flag_of_Algeciras.svg.png", opciones: ["Málaga", "Granada", "Sanlúcar", "Algeciras"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Bandera_de_Le%C3%B3n_%28ciudad%29.svg/120px-Bandera_de_Le%C3%B3n_%28ciudad%29.svg.png", opciones: ["Oviedo", "León", "Salamanca", "Ponferrada"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Flag_of_Alcobendas.svg/120px-Flag_of_Alcobendas.svg.png", opciones: ["S.S. de los Reyes", "Pozuelo", "Madrid", "Alcobendas"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Bandera_Santa_Coloma_de_Gramenet.png", opciones: ["Santa Coloma de Gramenet", "Badalona", "Hospitalet", "Sabadell"], correcta: 0 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Bandera_de_Ja%C3%A9n.svg/120px-Bandera_de_Ja%C3%A9n.svg.png", opciones: ["Alcorcón", "Sevilla", "Córdoba", "Jaén"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Bandera_de_C%C3%A1diz.svg/120px-Bandera_de_C%C3%A1diz.svg.png", opciones: ["Huelva", "Jerez", "Cádiz", "San Fernando"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Bandera_telde.svg/120px-Bandera_telde.svg.png", opciones: ["Las Palmas", "Santa Lucía", "Arona", "Telde"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Bandera_de_Roquetas_de_Mar.svg/120px-Bandera_de_Roquetas_de_Mar.svg.png", opciones: ["El Ejido", "Almería", "Roquetas de Mar", "Marbella"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Bandera_de_Orense.svg/120px-Bandera_de_Orense.svg.png", opciones: ["Lugo", "A Coruña", "Pontevedra", "Ourense"], correcta: 3 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Flag_of_Reus_%28Tarragona%29.svg/120px-Flag_of_Reus_%28Tarragona%29.svg.png", opciones: ["Tarragona", "Reus", "Sabadell", "Girona"], correcta: 1 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Bandera_de_Girona.svg/120px-Bandera_de_Girona.svg.png", opciones: ["Badalona", "Lleida", "Girona", "Barcelona"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Barakaldoko_ikurra_berria.svg/120px-Barakaldoko_ikurra_berria.svg.png", opciones: ["Sestao", "Getxo", "Barakaldo", "Bilbao"], correcta: 2 },
+  { img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Bandera_Pamplona.svg/120px-Bandera_Pamplona.svg.png", opciones: ["Vitoria-Gasteiz", "Pamplona", "Cádiz", "Castellón"], correcta: 1 }
+            
+        ],
         };
     
     Object.values(packs).forEach(pack => {
@@ -321,15 +392,13 @@ function startGame(packElegido) {
 
         setTimeout(() => {
             indiceActual++;
-            if (indiceActual < 15) {
+            if (indiceActual < 25) {
                 renderQuestion();
             } else {
                 finishGame();
             }
         }, 2000);
     }
-// Configuración de conexión
-const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.co', 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC');
 
 // Función para enviar la puntuación al terminar el juego
 // Ahora recibe un tercer parámetro: el nombre del pack
@@ -382,7 +451,7 @@ async function mostrarRankingActualizado(nombrePack) {
         `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
     ).join('');
 }
-async function cargarMejoresPorCategoria() {
+    async function cargarMejoresPorCategoria() {
     const packs = ['pack1', 'pack2', 'pack3', 'pack4'];
 
     for (const pack of packs) {
@@ -432,3 +501,103 @@ function enviarPuntuacion() {
         document.getElementById('save-score-zone').style.display = 'none';
     }
 }
+    // Función para mostrar/ocultar el panel de escritura
+function toggleAdmin() {
+    const adminDiv = document.getElementById('admin-news');
+    adminDiv.style.display = adminDiv.style.display === 'none' ? 'block' : 'none';
+}
+
+// Cargar noticias al iniciar
+document.addEventListener('DOMContentLoaded', renderNews);
+
+function addNews() {
+    const input = document.getElementById('news-input');
+    if (input.value.trim() === "") return;
+
+    const news = JSON.parse(localStorage.getItem('game_news') || "[]");
+    const newEntry = {
+        id: Date.now(),
+        text: input.value,
+        date: new Date().toLocaleDateString()
+    };
+
+    news.unshift(newEntry); // Añade al principio
+    localStorage.setItem('game_news', JSON.stringify(news));
+    input.value = "";
+    renderNews();
+}
+
+function deleteNews(id) {
+    let news = JSON.parse(localStorage.getItem('game_news') || "[]");
+    news = news.filter(item => item.id !== id);
+    localStorage.setItem('game_news', JSON.stringify(news));
+    renderNews();
+}
+
+const MI_CLAVE_MAESTRA = "1234"; // <--- CAMBIA ESTO POR TU CONTRASEÑA
+
+async function renderNews() {
+    const list = document.getElementById('news-list');
+    
+    // Cambiado: _supabase en lugar de supabase
+    const { data: news, error } = await _supabase
+        .from('noticias')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        console.error("Error en renderNews:", error);
+        return;
+    }
+
+    const isAdmin = sessionStorage.getItem('esAdmin') === 'true';
+
+    list.innerHTML = news.map(item => {
+        const fechaFormateada = new Date(item.fecha).toLocaleDateString();
+        return `
+            <div class="news-item">
+                <span class="news-date">${fechaFormateada}</span>
+                <p>${item.texto}</p>
+                ${isAdmin ? `<button class="delete-btn" onclick="deleteNews(${item.id})">🗑️</button>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+async function addNews() {
+    const input = document.getElementById('news-input');
+    const texto = input.value.trim();
+    
+    if (texto === "") return;
+
+    // Cambiado: _supabase en lugar de supabase
+    const { error } = await _supabase
+        .from('noticias')
+        .insert([{ texto: texto }]);
+
+    if (error) {
+        alert("Error al guardar: " + error.message);
+    } else {
+        input.value = "";
+        renderNews();
+    }
+}
+
+async function deleteNews(id) {
+    if (!confirm("¿Borrar aviso?")) return;
+
+    // Cambiado: _supabase en lugar de supabase
+    const { error } = await _supabase
+        .from('noticias')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        alert("Error al borrar: " + error.message);
+    } else {
+        renderNews();
+    }
+}
+
+// Iniciar al cargar la página
+document.addEventListener('DOMContentLoaded', renderNews);
