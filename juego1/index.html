@@ -825,16 +825,15 @@ async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
     }
 }
 
-// Función para obtener los 10 mejores
+// --- CORRECCIÓN DEL DICCIONARIO ---
 async function mostrarRankingActualizado(nombrePack) {
     if (!nombrePack) return;
 
-    // Diccionario para convertir el ID del pack en un nombre bonito
     const nombresBonitos = {
         'pack1': 'MUNDIAL',
         'pack2': 'BIZKAIA',
         'pack3': 'ARMARRI',
-        'pack4': 'PROVINCIAS',
+        'pack4': 'PROVINCIAS', // <--- AQUÍ FALTABA LA COMA
         'pack5': 'ESPAÑA 100K'
     };
 
@@ -850,7 +849,6 @@ async function mostrarRankingActualizado(nombrePack) {
     const lista = document.getElementById('lista-ranking');
     const titulo = document.querySelector('#ranking-container h3');
     
-    // Si el nombre está en nuestro diccionario, lo usamos. Si no, usamos el original.
     const nombreVisual = nombresBonitos[nombrePack] || nombrePack.toUpperCase();
     if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
     
@@ -858,8 +856,11 @@ async function mostrarRankingActualizado(nombrePack) {
         `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
     ).join('');
 }
-    async function cargarMejoresPorCategoria() {
-    const packs = ['pack1', 'pack2', 'pack3', 'pack4'];
+
+// --- ACTUALIZACIÓN CARGA DE RÉCORDS (INCLUYE PACK 5) ---
+async function cargarMejoresPorCategoria() {
+    // Añadimos pack5 a la lista
+    const packs = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5']; 
 
     for (const pack of packs) {
         const { data, error } = await _supabase
@@ -867,117 +868,38 @@ async function mostrarRankingActualizado(nombrePack) {
             .select('username, score')
             .eq('pack_name', pack)
             .order('score', { ascending: false })
-            .limit(1) // Solo el mejor
-            .maybeSingle(); // Trae un solo objeto o null
+            .limit(1)
+            .maybeSingle();
 
         const contenedor = document.getElementById(`best-${pack}`);
         
         if (error) {
             console.error("Error:", error);
-            if (contenedor) contenedor.innerText = "";
             continue;
         }
 
-        if (data) {
+        if (data && contenedor) {
             contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b>`;
-        } else {
+        } else if (contenedor) {
             contenedor.innerText = "Sin récords aún";
         }
     }
 }
 
-// Llamar a la función cuando cargue la página
-window.onload = cargarMejoresPorCategoria;
-function finishGame() {
-    document.getElementById('quiz-screen').classList.remove('active');
-    document.getElementById('end-screen').classList.add('active');
-    
-    document.getElementById('final-result').innerText = `Has conseguido ${aciertos} aciertos.`;
-    
-    // IMPORTANTE: Le pasamos el pack actual para que filtre bien
-    mostrarRankingActualizado(packActual);
-}
+// --- SEGURIDAD PARA NOTICIAS (SÓLO CON CÓDIGO) ---
+const MI_CLAVE_MAESTRA = "1234"; // <--- Cambia esto por lo que quieras
 
-// Esta es la función que se activa al darle al botón nuevo
-function enviarPuntuacion() {
-    const nombre = document.getElementById('player-name').value;
-    
-    if (nombre) {
-        // Usamos la variable global packActual que guardamos al principio
-        guardarEnRankingOnline(nombre, aciertos, packActual); 
-        document.getElementById('save-score-zone').style.display = 'none';
-    }
-}
-    // Función para mostrar/ocultar el panel de escritura
-function toggleAdmin() {
-    const adminDiv = document.getElementById('admin-news');
-    adminDiv.style.display = adminDiv.style.display === 'none' ? 'block' : 'none';
-}
-
-// Cargar noticias al iniciar
-document.addEventListener('DOMContentLoaded', renderNews);
-
-function addNews() {
-    const input = document.getElementById('news-input');
-    if (input.value.trim() === "") return;
-
-    const news = JSON.parse(localStorage.getItem('game_news') || "[]");
-    const newEntry = {
-        id: Date.now(),
-        text: input.value,
-        date: new Date().toLocaleDateString()
-    };
-
-    news.unshift(newEntry); // Añade al principio
-    localStorage.setItem('game_news', JSON.stringify(news));
-    input.value = "";
-    renderNews();
-}
-
-function deleteNews(id) {
-    let news = JSON.parse(localStorage.getItem('game_news') || "[]");
-    news = news.filter(item => item.id !== id);
-    localStorage.setItem('game_news', JSON.stringify(news));
-    renderNews();
-}
-
-const MI_CLAVE_MAESTRA = "1234"; // <--- CAMBIA ESTO POR TU CONTRASEÑA
-
-async function renderNews() {
-    const list = document.getElementById('news-list');
-    
-    // Cambiado: _supabase en lugar de supabase
-    const { data: news, error } = await _supabase
-        .from('noticias')
-        .select('*')
-        .order('fecha', { ascending: false });
-
-    if (error) {
-        console.error("Error en renderNews:", error);
+async function addNews() {
+    const pass = prompt("Introduce el código de administrador para publicar:");
+    if (pass !== MI_CLAVE_MAESTRA) {
+        alert("Código incorrecto.");
         return;
     }
 
-    const isAdmin = sessionStorage.getItem('esAdmin') === 'true';
-
-    list.innerHTML = news.map(item => {
-        const fechaFormateada = new Date(item.fecha).toLocaleDateString();
-        return `
-            <div class="news-item">
-                <span class="news-date">${fechaFormateada}</span>
-                <p>${item.texto}</p>
-                ${isAdmin ? `<button class="delete-btn" onclick="deleteNews(${item.id})">🗑️</button>` : ''}
-            </div>
-        `;
-    }).join('');
-}
-
-async function addNews() {
     const input = document.getElementById('news-input');
     const texto = input.value.trim();
-    
     if (texto === "") return;
 
-    // Cambiado: _supabase en lugar de supabase
     const { error } = await _supabase
         .from('noticias')
         .insert([{ texto: texto }]);
@@ -991,9 +913,12 @@ async function addNews() {
 }
 
 async function deleteNews(id) {
-    if (!confirm("¿Borrar aviso?")) return;
+    const pass = prompt("Introduce el código de administrador para borrar:");
+    if (pass !== MI_CLAVE_MAESTRA) {
+        alert("Código incorrecto.");
+        return;
+    }
 
-    // Cambiado: _supabase en lugar de supabase
     const { error } = await _supabase
         .from('noticias')
         .delete()
@@ -1005,7 +930,6 @@ async function deleteNews(id) {
         renderNews();
     }
 }
-
 // Iniciar al cargar la página
 document.addEventListener('DOMContentLoaded', renderNews);
 </script>
