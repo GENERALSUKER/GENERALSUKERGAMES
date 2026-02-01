@@ -341,7 +341,7 @@ Sin embargo, tampoco debe tomarse en un sentido excesivo de inhibición, hasta e
             p1: "AL BURRO MUERTO,",
             p2: "LA CEBADA AL RABO",
             m: `Porque ahora que ya no la necesita, vamos solícitos con ella para que coma, haciendo inútil un socorro que a su debido tiempo pudo haber sido eficaz.
-Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo de veras precisa una ayuda —la que sea— y que después, cuando la cosa ya no tiene remedio, acuden presurosos y quejándose de que nadie les había dicho nada de la urgencia del socorro. No dejemos, pues, que se nos muera el burro: vayamos con el pienso cuando sea la hora de comer, que después ya podremos dejarlo tranquilo y, a la vez, nos evitaremos el disgusto de su muerte. Y si en lugar de un burro hambriento es un aparato que renquea, arreglémoslo antes que se estropee total y definitivamente. Después lo lamentaremos, pero la lamentación no resolverá nada y tendremos que tirarlo.NO HAY MAL`,
+Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo de veras precisa una ayuda —la que sea— y que después, cuando la cosa ya no tiene remedio, acuden presurosos y quejándose de que nadie les había dicho nada de la urgencia del socorro. No dejemos, pues, que se nos muera el burro: vayamos con el pienso cuando sea la hora de comer, que después ya podremos dejarlo tranquilo y, a la vez, nos evitaremos el disgusto de su muerte. Y si en lugar de un burro hambriento es un aparato que renquea, arreglémoslo antes que se estropee total y definitivamente. Después lo lamentaremos, pero la lamentación no resolverá nada y tendremos que tirarlo.`,
         },
         {   id:20,
             p1: "NO HAY MAL",
@@ -383,14 +383,7 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
         document.getElementById('screen-start').classList.add('hidden');
         document.getElementById('screen-game').classList.remove('hidden');
         showQuestion();
-    } function startGame() {
-        currentGameList = [...allRefranes].sort(() => 0.5 - Math.random()).slice(0, 5); // Partidas de 5
-        currentIndex = 0;
-        score = 0;
-        document.getElementById('screen-start').classList.add('hidden');
-        document.getElementById('screen-game').classList.remove('hidden');
-        showQuestion();
-    }
+    } 
 
     function showQuestion() {
         const refran = currentGameList[currentIndex];
@@ -411,27 +404,26 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
     function normalizeText(str) {
         return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
     }
-
     function checkAnswer() {
-        const userInput = normalizeText(document.getElementById('user-input').value);
-        const correctAnswer = normalizeText(currentGameList[currentIndex].p2);
-        
+        const userVal = document.getElementById('user-input').value.toLowerCase().trim();
+        const correctVal = currentGameList[currentIndex].p2.toLowerCase().trim();
+        const feedbackArea = document.getElementById('feedback-area');
         const feedbackMsg = document.getElementById('feedback-msg');
+
         document.getElementById('user-input').disabled = true;
-        document.getElementById('btn-submit').disabled = true;
-        document.getElementById('feedback-area').classList.remove('hidden');
-        
-        if (userInput === correctAnswer) {
-            feedbackMsg.innerText = "✒️ ¡Correcto!";
-            feedbackMsg.className = "feedback correct";
+        document.getElementById('btn-submit').classList.add('hidden');
+        feedbackArea.classList.remove('hidden');
+
+        if (userVal.includes(correctVal) || correctVal.includes(userVal) && userVal.length > 3) {
+            feedbackMsg.innerText = "¡Correcto! Has desbloqueado este refrán.";
+            feedbackMsg.style.color = "green";
+            saveUnlockedRefran(currentGameList[currentIndex].id);
             score++;
         } else {
-            feedbackMsg.innerText = `✘ Incorrecto. Lo sabio es: "${currentGameList[currentIndex].p2}"`;
-            feedbackMsg.className = "feedback wrong";
+            feedbackMsg.innerText = "Incorrecto. La respuesta era: " + currentGameList[currentIndex].p2;
+            feedbackMsg.style.color = "red";
         }
-
         document.getElementById('explanation-text').innerText = currentGameList[currentIndex].m;
-        startTimer();
     }
 
     function startTimer() {
