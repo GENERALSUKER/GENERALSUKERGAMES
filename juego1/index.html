@@ -729,193 +729,110 @@ const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.c
             pack.push({...pack[Math.floor(Math.random() * pack.length)]});
         }
     });
-    let packActual = ""
-    let indiceActual = 0;
-    let aciertos = 0;
-    let preguntasMezcladas = [];
-    let interactuable = true;
-    let indiceCorrectoActual = 0;
+// --- VARIABLES GLOBALES ---
+let packActual = "";
+let indiceActual = 0;
+let aciertos = 0;
+let preguntasMezcladas = [];
+let interactuable = true;
+let indiceCorrectoActual = 0;
+const MI_CLAVE_MAESTRA = "1234"; // <--- Tu contraseña para noticias
 
-function seleccionarPack(nombreDelPack) {
-    packActual = nombreDelPack; // Guardamos el nombre globalmente
-    startGame(nombreDelPack);   // Iniciamos el juego con ese pack
-}
-
-function startGame(packElegido) {
-    // Aseguramos que packActual esté al día por si acaso
-    packActual = packElegido; 
-
-    document.getElementById('start-screen').classList.remove('active');
-    document.getElementById('quiz-screen').classList.add('active');
-
-    // Usamos el packElegido para sacar las preguntas
-    preguntasMezcladas = packs[packElegido].sort(() => Math.random() - 0.5).slice(0, 25);
-
-    indiceActual = 0;
-    aciertos = 0;
-
-    renderQuestion();
-}
-
-    function renderQuestion() {
-        interactuable = true;
-        const data = preguntasMezcladas[indiceActual];
-
-        let opcionesConEstado = data.opciones.map((opt, i) => ({ texto: opt, esCorrecta: i === data.correcta }));
-        opcionesConEstado.sort(() => Math.random() - 0.5);
-        indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
-
-        document.getElementById('flag-img').src = data.img;
-        document.getElementById('current-q').innerText = indiceActual + 1;
-        document.getElementById('hits').innerText = aciertos;
-
-        const container = document.getElementById('options-container');
-        container.innerHTML = '';
-
-        opcionesConEstado.forEach((obj, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = obj.texto;
-            btn.onclick = () => checkAnswer(i, btn);
-            container.appendChild(btn);
-        });
-    }
-
-    function checkAnswer(elegida, btn) {
-        if (!interactuable) return;
-        interactuable = false;
-
-        const botones = document.querySelectorAll('.option-btn');
-
-        if (elegida === indiceCorrectoActual) {
-            btn.classList.add('correct');
-            aciertos++;
-            document.getElementById('hits').innerText = aciertos;
-        } else {
-            btn.classList.add('wrong');
-            botones[indiceCorrectoActual].classList.add('correct');
-        }
-
-        setTimeout(() => {
-            indiceActual++;
-            if (indiceActual < 25) {
-                renderQuestion();
-            } else {
-                finishGame();
-            }
-        }, 2000);
-    }
-
-// Función para enviar la puntuación al terminar el juego
-// Ahora recibe un tercer parámetro: el nombre del pack
-async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
-    const { data, error } = await _supabase
-        .from('ranking')
-        .insert([{ 
-            username: nombre, 
-            score: puntos, 
-            pack_name: nombrePack // Guardamos el pack correspondiente
-        }]);
-
-    if (error) {
-        console.error("Error al guardar:", error);
-    } else {
-        console.log("Puntuación guardada en el pack: " + nombrePack);
-        mostrarRankingActualizado(nombrePack); // Mostramos el ranking de ESE pack
-    }
-}
-
-// --- CORRECCIÓN DEL DICCIONARIO ---
-async function mostrarRankingActualizado(nombrePack) {
-    if (!nombrePack) return;
-
-// 1. DICCIONARIO CORREGIDO (Con coma y pack5)
+// --- DICCIONARIO CORREGIDO (Pack 5 incluido) ---
 const nombresBonitos = {
     'pack1': 'MUNDIAL',
     'pack2': 'BIZKAIA',
     'pack3': 'ARMARRI',
     'pack4': 'PROVINCIAS',
-    'pack5': 'ESPAÑA 100K' // Aquí ya no hay error de sintaxis
+    'pack5': 'ESPAÑA 100K'
 };
 
-// 2. FUNCIÓN PARA CARGAR RÉCORDS (Ahora incluye el 5)
-async function cargarMejoresPorCategoria() {
-    // Añadimos 'pack5' al array para que lo busque en Supabase
-    const packs = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5']; 
-
-    for (const pack of packs) {
-        const { data, error } = await _supabase
-            .from('ranking')
-            .select('username, score')
-            .eq('pack_name', pack)
-            .order('score', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        const contenedor = document.getElementById(`best-${pack}`);
-        
-        if (error) {
-            console.error("Error cargando record de " + pack, error);
-            continue;
-        }
-
-        if (data && contenedor) {
-            contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b>`;
-        } else if (contenedor) {
-            contenedor.innerText = "Sin récords aún";
-        }
-    }
+// --- LÓGICA DEL JUEGO ---
+function seleccionarPack(nombreDelPack) {
+    packActual = nombreDelPack;
+    startGame(nombreDelPack);
 }
 
-// 3. SEGURIDAD PARA NOTICIAS (Con código secreto)
-const MI_CLAVE_MAESTRA = "1234"; // <--- CAMBIA ESTO POR TU CLAVE
+function startGame(packElegido) {
+    packActual = packElegido; 
+    document.getElementById('start-screen').classList.remove('active');
+    document.getElementById('quiz-screen').classList.add('active');
 
-async function addNews() {
-    const pass = prompt("Introduce el código para publicar noticia:");
-    if (pass !== MI_CLAVE_MAESTRA) {
-        alert("Código incorrecto. No puedes publicar.");
-        return;
-    }
+    // Mezclar y seleccionar 25 preguntas
+    preguntasMezcladas = packs[packElegido].sort(() => Math.random() - 0.5).slice(0, 25);
+    indiceActual = 0;
+    aciertos = 0;
+    renderQuestion();
+}
 
-    const input = document.getElementById('news-input');
-    const texto = input.value.trim();
-    if (texto === "") return;
+function renderQuestion() {
+    interactuable = true;
+    const data = preguntasMezcladas[indiceActual];
 
-    const { error } = await _supabase
-        .from('noticias')
-        .insert([{ texto: texto }]);
+    let opcionesConEstado = data.opciones.map((opt, i) => ({ texto: opt, esCorrecta: i === data.correcta }));
+    opcionesConEstado.sort(() => Math.random() - 0.5);
+    indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
 
-    if (error) {
-        alert("Error al guardar: " + error.message);
+    document.getElementById('flag-img').src = data.img;
+    document.getElementById('current-q').innerText = indiceActual + 1;
+    document.getElementById('hits').innerText = aciertos;
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+
+    opcionesConEstado.forEach((obj, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = obj.texto;
+        btn.onclick = () => checkAnswer(i, btn);
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(elegida, btn) {
+    if (!interactuable) return;
+    interactuable = false;
+
+    const botones = document.querySelectorAll('.option-btn');
+
+    if (elegida === indiceCorrectoActual) {
+        btn.classList.add('correct');
+        aciertos++;
+        document.getElementById('hits').innerText = aciertos;
     } else {
-        input.value = "";
-        renderNews();
+        btn.classList.add('wrong');
+        botones[indiceCorrectoActual].classList.add('correct');
     }
+
+    setTimeout(() => {
+        indiceActual++;
+        if (indiceActual < 25) {
+            renderQuestion();
+        } else {
+            finishGame();
+        }
+    }, 2000);
 }
 
-async function deleteNews(id) {
-    const pass = prompt("Introduce el código para borrar:");
-    if (pass !== MI_CLAVE_MAESTRA) {
-        alert("No tienes permiso.");
-        return;
-    }
-
-    const { error } = await _supabase
-        .from('noticias')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        alert("Error al borrar: " + error.message);
-    } else {
-        renderNews();
-    }
+function finishGame() {
+    document.getElementById('quiz-screen').classList.remove('active');
+    document.getElementById('end-screen').classList.add('active');
+    document.getElementById('final-result').innerText = `Has conseguido ${aciertos} aciertos.`;
+    mostrarRankingActualizado(packActual);
 }
 
-// 4. RANKING ACTUALIZADO (Corregido para filtrar por pack5)
+// --- RANKING Y SUPABASE ---
+async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
+    const { data, error } = await _supabase
+        .from('ranking')
+        .insert([{ username: nombre, score: puntos, pack_name: nombrePack }]);
+
+    if (error) console.error("Error al guardar:", error);
+    else mostrarRankingActualizado(nombrePack);
+}
+
 async function mostrarRankingActualizado(nombrePack) {
     if (!nombrePack) return;
-
     const { data: ranking, error } = await _supabase
         .from('ranking')
         .select('username, score')
@@ -927,22 +844,99 @@ async function mostrarRankingActualizado(nombrePack) {
 
     const lista = document.getElementById('lista-ranking');
     const titulo = document.querySelector('#ranking-container h3');
-    
     const nombreVisual = nombresBonitos[nombrePack] || nombrePack.toUpperCase();
-    if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
     
-    if (lista) {
-        lista.innerHTML = ranking.map((user, index) => 
-            `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
-        ).join('');
+    if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
+    lista.innerHTML = ranking.map((user, index) => 
+        `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
+    ).join('');
+}
+
+async function cargarMejoresPorCategoria() {
+    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5']; // Pack 5 incluido
+    for (const pack of packsArray) {
+        const { data, error } = await _supabase
+            .from('ranking')
+            .select('username, score')
+            .eq('pack_name', pack)
+            .order('score', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        const contenedor = document.getElementById(`best-${pack}`);
+        if (contenedor) {
+            if (data) contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b>`;
+            else contenedor.innerText = "Sin récords aún";
+        }
     }
 }
 
-// Aseguramos que cargue todo al iniciar
-window.onload = () => {
+function enviarPuntuacion() {
+    const nombre = document.getElementById('player-name').value;
+    if (nombre) {
+        guardarEnRankingOnline(nombre, aciertos, packActual); 
+        document.getElementById('save-score-zone').style.display = 'none';
+    }
+}
+
+// --- NOTICIAS CON SEGURIDAD ---
+async function renderNews() {
+    const list = document.getElementById('news-list');
+    const { data: news, error } = await _supabase
+        .from('noticias')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+    if (error) return;
+    const isAdmin = sessionStorage.getItem('esAdmin') === 'true';
+
+    list.innerHTML = news.map(item => `
+        <div class="news-item">
+            <span class="news-date">${new Date(item.fecha).toLocaleDateString()}</span>
+            <p>${item.texto}</p>
+            ${isAdmin ? `<button class="delete-btn" onclick="deleteNews(${item.id})">🗑️</button>` : ''}
+        </div>
+    `).join('');
+}
+
+async function addNews() {
+    const clave = prompt("Introduce la clave maestra:");
+    if (clave !== MI_CLAVE_MAESTRA) return alert("Clave incorrecta");
+
+    const input = document.getElementById('news-input');
+    if (!input.value.trim()) return;
+
+    const { error } = await _supabase.from('noticias').insert([{ texto: input.value.trim() }]);
+    if (!error) {
+        input.value = "";
+        renderNews();
+    }
+}
+
+async function deleteNews(id) {
+    const clave = prompt("Introduce la clave maestra para borrar:");
+    if (clave !== MI_CLAVE_MAESTRA) return alert("Clave incorrecta");
+
+    const { error } = await _supabase.from('noticias').delete().eq('id', id);
+    if (!error) renderNews();
+}
+
+function toggleAdmin() {
+    const clave = prompt("Introduce clave de admin:");
+    if (clave === MI_CLAVE_MAESTRA) {
+        sessionStorage.setItem('esAdmin', 'true');
+        document.getElementById('admin-news').style.display = 'block';
+        renderNews();
+    } else {
+        alert("Código erróneo");
+    }
+}
+
+// --- CARGA INICIAL ---
+document.addEventListener('DOMContentLoaded', () => {
     cargarMejoresPorCategoria();
     renderNews();
-};
+});
 </script>
 
 </body>
