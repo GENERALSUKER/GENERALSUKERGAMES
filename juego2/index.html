@@ -201,11 +201,14 @@
             <input type="text" id="user-input" placeholder="Completa el refrán..." autocomplete="off">
         </div>
         <button id="btn-submit" onclick="checkAnswer()">Comprobar</button>
-        <div id="feedback-area" class="hidden">
-            <div id="feedback-msg" style="padding: 15px; margin: 10px 0;"></div>
-            <div id="explanation-text" class="explanation"></div>
-            <button id="btn-next" onclick="nextQuestion()">Siguiente refrán</button>
-        </div>
+      <div id="feedback-area" class="hidden">
+    <div id="feedback-msg" style="padding: 15px; margin: 10px 0;"></div>
+    <div id="explanation-text" class="explanation"></div>
+    
+    <div id="timer-msg" class="timer-text" style="margin-top: 15px; color: #999;"></div>
+    
+    <button id="btn-next" class="hidden" onclick="nextQuestion()">Siguiente refrán</button>
+</div>
     </div>
  <div id="screen-gallery" class="hidden">
         <h1>Tu Colección</h1>
