@@ -357,6 +357,12 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
 
     // Actualizar mensaje inicial según cantidad de refranes disponibles
     document.getElementById('start-msg').innerText = `¿Podrás completar los ${Math.min(allRefranes.length, 25)} refranes elegidos al azar?`;
+       // --- NAVEGACIÓN ---
+    function showStart() {
+        document.querySelectorAll('#game-container > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById('screen-start').classList.remove('hidden');
+        document.getElementById('start-msg').innerText = `Tienes ${getUnlockedRefranes().length} de ${allRefranes.length} refranes coleccionados.`;
+    }
  // --- LÓGICA DE LOCAL STORAGE ---
     function getUnlockedRefranes() {
         const saved = localStorage.getItem('refranes_desbloqueados');
@@ -370,20 +376,17 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
             localStorage.setItem('refranes_desbloqueados', JSON.stringify(unlocked));
         }
     }
-    function startGame() {
-        if (allRefranes.length === 0) {
-            alert("No hay refranes cargados.");
-            return;
-        }
-
-        // 1. Mezclar y seleccionar
-        const shuffled = [...allRefranes].sort(() => 0.5 - Math.random());
-        const totalAUsar = Math.min(shuffled.length, 25);
-        currentGameList = shuffled.slice(0, totalAUsar);
-        
+  function startGame() {
+        currentGameList = [...allRefranes].sort(() => 0.5 - Math.random()).slice(0, 5); // Partidas de 5
         currentIndex = 0;
         score = 0;
-        
+        document.getElementById('screen-start').classList.add('hidden');
+        document.getElementById('screen-game').classList.remove('hidden');
+        showQuestion();
+    } function startGame() {
+        currentGameList = [...allRefranes].sort(() => 0.5 - Math.random()).slice(0, 5); // Partidas de 5
+        currentIndex = 0;
+        score = 0;
         document.getElementById('screen-start').classList.add('hidden');
         document.getElementById('screen-game').classList.remove('hidden');
         showQuestion();
@@ -505,6 +508,8 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
             checkAnswer();
         }
     });
+    // Inicializar
+    showStart();
 </script>
 </body>
 </html>
