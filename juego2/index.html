@@ -195,18 +195,16 @@
     </div>
 
     <div id="screen-game" class="hidden">
-        <div id="progress">Pregunta 1 de 25</div>
+        <div id="progress"></div>
         <div class="refran-box">
-            <span class="part1" id="display-part1"></span>
-            <input type="text" id="user-input" placeholder="Escribe aquí el final..." autocomplete="off">
+            <span id="display-part1" style="font-weight: bold; display: block; margin-bottom: 10px;"></span>
+            <input type="text" id="user-input" placeholder="Completa el refrán..." autocomplete="off">
         </div>
         <button id="btn-submit" onclick="checkAnswer()">Comprobar</button>
-
         <div id="feedback-area" class="hidden">
-            <div id="feedback-msg" class="feedback"></div>
+            <div id="feedback-msg" style="padding: 15px; margin: 10px 0;"></div>
             <div id="explanation-text" class="explanation"></div>
-            <div id="timer-msg" class="timer-text"></div>
-            <button id="btn-next" class="hidden" onclick="nextQuestion()">Siguiente Refrán</button>
+            <button id="btn-next" onclick="nextQuestion()">Siguiente refrán</button>
         </div>
     </div>
  <div id="screen-gallery" class="hidden">
