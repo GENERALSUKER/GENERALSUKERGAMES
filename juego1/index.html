@@ -829,37 +829,18 @@ async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
 async function mostrarRankingActualizado(nombrePack) {
     if (!nombrePack) return;
 
-    const nombresBonitos = {
-        'pack1': 'MUNDIAL',
-        'pack2': 'BIZKAIA',
-        'pack3': 'ARMARRI',
-        'pack4': 'PROVINCIAS', // <--- AQUÍ FALTABA LA COMA
-        'pack5': 'ESPAÑA 100K'
-    };
+// 1. DICCIONARIO CORREGIDO (Con coma y pack5)
+const nombresBonitos = {
+    'pack1': 'MUNDIAL',
+    'pack2': 'BIZKAIA',
+    'pack3': 'ARMARRI',
+    'pack4': 'PROVINCIAS',
+    'pack5': 'ESPAÑA 100K' // Aquí ya no hay error de sintaxis
+};
 
-    const { data: ranking, error } = await _supabase
-        .from('ranking')
-        .select('username, score')
-        .eq('pack_name', nombrePack) 
-        .order('score', { ascending: false })
-        .limit(10);
-
-    if (error) return;
-
-    const lista = document.getElementById('lista-ranking');
-    const titulo = document.querySelector('#ranking-container h3');
-    
-    const nombreVisual = nombresBonitos[nombrePack] || nombrePack.toUpperCase();
-    if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
-    
-    lista.innerHTML = ranking.map((user, index) => 
-        `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
-    ).join('');
-}
-
-// --- ACTUALIZACIÓN CARGA DE RÉCORDS (INCLUYE PACK 5) ---
+// 2. FUNCIÓN PARA CARGAR RÉCORDS (Ahora incluye el 5)
 async function cargarMejoresPorCategoria() {
-    // Añadimos pack5 a la lista
+    // Añadimos 'pack5' al array para que lo busque en Supabase
     const packs = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5']; 
 
     for (const pack of packs) {
@@ -874,7 +855,7 @@ async function cargarMejoresPorCategoria() {
         const contenedor = document.getElementById(`best-${pack}`);
         
         if (error) {
-            console.error("Error:", error);
+            console.error("Error cargando record de " + pack, error);
             continue;
         }
 
@@ -886,13 +867,13 @@ async function cargarMejoresPorCategoria() {
     }
 }
 
-// --- SEGURIDAD PARA NOTICIAS (SÓLO CON CÓDIGO) ---
-const MI_CLAVE_MAESTRA = "1234"; // <--- Cambia esto por lo que quieras
+// 3. SEGURIDAD PARA NOTICIAS (Con código secreto)
+const MI_CLAVE_MAESTRA = "1234"; // <--- CAMBIA ESTO POR TU CLAVE
 
 async function addNews() {
-    const pass = prompt("Introduce el código de administrador para publicar:");
+    const pass = prompt("Introduce el código para publicar noticia:");
     if (pass !== MI_CLAVE_MAESTRA) {
-        alert("Código incorrecto.");
+        alert("Código incorrecto. No puedes publicar.");
         return;
     }
 
@@ -913,9 +894,9 @@ async function addNews() {
 }
 
 async function deleteNews(id) {
-    const pass = prompt("Introduce el código de administrador para borrar:");
+    const pass = prompt("Introduce el código para borrar:");
     if (pass !== MI_CLAVE_MAESTRA) {
-        alert("Código incorrecto.");
+        alert("No tienes permiso.");
         return;
     }
 
@@ -930,8 +911,38 @@ async function deleteNews(id) {
         renderNews();
     }
 }
-// Iniciar al cargar la página
-document.addEventListener('DOMContentLoaded', renderNews);
+
+// 4. RANKING ACTUALIZADO (Corregido para filtrar por pack5)
+async function mostrarRankingActualizado(nombrePack) {
+    if (!nombrePack) return;
+
+    const { data: ranking, error } = await _supabase
+        .from('ranking')
+        .select('username, score')
+        .eq('pack_name', nombrePack) 
+        .order('score', { ascending: false })
+        .limit(10);
+
+    if (error) return;
+
+    const lista = document.getElementById('lista-ranking');
+    const titulo = document.querySelector('#ranking-container h3');
+    
+    const nombreVisual = nombresBonitos[nombrePack] || nombrePack.toUpperCase();
+    if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
+    
+    if (lista) {
+        lista.innerHTML = ranking.map((user, index) => 
+            `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
+        ).join('');
+    }
+}
+
+// Aseguramos que cargue todo al iniciar
+window.onload = () => {
+    cargarMejoresPorCategoria();
+    renderNews();
+};
 </script>
 
 </body>
