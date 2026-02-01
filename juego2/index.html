@@ -404,35 +404,41 @@ function showQuestion() {
         return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
     }
 function checkAnswer() {
-    const userVal = document.getElementById('user-input').value.toLowerCase().trim();
-    const correctVal = currentGameList[currentIndex].p2.toLowerCase().trim();
-    const feedbackArea = document.getElementById('feedback-area');
-    const feedbackMsg = document.getElementById('feedback-msg');
-    const btnNext = document.getElementById('btn-next'); // <--- Nueva línea
+        const userVal = normalizeText(document.getElementById('user-input').value);
+        const correctVal = normalizeText(currentGameList[currentIndex].p2);
+        const feedbackArea = document.getElementById('feedback-area');
+        const feedbackMsg = document.getElementById('feedback-msg');
 
-    document.getElementById('user-input').disabled = true;
-    document.getElementById('btn-submit').classList.add('hidden');
-    feedbackArea.classList.remove('hidden');
-    btnNext.classList.remove('hidden'); // <--- Esto hace que el botón aparezca
+        // Bloqueamos entrada y ocultamos botón de comprobar
+        document.getElementById('user-input').disabled = true;
+        document.getElementById('btn-submit').classList.add('hidden');
+        feedbackArea.classList.remove('hidden');
 
-    if (userVal.includes(correctVal) || (correctVal.includes(userVal) && userVal.length > 3)) {
-        feedbackMsg.innerText = "¡Correcto! Has desbloqueado este refrán.";
-        feedbackMsg.className = "feedback correct"; // Usamos tus clases de CSS
-        saveUnlockedRefran(currentGameList[currentIndex].id);
-        score++;
-    } else {
-        feedbackMsg.innerText = "Incorrecto. La respuesta era: " + currentGameList[currentIndex].p2;
-        feedbackMsg.className = "feedback wrong"; // Usamos tus clases de CSS
+        if (userVal.includes(correctVal) || (correctVal.includes(userVal) && userVal.length > 3)) {
+            feedbackMsg.innerText = "✒️ ¡Correcto! Has desbloqueado este refrán.";
+            feedbackMsg.className = "feedback correct";
+            saveUnlockedRefran(currentGameList[currentIndex].id);
+            score++;
+        } else {
+            feedbackMsg.innerText = `✘ Incorrecto. Lo sabio es: "${currentGameList[currentIndex].p2}"`;
+            feedbackMsg.className = "feedback wrong";
+        }
+
+        document.getElementById('explanation-text').innerText = currentGameList[currentIndex].m;
+        
+        // ACTIVAMOS EL TEMPORIZADOR
+        startTimer();
     }
-    document.getElementById('explanation-text').innerText = currentGameList[currentIndex].m;
-}
+
     function startTimer() {
-        let timeLeft = 10;
+        let timeLeft = 10; // Cambia este número para dar más o menos tiempo
         const timerMsg = document.getElementById('timer-msg');
         const btnNext = document.getElementById('btn-next');
         
+        // Limpiamos cualquier timer anterior por seguridad
         if (timer) clearInterval(timer);
         
+        btnNext.classList.add('hidden'); // Aseguramos que el botón esté oculto
         timerMsg.innerText = `Podrás continuar en ${timeLeft} segundos...`;
         
         timer = setInterval(() => {
@@ -441,8 +447,8 @@ function checkAnswer() {
                 timerMsg.innerText = `Podrás continuar en ${timeLeft} segundos...`;
             } else {
                 clearInterval(timer);
-                timerMsg.innerText = "";
-                btnNext.classList.remove('hidden');
+                timerMsg.innerText = ""; // Limpiamos el texto del timer
+                btnNext.classList.remove('hidden'); // ¡Aparece el botón!
             }
         }, 1000);
     }
