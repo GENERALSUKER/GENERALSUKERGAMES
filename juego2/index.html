@@ -80,7 +80,68 @@
             text-align: center;
             outline: none;
         }
+ /* Estilos de la Galería */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+        }
 
+        .refran-card {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1/1;
+            background: #f9f9f9;
+        }
+
+        .refran-card.locked {
+            background: #eee;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .refran-card.unlocked {
+            background: #fff;
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .refran-card.unlocked:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Modal / Pop-up */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border-radius: 8px;
+            position: relative;
+        }
         button {
             background: var(--primary);
             color: white;
@@ -148,130 +209,141 @@
             <button id="btn-next" class="hidden" onclick="nextQuestion()">Siguiente Refrán</button>
         </div>
     </div>
-
+ <div id="screen-gallery" class="hidden">
+        <h1>Tu Colección</h1>
+        <p id="gallery-count"></p>
+        <div class="gallery-grid" id="gallery-grid"></div>
+        <button onclick="showStart()">Volver al Menú</button>
+    </div>
     <div id="screen-end" class="hidden">
         <h1>Fin del Camino</h1>
         <p id="final-score" style="font-size: 1.8rem; margin: 20px 0;"></p>
         <button onclick="location.reload()">Empezar de Nuevo</button>
     </div>
 </div>
-
+<div id="modal" class="modal hidden" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 id="modal-title"></h3>
+        <p id="modal-desc"></p>
+        <button onclick="closeModal()">Cerrar</button>
+    </div>
+</div>
 <script>
     // LISTA DE REFRANES (Corregida)
     const allRefranes = [
-        { 
+        {   id:1,
             p1: "NI HIERBA EN EL TRIGO,", 
             p2: "NI SOSPECHA EN EL AMIGO", 
             m: `Porque no se debe dejar que creciendo la mala hierba llegue a ahogar el trigo, ni aun que prospere en un sembrado, si se quiere que la cosecha sea óptima; como tampoco debe empañarse la amistad con una sombra de duda acerca de la honestidad de nuestro amigo. Si hemos de mantener limpio el trigo para que dé buen pan, con mayor razón habremos de confiar en el amigo, que es —o debe ser— como una prolongación de nosotros mismos y que, siempre, es un regalo de Dios.` 
         },
-         { 
+         {  id:2,
             p1: "HAZ BIEN", 
             p2: "Y NO MIRES A QUIEN", 
             m: `Porque sólo así el bien que hagas será realmente un bien y no un simple gesto farisaico. Y haz el bien aunque el destinatario nunca llegue a saberlo o, mejor, procurando incluso que no lo sepa: así, lo que hagas por los demás cumplirá el mandato evangélico de que no sepa tu mano izquierda lo que haga la derecha.
             No esperes nunca pago ni compensación por el bien que a otros hagas: hazlo, simplemente. Y vete pronto, sin mirar a quién se lo has hecho; sin intención alguna de discriminar; sin dejar que tu orgullo, o tu envidia, o tu estupidez, te impidan dejar el bien tras de ti. Confórmate con que el que lo reciba se encuentre con que alguien —no importa quién— ha sabido su necesidad y ha usado de caridad con su semejante. 
             Pocas cosas hay en la vida más interesantes que dar desinteresadamente.` 
         },
-        {
+        {   id:3,
             p1: "A MAL TIEMPO",
             p2: "BUENA CARA",
             m: `Pues, ¿qué mérito tiene estar contento en la prosperidad, sentirnos orgullosos de nuestros éxitos, o disfrutar tranquilamente de nuestra posición privilegiada?
                 Pero estar íntimamente alegre cuando las cosas se nos ponen cuesta arriba y pensar que todo ha de pasar, mejorando, si aportamos nuestro empeño en que así sea, ayudándonos para que Dios nos ayude, sin perder la fe ni la esperanza, con la mente abierta a cualquier sugerencia positiva, sin renegar de nuestra suerte ni echarle la culpa al destino de lo que tal vez seamos nosotros los únicos culpables, eso sí tiene mérito; y así templaremos nuestro espíritu, que ha de ser en definitiva quien nos ha de sacar del atolladero. Porque sólo con un espíritu fuerte podremos y sabremos triunfar de la desgracia.`
         },
-        {
+        {   id:4,
             p1: "DINEROS DE SACRISTÁN, CANTANDO SE VIENEN",
             p2: "Y CANTANDO SE VAN",
             m: `¡Qué cierto es que se aprecia poco lo que cuesta poco conseguir! En cambio, lo que exige de nosotros una gran dedicación, sacrificios, trabajo y sinsabores lo tenemos en más estima y tanto más lo queremos cuanto más arduo ha sido para nosotros el alcanzarlo.
 
 Si, por lo contrario, para tenerlo nos ha bastado con tender la mano y cogerlo, es muy probable que no tenga en nosotros ningún arraigo y, por tanto, poco o nada nos costará desprendernos de ello. Siempre pensaremos que podremos tener otro igual o mejor con el mismo escaso trabajo que para conseguir ese hubimos de hacer.`
         },
-        {
+        {   id:5,
             p1: "DIME CON QUIÉN ANDAS",
             p2: "Y TE DIRÉ QUIÉN ERES",
             m: `Pues nuestras inclinaciones y nuestros sentimientos harán que busquemos la compañía de los que creamos más afines a nosotros y a nuestro modo de entender la vida. Que es muy difícil hacer buenas migas con quienes no encajan en nuestra particular manera de ser y, en cambio, trabamos amistad enseguida con quienes piensan y obran como creemos que debe hacerse. Y, así, estamos en amor y compañía con nuestros iguales y nos sentimos incómodos cuando nos vemos obligados a rodearnos de gentes que no son como nosotros, ni hablan de lo que nos interesa, ni entre ellos estamos como entre iguales.`
         },
-        {
+        {   id:6,
             p1: "EL QUE A BUEN ÁRBOL SE ARRIMA",
             p2: "BUENA SOMBRA LO COBIJA",
             m: `¿Qué sombra ha de dar un árbol canijo? ¿Quién buscará frescor en pleno estío junto a un arbolito desmedrado? ¿Cómo podrá prestarnos ayuda quien está más necesitado de la nuestra?
 
 Sólo el árbol frondoso nos refrescará ante el ardor del sol; sólo el que pueda podrá librarnos del apuro; sólo donde hay abundancia podremos hallar quien nos atienda. Porque, ¿de qué le sirve al ciego que lo guíe otro ciego? Busca el cobijo de los magnánimos y encontrarás tranquilidad en tus inquietudes y ayuda en tus cuitas.`
         },
-         {
+         {  id:7,
             p1: "MÁS VALE TARDE",
             p2: "QUE NUNCA",
             m: `Se dice así de todo lo que se espera y tarda en llegar, pero llega al fin. Por lo general, se trata de algo que esperamos con deseo, que lo indeseable nadie lo espera. Eso mismo hace que estemos intranquilos y se nos pase el tiempo con una lentitud agobiante. Los minutos son larguísimos; las horas, interminables, y los días, eternos. La desesperación de la espera (hay otro refrán que dice: "el que espera, desespera") nos va recomiendo por dentro y nada hay que nos consuele o nos distraiga de la decepción: todo nuestro espíritu está apabullado por esa incertidumbre...
 Hasta que, por último, llega lo esperado, a veces cuando ya habíamos desechado por completo la esperanza de que alguna vez habría de producirse esa llegada. Y es entonces cuando nos damos cuenta de que, efectivamente, lo que se espera puede llegar cuando quiera: siempre será bien recibido, por mucho que tarde, a condición de que esa tardanza no se haga eterna; que sea —como afirma el refrán— “tarde, pero no nunca”.`
         },
-         {
+         {  id:8,
             p1: "A BUEN HAMBRE",
             p2: "NO HAY PAN DURO",
             m: `Que la necesidad es buena ablandadora. Y no sólo se trata de necesidad monda y lironda, sino que cuando se tiene voluntad de llevar a cabo una empresa, los obstáculos se hacen mucho menos graves e insalvables que cuando se acomete con poca gana o simplemente “para cumplir”; y también la afición cuenta en ocasiones, ya que no la mera voluntad, para embarcarnos en aventuras o acciones que sin esa inclinación previa de nuestro ánimo rehuiríamos las más de las veces. Por eso, lo que el hambre es al pan duro, la voluntad —la gana— lo es a los aconteceres de la vida diaria, a la que no hay duda que hay que saber “hincarle el diente” a cada momento.`
         },
-         {
+         {  id:9,
             p1: "A CABALLO COMEDOR,",
             p2: "CABESTRO CORTO",
             m: `Viene esto a cuento de la necesidad de refrenar los ímpetus irrefrenados y, sobre todo, a las pasiones, que de suyo son ya irracionales.
 Porque el verdadero hombre no es el que sigue sin más los dictados de su capricho, sino el que sabe tirar a tiempo de las riendas de ese caballo presto al mordisco devorador que todos llevamos dentro. Dejar que el caballo nos lleve adonde quiera y como se le antoje no es de buen jinete; hacer que vaya adonde queremos y al paso que nos conviene, sí. Y para ello hay que tener la mano firme, que no dura, ni mucho menos, porque la dureza es otra cosa que no tiene nada que ver con la buena conducción.`
         },
-         {
+         {  id:10,
             p1: "A CADA PAJARILLO",
             p2: "PARÉCELE BIEN SU NIDO",
             m: `Desde los inaccesibles y rocosos de las águilas hasta los frágiles y suaves de los pardales, están todas las aves contentas con su hogar, y todas lo defienden hasta donde llegan sus fuerzas contra intrusos y depredadores. ¿Por qué, pues, no ha de parecernos a nosotros, los hombres, que nuestro hogar, nuestra casa, nuestra familia, son los mejores del mundo? Y así es: que cada uno está en ella más a gusto y feliz que en el mejor y más lujoso de los hoteles, y aunque sepamos —que lo sabemos— que hay otras casas mayores y más lujosas que la nuestra, porque siempre habrá otra mejor por buena que ella sea, es lo cierto que no la cambiaríamos por nada del mundo.
 Que la casa no son sólo las cuatro paredes donde se vive, sino la familia entera y los muebles y enseres que se tienen, y los recuerdos unidos a todos ellos, que es lo que en conjunto forma en realidad nuestra historia. Porque lo que el territorio es para la historia de las naciones es el hogar para la propia de todos y cada uno de nosotros: esas pequeñas historias que en unión —no lo olvidemos— es lo que en realidad constituye la verdadera historia de la humanidad.`
         },
-        {
+        {   id:11,
             p1: "¿ADÓNDE VAS, MAL?",
             p2: "ADONDE HAY MÁS",
             m: `Dicese también: "Bien venido seas, mal, si vienes solo". Y es que parece que las desdichas vienen encadenadas unas tras otras, y cuando ocurre la primera de ellas no tardan las demás en hacer acto de presencia. Algo parecido a lo que le sucedió a Job. Por eso habrá que hacer de tripas corazón y no dejarse amilanar. Cierto es que todos no tenemos madera de santos para sufrir las desgracias con la paciencia de Job, pero no lo es menos que, por grandes que sean las tribulaciones en que nos veamos metidos, siempre habrá un resquicio por donde podrá entrar la luz de la esperanza y, tras ella, la normalidad, aunque, ¿qué sabemos nosotros qué es la normalidad?`
         },
-        {
+        {   id:12,
             p1: "HACIENDA, QUE TU DUEÑO TE ATIENDA; Y SI NO,",
             p2: "QUE TE VENDA",
             m:`Recomienda este refrán la necesidad de estar, como quien dice, "al pie del cañón" en los negocios propios, sin dejar que sean otros quienes decidan por nosotros, porque, por buenos que éstos sean, les faltará siempre esa dedicación, ese amor y esa entrega que todos ponemos en lo que es nuestro, o de lo que depende nuestra subsistencia (y no sólo la meramente alimenticia).
 Pues aunque los extraños sean fieles cumplidores de su deber, no pasarán de ahí, por regla general: de cumplir con su deber. Y muchas veces no bastará con ese cumplimiento y será entonces donde surgirá el fallo: Podemos saber, o decidir, o intuir, qué es lo que nos conviene en una situación dada; pero, ¿cómo lo van a saber los demás? Harán lo que les aconseje su leal saber y entender; no podremos reprocharles nada, simplemente porque no habrá nada que reprochar, pero el resultado no será en muchos casos el que habríamos conseguido nosotros mismos.`
         },
-        {
+        {   id:13,
             p1: "DO SE SACA Y NO SE PON,",
             p2: "PRONTO SE LE VE EL HONDÓN",
             m:`Mal asunto éste de sacar sin reponer, de gastar sin aportar, de tirar sin recoger. Porque la base fundamental de una buena administración consiste precisamente en lo contrario: gastar menos de lo que se gana. Y así, teniendo cuidado con los dispendios, frenando el despilfarro y ateniéndose a lo que se puede buenamente, olvidando las falaces tentaciones de la adquisición fácil (que después no lo es tanto), no se verá llegar la ruina o la bancarrota.
 Arguyen los partidarios del gasto a ultranza que es mejor así, porque el dinero no vale nada, pero lo cierto es que al que menos le vale es al que menos tiene. Gastar lo necesario (menos sería roñosería o avaricia), prescindiendo de lo superfluo, es el ideal de toda economía, trátese de la doméstica de cada cual o de la de una empresa dada. Lo contrario, digan lo que dijeren, es camino seguro de disgustos, apuros y males a un plazo más o menos lejano.`
         },
-        {
+        {   id:14,
             p1: "EN LAS CUESTAS ARRIBA QUIERO MI BURRO,",
             p2: "QUE LAS CUESTAS ABAJO BIEN ME LAS SUBO",
             m: `Las ayudas las necesita uno cuando las ha menester. Por eso, si llega en momento oportuno es bien recibida y agradecida; pero fuera de lugar, lo único que consigue es enojar y predisponer en contra nuestra al que creíamos hacer un favor. Que la oportunidad es don que ha de usarse con tiento y discernimiento, no menores a la hora de dar que a la de pedir.
 Es refrán que suele usarse para motejar de extemporáneo un ofrecimiento hecho a destiempo, de modo similar a la frase proverbial de “a buenas horas, mangas verdes”.`
         },
-        {
+        {   id:15, 
             p1: "A DIOS ROGANDO,",
             p2: "Y CON EL MAZO DANDO",
             m: `Dícese así porque "Dios ayuda al que se ayuda", y si es cierto que nunca deja de su mano a sus criaturas —aunque a nosotros nos parezca otra cosa a veces—, también lo es que para alcanzar algo en este mundo en que vivimos tenemos que esforzarnos por conseguirlo. Que no todo son facilidades, ni mucho menos. Y para poder llegar al final de un camino hay que empezar por andarlo: no basta con invocar al cielo y esperar que el camino se acabe por sí solo. Y los caminos no son llanos, como la vida no es fácil. Por eso habremos de recurrir a nuestro tesón, a nuestro trabajo, a nuestra inteligencia para conseguir lo que pretendemos, sin que ello obste para que roguemos a Dios su ayuda, que no habrá de negarnos, ya que la rectitud de nuestras intenciones se da por descontada, pues ¿cómo habríamos de pedirle que nos eche una mano en algo de lo que se pueda seguir daño para uno de nuestros semejantes?`
         },
-        {
+        {   id:16,
             p1: "LO POCO AGRADA,",
             p2: "Y LO MUCHO ENFADA",
             m: `Versión paremiológica de la frase gracianesca "Lo bueno, si breve, dos veces bueno", con la que se encarece la necesidad de huir de la prolijidad en todos los terrenos, pues molesto resulta aguantar una parrafada reiterativa que podría haberse resumido en la décima parte de su extensión, no es menor el enfado que causan los bromistas de oficio, que se las dan de graciosos y acaban por resultar pesados y tontos.
 En casa o fuera de ella, en el lugar de trabajo o en la calle, con amigos o con desconocidos, la prudencia será siempre virtud preciada por todos, lo mismo a la hora de la alegría desbordante que en los momentos serios y graves. Si algo que hemos dicho ha caído bien y ha tenido éxito, dejémoslo estar, sin querer remachar el clavo haciendo alarde de improvisador o de hombre de recursos: mejor es eso que dejar la triste impresión de habernos “pasado”.`
         },
-        {
+        {   id:17,
             p1: "ALEGRÍA SECRETA,",
             p2: "CANDELA MUERTA",
             m: `Quiere este refrán significar lo poco que vale el propio contento si no se hace a otros partícipes de él. Y es cierto que las alegrías lo son más cuando las compartimos con otros, y cuantos más sean éstos, mayor será aquélla.
 Tal es en el fondo lo que sucede con los regalos, independientemente de su valor intrínseco, sino considerados como lo que son: una comunicación de nuestra alegría íntima, que materializamos en ese chismito con el que intentamos llevar al destinatario una parte —grande casi siempre— de nuestro afecto, que no otra cosa es que la alegría de tenerlo con nosotros. Y por eso —aunque algunos no se lo crean— el regalo (comunicación de nuestra alegría a los demás sin tener que usar de palabras que tal vez no fuésemos capaces de encontrar) da mayor satisfacción al que lo hace que al que lo recibe, por grande que sea la de este último. No despreciemos, pues, un regalo por ínfimo que sea: en él estará siempre encerrado ese gozo entrañable del que con él nos ha querido dar lo mejor que tenía: su amor.`,
         },
-        {
+        {   id:18,
             p1: "AGUA QUE NO HAS DE BEBER,",
             p2: "DÉJALA CORRER",
             m: `Da a entender que conviene no entrometerse en los asuntos que a uno no le incumben ni le importan. Pues si habiendo sed es lógico beber el agua que haga falta para saciarla, ya no lo es pararla, revolverla o ensuciarla, impidiendo con ello que sirva para mitigar la sed de otros.
 Sin embargo, tampoco debe tomarse en un sentido excesivo de inhibición, hasta el punto de desentenderse de todos los negocios ajenos, pues si malo es meter baza donde no nos llaman, arriesgándonos a recibir desaires, peor aún es no interceder en una discusión que amenace derivar a peores resultados, amparándonos en el cómodo “conmigo no iba nada” y dejando que los otros salgan mal porque nadie tuvo el coraje suficiente para intervenir poniendo paz y restableciendo la concordia. Bien está no molestar, pero no hay por qué no impedir reyertas.`,
         },
-        {
+        {   id:19,
             p1: "AL BURRO MUERTO,",
             p2: "LA CEBADA AL RABO",
             m: `Porque ahora que ya no la necesita, vamos solícitos con ella para que coma, haciendo inútil un socorro que a su debido tiempo pudo haber sido eficaz.
 Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo de veras precisa una ayuda —la que sea— y que después, cuando la cosa ya no tiene remedio, acuden presurosos y quejándose de que nadie les había dicho nada de la urgencia del socorro. No dejemos, pues, que se nos muera el burro: vayamos con el pienso cuando sea la hora de comer, que después ya podremos dejarlo tranquilo y, a la vez, nos evitaremos el disgusto de su muerte. Y si en lugar de un burro hambriento es un aparato que renquea, arreglémoslo antes que se estropee total y definitivamente. Después lo lamentaremos, pero la lamentación no resolverá nada y tendremos que tirarlo.NO HAY MAL`,
         },
-        {
+        {   id:20,
             p1: "NO HAY MAL",
             p2: "QUE POR BIEN NO VENGA",
             m: `Si sabemos buscar el lado bueno que todas las cosas tienen. Así, en lugar de desesperarnos cuando nos suceda algo que consideramos nefasto, es mejor echarle paciencia y resignación. Con un poco de imaginación no serán pocas las ocasiones en que eso mismo que antes habíamos tachado de fracaso o algo similar se nos habrá convertido en beneficioso; y de que esto es así está llena la vida de todos y cada uno de nosotros. ¡Cuántas veces hemos lamentado un acontecimiento del que más tarde hemos tenido que alegrarnos! Confiemos, pues, en que el mal que nos ocurre hoy puede ser bien el día de mañana.`,
@@ -285,7 +357,19 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
 
     // Actualizar mensaje inicial según cantidad de refranes disponibles
     document.getElementById('start-msg').innerText = `¿Podrás completar los ${Math.min(allRefranes.length, 25)} refranes elegidos al azar?`;
+ // --- LÓGICA DE LOCAL STORAGE ---
+    function getUnlockedRefranes() {
+        const saved = localStorage.getItem('refranes_desbloqueados');
+        return saved ? JSON.parse(saved) : [];
+    }
 
+    function saveUnlockedRefran(id) {
+        let unlocked = getUnlockedRefranes();
+        if (!unlocked.includes(id)) {
+            unlocked.push(id);
+            localStorage.setItem('refranes_desbloqueados', JSON.stringify(unlocked));
+        }
+    }
     function startGame() {
         if (allRefranes.length === 0) {
             alert("No hay refranes cargados.");
@@ -367,7 +451,39 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
             }
         }, 1000);
     }
+    // --- GALERÍA ---
+    function showGallery() {
+        document.querySelectorAll('#game-container > div').forEach(div => div.classList.add('hidden'));
+        const galleryScreen = document.getElementById('screen-gallery');
+        const grid = document.getElementById('gallery-grid');
+        const unlocked = getUnlockedRefranes();
+        
+        galleryScreen.classList.remove('hidden');
+        grid.innerHTML = "";
+        document.getElementById('gallery-count').innerText = `${unlocked.length} de ${allRefranes.length} refranes`;
 
+        allRefranes.forEach(refran => {
+            const isUnlocked = unlocked.includes(refran.id);
+            const card = document.createElement('div');
+            card.className = `refran-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+            card.innerHTML = isUnlocked ? `<span>${refran.p1}...</span>` : "🔒";
+            
+            if (isUnlocked) {
+                card.onclick = () => openModal(refran.p1 + " " + refran.p2, refran.m);
+            }
+            grid.appendChild(card);
+        });
+    }
+     // --- MODAL ---
+    function openModal(title, desc) {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-desc').innerText = desc;
+        document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+    }
     function nextQuestion() {
         currentIndex++;
         if (currentIndex < currentGameList.length) {
@@ -389,6 +505,8 @@ Así son muchos, incapaces de discernir cuándo es el momento en que el prójimo
             checkAnswer();
         }
     });
+     // Inicializar
+    showStart();
 </script>
 </body>
 </html>
