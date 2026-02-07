@@ -1,1 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hispania: El Desafío de los Siglos</title>
+    <style>
+        :root {
+            --oro: #d4af37;
+            --granate: #800000;
+            --pergamino: #fdf5e6;
+            --azul-real: #003366;
+            --acierto: #2d5a27;
+            --error: #a02020;
+        }
 
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background-color: #2b2b2b;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            background-color: var(--pergamino);
+            background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
+            width: 90%;
+            max-width: 700px;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.1);
+            border: 15px solid #3d2b1f;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='75' height='75'%3E%3Cg fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Crect width='75' height='75'/%3E%3Cpath d='M0 0l75 75M75 0L0 75'/%3E%3C/g%3E%3C/svg%3E") 25;
+            position: relative;
+        }
+
+        /* Pantalla de Inicio */
+        #start-screen {
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--granate);
+            font-size: 3rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--oro);
+            display: inline-block;
+        }
+
+        .subtitle {
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        /* Botones Estilo Clásico */
+        .btn-esp {
+            background: var(--granate);
+            color: var(--oro);
+            padding: 15px 30px;
+            border: 2px solid var(--oro);
+            font-variant: small-caps;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+        }
+
+        .btn-esp:hover {
+            background: var(--oro);
+            color: var(--granate);
+        }
+
+        /* Interfaz de Juego */
+        #quiz-ui { display: none; }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: var(--azul-real);
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .options-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: rgba(0,0,0,0.05);
+            border: 1px solid #8b4513;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover { background: rgba(139, 69, 19, 0.1); }
+
+        .feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            border: 2px dashed #8b4513;
+        }
+
+        #next-btn {
+            width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+
+        /* Resultados */
+        #results-screen { display: none; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen">
+        <h1>Hispania</h1>
+        <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
+        <p>Demuestra tu conocimiento sobre la historia de España en este desafío de 20 preguntas.</p>
+        <button class="btn-esp" onclick="startGame()">Comenzar Crónica</button>
+    </div>
+
+    <div id="quiz-ui">
+        <div class="stats-bar">
+            <span>Legajo: <span id="current-q">1</span> de 20</span>
+            <span>Aciertos: <span id="current-score">0</span></span>
+        </div>
+        
+        <div class="question-text" id="q-text">¿Pregunta?</div>
+        
+        <div class="options-list" id="ans-list">
+            </div>
+
+        <div id="feedback" class="feedback-box"></div>
+        <button id="next-btn" class="btn-esp" onclick="handleNext()">Siguiente Capítulo ➔</button>
+    </div>
+
+    <div id="results-screen">
+        <h2>Fin de la Crónica</h2>
+        <div id="final-score" style="font-size: 3rem; margin: 20px;">0/20</div>
+        <p id="final-msg"></p>
+        <button class="btn-esp" onclick="location.reload()">Reescribir la Historia</button>
+    </div>
+</div>
+
+<script>
+    // BASE DE DATOS (Aquí puedes cambiar las preguntas a tu gusto)
+    const banco = [
+    { q: "¿En qué fecha exacta se extendió el golpe militar a la Península?", c: "18 de julio de 1936", i: ["17 de julio de 1936", "19 de julio de 1936", "20 de julio de 1936"] },
+{ q: "¿Qué proporción de la Armada permaneció leal a la República según las fuentes?", c: "Casi la mitad", i: ["Un tercio", "La totalidad", "Un cuarto"] },
+{ q: "¿Quién fue asesinado el 13 de julio de 1936, sirviendo de detonante final?", c: "Calvo Sotelo", i: ["José del Castillo", "José Sanjurjo", "José Antonio Primo de Rivera"] },
+{ q: "¿Qué unidades militares lideró Franco tras volar al Protectorado de Marruecos?", c: "Legión y Regulares", i: ["Requetés y Falangistas", "Guardia Civil y Asalto", "Brigadas Mixtas"] },
+{ q: "¿En qué ciudad el general Goded fue derrotado por milicianos y fuerzas leales?", c: "Barcelona", i: ["Madrid", "Valencia", "Sevilla"] },
+{ q: "¿Cuál de estas regiones cayó bajo control sublevado desde el inicio?", c: "Galicia", i: ["Guipúzcoa", "Vizcaya", "Asturias"] },
+{ q: "¿Qué concepto usaban los rebeldes para definir su lucha como una guerra de religión?", c: "Cruzada", i: ["Alzamiento Nacional", "Revolución de Orden", "Reconquista del Estado"] },
+{ q: "¿Qué concepto usaban los rebeldes para agrupar a todos sus enemigos políticos?", c: "Rojos", i: ["Separatistas", "Masones", "Anarquistas"] },
+{ q: "¿Qué país propuso inicialmente la política de 'No Intervención' en agosto de 1936?", c: "Francia", i: ["Gran Bretaña", "Estados Unidos", "Portugal"] },
+{ q: "¿Cuántos países llegaron a adherirse al pacto de No Intervención?", c: "27 países", i: ["5 países", "12 países", "32 países"] },
+{ q: "¿Qué potencias formaban el subcomité encargado de vigilar las costas españolas?", c: "Alemania, Italia, URSS, Francia y Gran Bretaña", i: ["Alemania, Italia, Portugal, Francia y México", "URSS, México, Francia, Gran Bretaña y USA", "Italia, Alemania, Portugal, Irlanda y Gran Bretaña"] },
+{ q: "¿Con qué recurso financiero pagó la República la ayuda de la URSS?", c: "El Oro de Moscú", i: ["Créditos bancarios franceses", "Reservas de plata del Tesoro", "Impuestos de guerra extraordinarios"] },
+{ q: "¿Cuál fue la sede de entrenamiento de las Brigadas Internacionales?", c: "Albacete", i: ["Madrid", "Valencia", "Barcelona"] },
+{ q: "¿Cómo se llamaba el batallón de voluntarios estadounidenses en las Brigadas?", c: "Lincoln", i: ["Garibaldi", "Telemann", "San Patricio"] },
+{ q: "¿Qué unidad aérea fue responsable de los bombardeos sobre la población civil (ej. Gernika)?", c: "Legión Cóndor", i: ["CTV", "Viriatos", "Luftwaffe Regular"] },
+{ q: "¿Qué nombre recibieron los voluntarios portugueses que apoyaron a Franco?", c: "Viriatos", i: ["Requetés", "Camisas Negras", "Legión de San Patricio"] },
+{ q: "¿Qué estatuto vasco fue rechazado por cláusulas religiosas anticonstitucionales?", c: "Estatuto de Estella (Lizarra)", i: ["Estatuto de las Gestoras", "Estatuto de 1936", "Estatuto de Elgeta"] },
+{ q: "¿Por qué fracasó el Estatuto de las Gestoras en 1932?", c: "No obtuvo 2/3 de votos en Navarra", i: ["No se votó en Álava", "Fue suspendido por el Rey", "El PNV lo boicoteó"] },
+{ q: "¿En qué fecha se aprobó definitivamente el Estatuto Vasco en las Cortes?", c: "Octubre de 1936", i: ["Abril de 1931", "Julio de 1936", "Junio de 1937"] },
+{ q: "¿Qué partidos integraron el primer Gobierno Vasco de coalición?", c: "PNV, PSOE, PCE y Republicanos", i: ["Solo PNV y PSOE", "PNV, ANV y carlistas", "PNV, Izquierda Republicana y CNT"] },
+{ q: "¿Qué tipo de unidades militares predominaron hasta noviembre de 1936?", c: "Columnas", i: ["Herri Armada", "Brigadas Mixtas", "Tercios de Requetés"] },
+{ q: "¿Qué militar dirigió las tres columnas iniciales hacia Madrid desde el Norte?", c: "Mola", i: ["Franco", "Yagüe", "Varela"] },
+{ q: "¿Qué ciudad estratégica de Extremadura fue tomada por Yagüe el 14 de agosto?", c: "Badajoz", i: ["Mérida", "Cáceres", "Trujillo"] },
+{ q: "¿Qué decisión de Franco retrasó el ataque final a Madrid en septiembre?", c: "La liberación del Alcázar de Toledo", i: ["La toma de Bilbao", "La batalla del Ebro", "El asedio de Oviedo"] },
+{ q: "¿Qué cargo asumió Franco oficialmente el 1 de octubre de 1936?", c: "Jefe del Gobierno del Estado (y Generalísimo)", i: ["Presidente de la República", "Regente del Reino", "Director del Directorio Militar"] },
+{ q: "¿Quién presidía la Junta de Defensa de Madrid durante el asedio?", c: "General Miaja", i: ["Manuel Azaña", "Vicente Rojo", "Largo Caballero"] },
+{ q: "¿En qué batalla de febrero de 1937 se intentó cortar la carretera de Valencia?", c: "Jarama", i: ["Guadalajara", "Brunete", "Belchite"] },
+{ q: "¿Qué batalla de marzo de 1937 supuso una derrota moral para los italianos (CTV)?", c: "Guadalajara", i: ["Málaga", "Teruel", "El Ebro"] },
+{ q: "¿Qué general sublevado murió en accidente aéreo en junio de 1937?", c: "Mola", i: ["Sanjurjo", "Fanjul", "Goded"] },
+{ q: "30. ¿En qué fecha cayó la ciudad de Bilbao en manos franquistas?", c: "19 de junio de 1937", i: ["26 de abril de 1937", "14 de agosto de 1937", "1 de octubre de 1937"] },
+{ q: "¿Dónde se rindieron los batallones nacionalistas vascos?", c: "Santoña", i: ["Laredo", "Santander", "Gijón"] },
+{ q: "¿Qué militar republicano diseñó la ofensiva sobre Teruel?", c: "Vicente Rojo", i: ["Miaja", "Casado", "Modesto"] },
+{ q: "¿En qué fecha llegaron las tropas de Franco al Mediterráneo por Vinaroz?", c: "14 de abril de 1938", i: ["18 de julio de 1938", "23 de diciembre de 1938", "26 de enero de 1939"] },
+{ q: "¿Cuál fue la batalla de mayor desgaste y uso de reservas para la República?", c: "Batalla del Ebro", i: ["Batalla de Madrid", "Batalla de Teruel", "Batalla de Belchite"] },
+{ q: "¿Quién lideró el golpe interno contra el gobierno de Negrín en marzo de 1939?", c: "Coronel Casado", i: ["Miaja", "Besteiro", "Cipriano Mera"] },
+{ q: "¿En qué fecha entraron las tropas franquistas en Madrid?", c: "28 de marzo de 1939", i: ["26 de enero de 1939", "5 de marzo de 1939", "1 de abril de 1939"] },
+{ q: "¿Qué organización controlaba inicialmente el poder real en Barcelona tras el golpe?", c: "CNT-FAI", i: ["ERC", "PSUC", "POUM"] },
+{ q: "¿Qué suceso provocó la caída de Largo Caballero en mayo de 1937?", c: "Enfrentamientos armados en Barcelona (Telefónica)", i: ["La pérdida de Bilbao", "El bombardeo de Guernica", "El robo del Oro de Moscú"] },
+{ q: "¿Qué líder del POUM fue asesinado tras los sucesos de mayo de 1937?", c: "Andreu Nin", i: ["Federica Montseny", "Santiago Carrillo", "Julián Besteiro"] },
+{ q: "¿Qué países reconocieron oficialmente al gobierno de Franco en febrero de 1939?", c: "Francia e Inglaterra", i: ["Alemania e Italia", "USA e URSS", "Portugal y el Vaticano"] },
+{ q: "¿Qué título militar y político ostentaba Franco desde 1936?", c: "Caudillo y Generalísimo", i: ["Presidente del Consejo", "Regente Vitalicio", "Jefe del Movimiento"] },
+{ q: "¿Qué norma fundamental quedó inmediatamente anulada tras la victoria franquista?", c: "La Constitución de 1931", i: ["La Ley de Reforma Agraria", "El Código Civil", "La Ley de Vagos y Maleantes"] },
+{ q: "¿Cuál fue el nombre del partido único según el Decreto de Unificación?", c: "FET y de las JONS", i: ["Falange Española", "Movimiento Nacional", "Unión Patriótica"] },
+{ q: "¿En qué áreas la Iglesia Católica obtuvo control legítimo sobre la sociedad?", c: "Educación, Censure y Moral", i: ["Economía y Hacienda", "Defensa y Orden Público", "Industria y Agricultura"] },
+{ q: "¿Qué nombre recibió el sistema que sustituía al parlamentarismo liberal?", c: "Democracia Orgánica", i: ["Dictadura Proletaria", "Estado Corporativo", "Monarquía de Julio"] },
+{ q: "¿Qué familia política técnica, ligada al Opus Dei, ascendió en los 50?", c: "Tecnócratas", i: ["Falangistas", "Tradicionalistas", "Donjuanistas"] },
+{ q: "¿Qué sector social se benefició del sistema de recomendados?", c: "Clases medias del bando nacional", i: ["Clase obrera industrial", "Campesinado andaluz", "Aristocracia exiliada"] },
+{ q: "¿Qué ley de 1942 pretendía dar una imagen parlamentaria al régimen?", c: "Ley de Creación de las Cortes", i: ["Ley de Referéndum", "Fuero de los Españoles", "Ley de Sucesión"] },
+{ q: "¿Qué establecía la Ley de Sucesión de 1947 sobre la forma del Estado?", c: "España era un Reino", i: ["España era una República", "España era una Dictadura Militar", "España era un Protectorado"] },
+{ q: "¿Cuál fue la cifra estimada de ejecutados por el franquismo tras la guerra?", c: "50.000 personas", i: ["10.000 personas", "30.000 personas", "100.000 personas"] },
+{ q: "¿Qué ley de 1939 permitía confiscar bienes y propiedades a los vencidos?", c: "Ley de Responsabilidades Políticas", i: ["Ley de Vagos y Maleantes", "Ley de Seguridad del Estado", "Fuero del Trabajo"] },
+{ q: "¿A qué grupo se vinculaba la Masonería en la ley represiva de 1940?", c: "Al Comunismo", i: ["Al Capitalismo", "Al Anarquismo", "Al Separatismo"] },
+{ q: "¿Cómo se denominó al proceso de expulsión de docentes no afectos?", c: "Depuración de maestros", i: ["Exilio interior", "Reciclaje Nacional", "Tribunal de Orden Público"] },
+{ q: "¿Qué castigo humillante físico era común para las mujeres 'rojas'?", c: "Rapado de pelo y toma de aceite de ricino", i: ["Servicio militar obligatorio", "Prohibición de casarse", "Destierro a Canarias"] },
+{ q: "¿Quién fue el psiquiatra que teorizó sobre la 'patología' del marxismo?", c: "Vallejo-Nájera", i: ["Ramón y Cajal", "Gregorio Marañón", "Juan José López Ibor"] },
+{ q: "¿En qué año se eliminaron definitivamente las cartillas de racionamiento?", c: "1952", i: ["1945", "1950", "1959"] },
+{ q: "¿Qué organismo estatal se creó en 1941 para impulsar la industria?", c: "INI", i: ["RENFE", "SEAT", "CAMPSA"] },
+{ q: "¿Qué nombre recibía el mercado negro clandestino durante la autarquía?", c: "Estraperlo", i: ["Maquis", "Zoco", "Cambalache"] },
+{ q: "¿Por qué España fue excluida del Plan Marshall (1948-1952)?", c: "Por ser aliada de las potencias fascistas del Eje", i: ["Por no haber participado en la guerra", "Porque Franco lo consideró una injerencia", "Porque la URSS vetó su entrada"] },
+{ q: "¿Qué porcentaje alcanzó la inflación en España en 1958?", c: "25%", i: ["5%", "10%", "15%"] },
+{ q: "¿En qué instituciones internacionales ingresó España en 1958 para evitar la quiebra?", c: "FMI (NDF) y Banco Mundial", i: ["ONU y OTAN", "CEE y Plan Marshall", "UNESCO y UNICEF"] },
+{ q: "¿Quién ostentó la presidencia de la República en el exilio hasta 1962?", c: "Martínez Barrio", i: ["Manuel Azaña", "José Giral", "Claudio Sánchez Albornoz"] },
+{ q: "¿Cómo se denominaba a la guerrilla armada antifranquista?", c: "Maquis", i: ["Viriatos", "Requetés", "Camisas Azules"] },
+{ q: "¿En qué zona pirenaica fracasó la invasión de los Maquis en 1944?", c: "Valle de Arán", i: ["Valle de Baztán", "Roncesvalles", "Formigal"] },
+{ q: "¿Qué documento de 1945 presentaba a la monarquía como alternativa democrática?", c: "Manifiesto de Lausana", i: ["Manifiesto de Estoril", "Pacto de San Sebastián", "Carta de Roma"] },
+{ q: "¿Qué acuerdo alcanzaron Franco y Don Juan de Borbón en 1948?", c: "La educación de Juan Carlos en España bajo tutela de Franco", i: ["La vuelta inmediata del Rey", "El exilio definitivo de la casa de Borbón", "La legalización de sindicatos monárquicos"] },
+{ q: "¿Qué protesta social en Barcelona en 1951 marcó un hito de resistencia?", c: "Boicot a los tranvías", i: ["Huelga de la Minería", "Cierre de comercios", "Manifestación de estraperlistas"] },
+{ q: "¿Qué ley técnica de 1958 permitió negociar salarios directamente con patronos?", c: "Ley de Convenios Colectivos ", i: ["Ley de Unidad Sindical", "Fuero del Trabajo", "Ley de Bases"] },
+{ q: "¿Qué estatus diplomático tuvo España al inicio de la II Guerra Mundial?", c: "Neutral", i: ["Aliado militar", "Beligerante", "Enemigo"] },
+{ q: "¿Dónde se produjo la famosa entrevista entre Franco y Hitler en 1940?", c: "Hendaya", i: ["Berlín", "Bordighera", "Madrid"] },
+{ q: "¿Qué reclamó Franco a Hitler para entrar en la guerra?", c: "Protectorado francés en Marruecos, Orán y Guinea", i: ["Gibraltar y el Rosellón", "Portugal y las Azores", "Filipinas y Cuba"] },
+{ q: "¿Cómo se llamó la unidad de voluntarios enviada contra la URSS?", c: "División Azul", i: ["División Acorazada", "Legión Cóndor", "Tercio de Extranjeros"] },
+{ q: "¿Qué mineral estratégico exportaba España para la industria nazi?", c: "Wolframio", i: ["Hierro", "Cobre", "Carbón"] },
+{ q: "¿Cuál fue la recomendación de la ONU en 1946 sobre el régimen de Franco?", c: "Retirada de embajadores y condena diplomática", i: ["Admisión inmediata", "Bloqueo naval total", "Cambio de bandera obligatorio"] },
+{ q: "¿Qué factor internacional facilitó el fin del aislamiento en los 50?", c: "El inicio de la Guerra Fría", i: ["La muerte de Stalin", "El descubrimiento de petróleo", "El fin de la autarquía"] },
+{ q: "¿Qué recibió España por los Pactos de Madrid (1953) con EE.UU.?", c: "Ayuda económica y militar a cambio de bases", i: ["La entrada en la OTAN", "La soberanía sobre Gibraltar", "Un asiento en el Plan Marshall"] },
+{ q: "¿En qué año fue admitida finalmente España en la ONU?", c: "1955", i: ["1945", "1950", "1953"] },
+{ q: "¿Qué territorio cedió Franco en 1956 por presiones internacionales?", c: "Protectorado de Marruecos", i: ["Guinea Ecuatorial", "Sáhara Occidental", "Ifni"] },
+{ q: "¿Qué presidente estadounidense visitó oficialmente España en 1959?", c: "Eisenhower", i: ["Truman", "Kennedy", "Roosevelt"] },
+{ q: "¿Qué nombre recibían las unidades de trabajos forzados para presos?", c: "Batallones de Trabajadores", i: ["Colonias Escolares", "Reformatorios de Adultos", "Centros de Reeducación Social"] }
+    ];
+
+    let preguntasPartida = [];
+    let indice = 0;
+    let aciertos = 0;
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('quiz-ui').style.display = 'block';
+        preguntasPartida = shuffle([...banco]).slice(0, 20);
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const data = preguntasPartida[indice];
+        document.getElementById('q-text').innerText = data.q;
+        document.getElementById('current-q').innerText = indice + 1;
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+
+        const opciones = shuffle([data.c, ...data.i]);
+        const list = document.getElementById('ans-list');
+        list.innerHTML = '';
+
+        opciones.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'option-btn';
+            b.innerText = opt;
+            b.onclick = () => check(opt, data.c, b);
+            list.appendChild(b);
+        });
+    }
+
+    function check(elegida, correcta, boton) {
+        const buttons = document.querySelectorAll('.option-btn');
+        const feedback = document.getElementById('feedback');
+        buttons.forEach(b => b.disabled = true);
+
+        if(elegida === correcta) {
+            aciertos++;
+            boton.style.background = "#d4edda";
+            boton.style.borderColor = "var(--acierto)";
+            feedback.innerText = "¡Correcto, por la Gracia de Dios!";
+            feedback.style.color = "var(--acierto)";
+        } else {
+            boton.style.background = "#f8d7da";
+            boton.style.borderColor = "var(--error)";
+            feedback.innerText = `Error. Lo cierto es: ${correcta}`;
+            feedback.style.color = "var(--error)";
+        }
+
+        document.getElementById('current-score').innerText = aciertos;
+        feedback.style.display = 'block';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function handleNext() {
+        indice++;
+        if(indice < 20) {
+            renderQuestion();
+        } else {
+            showFinal();
+        }
+    }
+
+    function showFinal() {
+        document.getElementById('quiz-ui').style.display = 'none';
+        const screen = document.getElementById('results-screen');
+        screen.style.display = 'block';
+        document.getElementById('final-score').innerText = `${aciertos}/20`;
+        
+        let msg = "";
+        if(aciertos === 20) msg = "¡Sois un verdadero Cronista Real!";
+        else if(aciertos > 12) msg = "Buen conocimiento de nuestras raíces.";
+        else msg = "Debéis repasar los legajos de la historia.";
+        
+        document.getElementById('final-msg').innerText = msg;
+    }
+</script>
+
+</body>
+</html>
