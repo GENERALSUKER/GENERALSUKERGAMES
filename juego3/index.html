@@ -139,12 +139,21 @@
 <body>
 
 <div id="game-container">
-    <div id="start-screen">
-        <h1>Hispania</h1>
-        <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
-        <p>Demuestra tu conocimiento sobre la historia de España en este desafío de 20 preguntas.</p>
-        <button class="btn-esp" onclick="startGame()">Comenzar Crónica</button>
+ <div id="start-screen">
+    <h1>Hispania</h1>
+    <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
+    <p>Elige tu camino para explorar la historia:</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+        <button class="btn-esp" onclick="startGame('normal')">Modo Crónica</button>
+        <button class="btn-esp" style="background: var(--azul-real);" onclick="startGame('repaso')">
+            Modo Erudito
+        </button>
+        <button class="btn-esp" style="background: #444; font-size: 0.8rem; padding: 10px;" onclick="resetHistorial()">
+            Reiniciar Archivo Histórico
+        </button>
     </div>
+</div>
 
     <div id="quiz-ui">
         <div class="stats-bar">
@@ -231,7 +240,7 @@
 { q: "¿Qué organismo estatal se creó en 1941 para impulsar la industria?", c: "INI", i: ["RENFE", "SEAT", "CAMPSA"] },
 { q: "¿Qué nombre recibía el mercado negro clandestino durante la autarquía?", c: "Estraperlo", i: ["Maquis", "Zoco", "Cambalache"] },
 { q: "¿Por qué España fue excluida del Plan Marshall (1948-1952)?", c: "Por ser aliada de las potencias fascistas del Eje", i: ["Por no haber participado en la guerra", "Porque Franco lo consideró una injerencia", "Porque la URSS vetó su entrada"] },
-{ q: "¿Qué porcentaje alcanzó la inflación en España en 1958?", c: "25%", i: ["5%", "10%", "15%"] },
+{ q: "¿Qué porcentaje alcanzó la inflación en España en 1958?", c: "15%", i: ["5%", "10%", "25%"] },
 { q: "¿En qué instituciones internacionales ingresó España en 1958 para evitar la quiebra?", c: "FMI (NDF) y Banco Mundial", i: ["ONU y OTAN", "CEE y Plan Marshall", "UNESCO y UNICEF"] },
 { q: "¿Quién ostentó la presidencia de la República en el exilio hasta 1962?", c: "Martínez Barrio", i: ["Manuel Azaña", "José Giral", "Claudio Sánchez Albornoz"] },
 { q: "¿Cómo se denominaba a la guerrilla armada antifranquista?", c: "Maquis", i: ["Viriatos", "Requetés", "Camisas Azules"] },
@@ -251,28 +260,160 @@
 { q: "¿En qué año fue admitida finalmente España en la ONU?", c: "1955", i: ["1945", "1950", "1953"] },
 { q: "¿Qué territorio cedió Franco en 1956 por presiones internacionales?", c: "Protectorado de Marruecos", i: ["Guinea Ecuatorial", "Sáhara Occidental", "Ifni"] },
 { q: "¿Qué presidente estadounidense visitó oficialmente España en 1959?", c: "Eisenhower", i: ["Truman", "Kennedy", "Roosevelt"] },
-{ q: "¿Qué nombre recibían las unidades de trabajos forzados para presos?", c: "Batallones de Trabajadores", i: ["Colonias Escolares", "Reformatorios de Adultos", "Centros de Reeducación Social"] }
-    ];
+{ q: "¿Qué nombre recibían las unidades de trabajos forzados para presos?", c: "Batallones de Trabajadores", i: ["Colonias Escolares", "Reformatorios de Adultos", "Centros de Reeducación Social"] },
+   
+{ q: "¿Qué fuerzas de orden público se mantuvieron mayoritariamente leales a la República en ciudades como Barcelona?", c: "La Guardia Civil y la Guardia de Asalto.", i: ["La Legión y los Regulares del Protectorado.", "Los Requetés y las milicias falangistas.", "Las Juntas de Defensa y el Ejército de África."] },
+    { q: "¿Cuál fue el principal obstáculo constitucional del Estatuto de Estella (Lizarra) en 1931?", c: "La potestad de negociar un Concordato propio con el Vaticano.", i: ["La falta de apoyo de la mayoría de los alcaldes.", "La inclusión de Navarra como territorio soberano.", "El rechazo explícito a la bandera tricolor republicana."] },
+    { q: "¿Qué papel desempeñó el 'Comité de Londres' en el contexto de la No Intervención?", c: "Supervisar el cumplimiento del pacto de no suministro de armas.", i: ["Suministrar armas de forma clandestina a la República.", "Organizar el reclutamiento de las Brigadas Internacionales.", "Gestionar la evacuación de niños a la Unión Soviética."] },
+    { q: "¿Qué unidad militar fue la encargada de establecer el 'puente aéreo' en agosto de 1936?", c: "La aviación de Alemania e Italia para trasladar al ejército de África.", i: ["La aviación de la URSS enviada por Stalin.", "Las escuadrillas de voluntarios franceses del Frente Popular.", "La flota republicana estacionada en el Estrecho de Gibraltar."] },
+    { q: "¿Quién diseñó la estrategia de las 'Brigadas Mixtas' para profesionalizar el pueblo armado?", c: "Los mandos del Ejército Popular sobre la base de milicias.", i: ["El General Miaja tras la huida del gobierno.", "Largo Caballero durante su periodo de centralización.", "El asesor soviético enviado para la defensa de Madrid."] },
+    { q: "¿Qué evento marcó el cese del gobierno de Largo Caballero en mayo de 1937?", c: "El conflicto armado entre el PSUC/ERC y la CNT/POUM en Barcelona.", i: ["La caída definitiva de Bilbao y el Pacto de Santoña.", "La decisión de trasladar el tesoro del Banco de España a Moscú.", "La pérdida estratégica de Málaga tras la derrota italiana."] },
+    { q: "¿En qué se diferenció la represión republicana de la franquista según las fases descritas?", c: "La republicana fue fruto del caos inicial; la franquista fue planificada.", i: ["La republicana fue institucionalizada mediante leyes de seguridad.", "La franquista se limitó a consejos de guerra desde el primer día.", "No hubo diferencias; ambas fueron dirigidas por sus gobiernos centrales."] },
+    { q: "¿Cuál era el lema distintivo de las Brigadas Internacionales en el frente?", c: "¡España será la tumba del fascismo!", i: ["¡Arriba España, Una, Grande y Libre!", "¡Ni un paso atrás, por la Revolución!", "¡No pasarán, el fascismo será detenido!"] },
+    { q: "¿Qué militar republicano lideró la ofensiva sobre Teruel en el invierno de 1937-1938?", c: "El General Vicente Rojo como jefe del Estado Mayor.", i: ["El General Modesto bajo supervisión soviética.", "El Coronel Casado para forzar una paz negociada.", "El General Miaja desde la Junta de Defensa de Madrid."] },
+    { q: "¿Qué ocurrió con los batallones nacionalistas tras la caída de Bilbao?", c: "Se rindieron a los italianos mediante el denominado Pacto de Santoña.", i: ["Se replegaron hacia Asturias para continuar la resistencia.", "Se integraron masivamente en las Brigadas Mixtas de Madrid.", "Fueron evacuados por la marina británica hacia Francia."] },
+    { q: "¿Qué implicó la 'militarización de las milicias' impuesta por el gobierno de Negrín?", c: "La integración obligatoria de las milicias sindicales en el ejército regular.", i: ["La expulsión inmediata de todos los mandos de origen soviético.", "El fin de la distinción entre oficiales y soldados en el frente.", "La creación de tribunales populares para juzgar a los desertores."] },
+    { q: "¿Cuál fue la causa táctica del desvío de las tropas franquistas hacia Toledo en 1936?", c: "Socorrer a los asediados en el Alcazar para obtener una victoria simbólica.", i: ["Cortar la comunicación ferroviaria entre Madrid y Valencia.", "Evitar que las milicias anarquistas tomaran las fábricas de armas.", "Esperar a que la Legión Cóndor estuviera operativa en Getafe."] },
+    { q: "¿Qué papel jugaron los 'Viriatos' en el bando nacional?", c: "Eran los voluntarios portugueses que apoyaron a los sublevados.", i: ["Eran los asesores técnicos de la artillería alemana.", "Eran las milicias de choque de Falange en Andalucía.", "Eran los batallones de prisioneros forzados a excavar trincheras."] },
+    { q: "¿Qué territorio vasco se opuso al Estatuto de los Gestores en 1932?", c: "Navarra, al no alcanzar los dos tercios de votos municipales.", i: ["Álava, por la influencia de las élites industriales.", "Guipúzcoa, debido a la fuerza del movimiento carlista.", "Vizcaya, por desacuerdos con la capitalidad de Vitoria."] },
+    { q: "¿Qué organismo sustituyó al Gobierno republicano en Madrid en noviembre de 1936?", c: "La Junta de Defensa de Madrid presidida por el General Miaja.", i: ["El Consejo Nacional de Defensa liderado por Casado.", "El Comité de Milicias Antifascistas de la CNT-FAI.", "El Gobierno de coalición de Jose Antonio Agirre."] },
+    { q: "¿Qué se entiende por 'Colecitivizaciones' en el contexto de la zona republicana?", c: "La gestión de fábricas y tierras por parte de comités de trabajadores.", i: ["La nacionalización de la banca para financiar el esfuerzo bélico.", "El reparto de tierras expropiadas entre los soldados del frente.", "El sistema de racionamiento de alimentos en las ciudades sitiadas."] },
+    { q: "¿Qué personaje fue asesinado en Barcelona tras ser ilegalizado su partido (POUM)?", c: "Andreu Nin.", i: ["Buenaventura Durruti.", "Francisco Largo Caballero.", "Julián Besteiro."] },
+    { q: "¿Cuál fue la causa de la formación del Consejo Nacional de Defensa en 1939?", c: "Dar un golpe de estado para negociar la paz directamente con Franco.", i: ["Unir a todas las fuerzas de izquierda para una última ofensiva.", "Facilitar la huida del gobierno de Negrín hacia la Unión Soviética.", "Organizar la guerrilla de los maquis tras la caída de Madrid."] },
+    { q: "¿Qué país fue el único que no suscribió el pacto de 'No Intervención'?", c: "México.", i: ["Francia.", "Portugal.", "Irlanda."] },
+    { q: "¿Cómo se denominaban los juicios militares franquistas a partir de 1937?", c: "Consejos de Guerra sumarísimos.", i: ["Tribunales populares de justicia nacional.", "Juicios de responsabilidades políticas.", "Auditorías militares de retaguardia."] },
+    { q: "¿Qué ciudad fue bombardeada el 26 de abril de 1937 por la Legión Cóndor?", c: "Gernika.", i: ["Durango.", "Éibar.", "Otxandio."] },
+    { q: "¿Qué composición tenía el Gobierno Vasco formado el 7 de octubre de 1936?", c: "Coalición de EAJ, PSOE, PCE y partidos republicanos.", i: ["Monocolor del PNV para garantizar la autonomía religiosa.", "Frente Popular vasco sin presencia de nacionalistas.", "Comité militar de defensa sin representación de partidos."] },
+    { q: "¿Cuál era el objetivo estratégico de Franco al atacar el Ebro en 1938?", c: "Llegar al Mediterráneo y dividir el territorio republicano en dos.", i: ["Reconquistar Teruel para avanzar hacia Zaragoza.", "Evitar que las tropas republicanas cruzaran hacia Francia.", "Destruir las reservas de trigo de la zona de Levante."] },
+    { q: "¿Qué nombre recibían las unidades republicanas organizadas por nacionalidades?", c: "Batallones (como el Lincoln o el Garibaldi).", i: ["Tercios de voluntarios extranjeros.", "Legiones de la democracia europea.", "Secciones de apoyo logístico internacional."] },
+    { q: "¿Qué general lideró el alzamiento en Navarra con el apoyo de los Requetés?", c: "General Mola.", i: ["General Sanjurjo.", "General Franco.", "General Queipo de Llano."] },
+    { q: "¿Qué sucedió con la figura de Manuel Azaña en febrero de 1939?", c: "Cruzó la frontera hacia el exilio junto con el gobierno de Negrín.", i: ["Fue detenido por las tropas franquistas en Girona.", "Lideró la resistencia en Madrid tras el golpe de Casado.", "Dimitió para facilitar la restauración de la monarquía."] },
+    { q: "¿Qué diferencia definía a los 'Nacionales' frente a los 'Republicanos'?", c: "La defensa de valores tradicionales, conservadores y autoritarios.", i: ["El uso de armamento moderno suministrado por Francia.", "La defensa de un modelo de estado federal y laico.", "La búsqueda de una revolución social inmediata de corte obrero."] },
+    { q: "¿En qué fecha se extendió el golpe militar a la Península?", c: "18 de julio de 1936.", i: ["17 de julio de 1936.", "19 de julio de 1936.", "20 de julio de 1936."] },
+    { q: "¿Qué porcentaje de las Brigadas Internacionales era de ideología comunista?", c: "Un 80%.", i: ["Un 50%.", "Un 65%.", "Un 95%."] },
+    { q: "¿Cuál era el lema de propaganda republicana para la defensa de Madrid?", c: "No pasarán.", i: ["¡Mola, prepárate que Madrid será tu tumba!", "¡Viva la libertad de los pueblos de España!", "¡Por la paz y contra el fascismo internacional!"] },
+    { q: "¿Qué general sublevado tomó el mando en Sevilla?", c: "General Queipo de Llano.", i: ["General Varela.", "General Cabanellas.", "General Fanjul."] },
+    { q: "¿Qué territorio vasco no participó en el Estatuto de 1936?", c: "Navarra.", i: ["Álava.", "Guipúzcoa.", "Vizcaya."] },
+    { q: "¿Quién fue el jefe del Estado Mayor republicano en la Batalla del Ebro?", c: "General Vicente Rojo.", i: ["General Miaja.", "Coronel Casado.", "General Modesto."] },
+    { q: "¿Qué organización anarquista controlaba Barcelona al inicio del golpe?", c: "CNT-FAI.", i: ["FAI-POUM.", "UGT-PSUC.", "ERC-Estat Català."] },
+    { q: "¿Qué nombre recibían las ejecuciones arbitrarias en la retaguardia franquista?", c: "'Paseos'.", i: ["Limpiezas de zona.", "Juicios sumarísimos de campo.", "Destierros políticos de urgencia."] },
+    { q: "¿En qué año se eliminaron las milicias de mujeres en la República?", c: "1937.", i: ["1936.", "1938.", "1939."] },
+    { q: "¿Qué ciudad cayó el 19 de junio de 1937?", c: "Bilbao.", i: ["San Sebastián.", "Santander.", "Gijón."] },
+    { q: "¿Qué país apoyó a la República con la 'Legión de San Patricio'?", c: "Irlanda (apoyo nacionalista).", i: ["URSS", "México (apoyo diplomático).", "Estados Unidos (voluntarios)."] },
+    { q: "¿Qué ley franquista de febrero de 1939 imposibilitaba la paz pactada?", c: "Ley de Responsabilidades Políticas", i: ["Ley de Seguridad del Estado.", "Fuero del Trabajo.", "Ley de Prensa y Censura."] },
+    { q: "¿Cuándo finalizó oficialmente la guerra civil?", c: "1 de abril de 1939.", i: ["28 de marzo de 1939.", "5 de marzo de 1939.", "18 de julio de 1939."] },
+    { q: "¿Qué define institucionalmente al Franquismo como una 'Dictadura Personal'?", c: "La concentración de todos los poderes en la figura del Caudillo.", i: ["El control de la economía a través de sindicatos obreros.", "La rotación de cargos entre los generales del bando nacional.", "La sumisión del Estado a las órdenes directas del Vaticano."] },
+    { q: "¿Cuál era la función principal de la 'Sección Femenina' de Falange?", c: "El control de la vida social, educación y moral femenina.", i: ["Reclutar mujeres para la industria de guerra pesada.", "Promover la igualdad salarial en el sector servicios.", "Gestionar los hospitales militares tras la posguerra."] },
+    { q: "¿Qué sector social formaba el 'Franquismo Sociológico' de los años 60?", c: "Las clases medias agradecidas por el crecimiento económico.", i: ["Los exiliados que regresaron tras la Ley de Amnistía.", "Los latifundistas del sur beneficiados por la contrarreforma.", "Los militares que participaron en la División Azul."] },
+    { q: "¿Cuál fue la causa de la instauración de la autarquía en los años 40?", c: "La ideología fascista y el aislamiento internacional.", i: ["El excedente de reservas de oro acumuladas en Madrid.", "Una imposición directa de los Estados Unidos.", "El deseo de competir comercialmente con la URSS."] },
+    { q: "¿Qué establecía la Ley de Sucesión de 1947 sobre el futuro de España?", c: "La definición de España como Reino y Franco como regente vitalicio.", i: ["El retorno inmediato de Don Juan de Borbón como Rey.", "La celebración de elecciones libres tras la muerte de Franco.", "La abolición de la monarquía en favor de un estado falangista."] },
+    { q: "¿Quiénes eran los 'Recomendados' dentro de la estructura social del régimen?", c: "Clases medias del bando nacional premiadas con puestos públicos.", i: ["Prisioneros de guerra que aceptaban trabajos forzados.", "Estudiantes becados para formarse en universidades alemanas.", "Sacerdotes encargados de la censura en la prensa local."] },
+    { q: "¿Qué implicó el ingreso de los 'Tecnócratas' en el gobierno en 1957?", c: "La apertura económica y la integración en organismos internacionales.", i: ["Un endurecimiento de la represión contra los sectores católicos.", "El retorno a las políticas de racionamiento y control de precios.", "Una alianza militar defensiva con la Unión Soviética."] },
+    { q: "¿Cuál fue la consecuencia del 'Estraperlo' en la posguerra?", c: "El enriquecimiento de las élites cercanas al poder político.", i: ["La democratización del acceso a bienes de consumo básicos.", "La caída drástica de la inflación debido a la competencia.", "El fin de la desnutrición en las zonas rurales aisladas."] },
+    { q: "¿Qué supuso el 'Manifiesto de Lausana' (1945) para la dictadura?", c: "La ruptura de Don Juan de Borbón con el régimen franquista.", i: ["El apoyo total de la monarquía británica al régimen de Franco.", "El reconocimiento internacional de España como potencia nuclear.", "La adhesión voluntaria de España al Plan Marshall americano."] },
+    { q: "¿Qué ley de 1958 permitía negociar salarios al margen de la rigidez estatal?", c: "Ley de Convenios Colectivos.", i: ["Ley de Unidad Sindical.", "Fuero de los Españoles.", "Ley de Principios del Movimiento Nacional."] },
+    { q: "¿Cuál fue la postura diplomática de España en 1940 respecto a la II GM?", c: "Estatus de 'No Beligerante' como apoyo a Alemania.", i: ["Neutralidad absoluta y cierre de fronteras con Francia.", "Declaración de guerra inmediata a Gran Bretaña.", "Alianza secreta con los Aliados para recibir suministros."] },
+    { q: "¿Qué producto exportaba España masivamente a la Alemania nazi?", c: "Wolframio, esencial para la industria armamentística.", i: ["Trigo para abastecer a las tropas en el frente ruso.", "Petróleo refinado en las refinerías del INI.", "Carbón de las minas asturianas recién conquistadas."] },
+    { q: "¿Cuál fue la causa del fracaso de la invasión del Valle de Arán en 1944?", c: "La falta de un levantamiento popular interno contra Franco.", i: ["El apoyo aéreo masivo de la Luftwaffe alemana a Franco.", "La falta de armamento de los guerrilleros comunistas.", "El pacto secreto entre Stalin y Franco para detener la guerrilla."] },
+    { q: "¿Qué nombre recibió la unidad de voluntarios enviada al frente ruso?", c: "División Azul.", i: ["Legión de San Patricio.", "Tercio de Extranjeros.", "Cuerpo de Tropas Voluntarias."] },
+    { q: "¿Qué organismo estatal se encargó de las empresas públicas como SEAT?", c: "El Instituto Nacional de Industria (INI).", i: ["El Servicio Nacional del Trigo.", "La Organización Sindical Española (OSE).", "El Consejo Económico Nacional de Falange."] },
+    { q: "¿Por qué fue excluida España del Plan Marshall?", c: "Por sus orígenes fascistas y su apoyo previo al Eje.", i: ["Por la excesiva deuda acumulada con Italia y Alemania.", "Porque Franco consideró que la ayuda era insuficiente.", "Debido al veto directo de la Unión Soviética en la ONU."] },
+    { q: "¿Qué establecía la Ley de Responsabilidades Políticas de 1939?", c: "El castigo económico y confiscación de bienes a los vencidos.", i: ["La amnistía parcial para los soldados republicanos sin delitos.", "La creación de un sistema de pensiones para los huérfanos de guerra.", "La obligación de todos los ciudadanos de jurar lealtad a Falange."] },
+    { q: "¿Qué teoría justificó la separación de niños de sus madres republicanas?", c: "La supuesta 'patología marxista' estudiada por Vallejo-Nájera.", i: ["La incapacidad económica de las familias obreras tras la guerra.", "El alto índice de mortalidad infantil en las cárceles de mujeres.", "Una directriz del Vaticano para garantizar la educación cristiana."] },
+    { q: "¿Qué cambio trajo el Concordato con el Vaticano de 1953?", c: "El control de la Iglesia sobre la educación y la moral pública.", i: ["La libertad de culto para las minorías protestantes en España.", "El fin del pago de impuestos por parte de las propiedades estatales.", "La prohibición de que los obispos participaran en política."] },
+    { q: "¿En qué año ingresó España oficialmente en la ONU?", c: "1955.", i: ["1945.", "1950.", "1953."] },
+    { q: "¿Cuál era el objetivo del 'Serivico Nacional del Trigo' (1940)?", c: "Controlar la producción y compra obligatoria de trigo por el Estado.", i: ["Exportar cereales a América Latina para obtener divisas.", "Repartir tierras de forma gratuita entre los campesinos sin recursos.", "Subvencionar la maquinaria agrícola importada de Italia."] },
+    { q: "¿Qué causó las protestas estudiantiles de 1956?", c: "El rechazo al control de los falangistas (SEU) en la universidad.", i: ["El aumento de las tasas universitarias en Madrid y Barcelona.", "La prohibición de estudiar autores clásicos del liberalismo.", "La exigencia de que el euskera fuera lengua académica."] },
+    { q: "¿A quién se aplicó la 'Ley de Vagos y Maleantes' a partir de los años 50?", c: "A los homosexuales, sometidos a cárcel y torturas.", i: ["A los empresarios que participaban en el mercado negro.", "A los militares que desertaron durante la guerra civil.", "A los exiliados que intentaban cruzar la frontera ilegalmente."] },
+    { q: "¿Quién fue el primer presidente de la República en el exilio tras la guerra?", c: "Martínez Barrio.", i: ["Claudio Sánchez Albornoz.", "José Giral.", "Juan Negrín."] },
+    { q: "¿Qué nombre recibió la guerrilla armada antifranquista?", c: "Maquis.", i: ["Viriatos.", "Requetés.", "Tercios de la resistencia."] },
+    { q: "¿Qué factor internacional salvó a la dictadura del aislamiento total?", c: "El inicio de la Guerra Fría entre EE.UU. y la URSS.", i: ["La muerte prematura de Adolf Hitler.", "El descubrimiento de yacimientos de petróleo en el Sáhara.", "La presión del Reino Unido para abrir el comercio textil."] },
+    { q: "¿Qué acordaron Franco y Don Juan de Borbón en 1948?", c: "Que el príncipe Juan Carlos estudiara en España bajo tutela de Franco.", i: ["La restauración inmediata de la Constitución de 1876.", "El nombramiento de Don Juan como heredero al trono.", "La legalización del partido monárquico dentro del Movimiento."] },
+    { q: "¿Qué institución financiera internacional rescató a España en 1958?", c: "El FMI).", i: ["El Banco Central Europeo.", "El Plan Marshall estadounidense.", "La Sociedad de Naciones."] },
+    { q: "¿Qué porcentaje alcanzó la inflación en 1958 antes de las reformas?", c: "15%.", i: ["5%.", "10%.", "25%."] },
+    { q: "¿Cuál fue el propósito del 'Fuero de los Españoles' (1945)?", c: "Dar una imagen de libertades para evitar el aislamiento externo.", i: ["Garantizar la libertad de expresión y manifestación real.", "Otorgar autonomía administrativa a las provincias vascas.", "Restablecer el código penal previo a la dictadura."] },
+    { q: "¿Qué grupo político perdió poder tras el fin de la II GM en España?", c: "Los falangistas, alejados de los puestos de primera fila.", i: ["Los tecnócratas del Opus Dei.", "Los militares monárquicos leales a Don Juan.", "El clero católico nacionalista."] },
+    { q: "¿Qué nombre recibían los campos para clasificar prisioneros tras 1937?", c: "Concentración.", i: ["Batallones de disciplina.", "Centros de reeducación social.", "Cárceles de paso provincial."] },
+    { q: "¿Qué cargo ostentaba Franco además de Caudillo?", c: "Generalísimo de los tres ejércitos.", i: ["Presidente vitalicio de las Cortes.", "Primer Ministro por elección parlamentaria.", "Rey regente de la Casa de Borbón."] },
+    { q: "¿Cómo se llamaba la unidad de mujeres dentro de Falange?", c: "Sección Femenina.", i: ["Auxilio Social de Guerra.", "Frente de Juventudes Femenino.", "Hermandad de la Fe."] },
+    { q: "¿Qué implicó la 'Depuración' en la educación?", c: "La expulsión masiva de maestros por sus ideas políticas.", i: ["El aumento del sueldo a los profesores que lucharon con Franco.", "La construcción de nuevas escuelas rurales de arte y oficio.", "La obligación de enseñar en latín en las universidades."] },
+    { q: "¿Cuál fue el estatus de España respecto al euskera durante la dictadura?", c: "Fue perseguido y se prohibieron las ikastolas.", i: ["Fue lengua cooficial en ámbitos administrativos locales.", "Se permitió su uso exclusivo en la liturgia eclesiástica.", "No hubo restricciones, pero se fomentó el castellano."] },
+    { q: "¿Qué sector de la burguesía apoyó a Franco por la 'paz social'?", c: "La industria-burgesia de Cataluña y Bizkaia.", i: ["Los pequeños comerciantes de Madrid y Valencia.", "Los intelectuales liberales de la Institución Libre de Enseñanza.", "Los sindicatos católicos del sector servicios."] },
+    { q: "¿En qué consistió la entrevista de Hendaya (1940)?", c: "La negociación de la entrada de España en la guerra con Hitler.", i: ["Un acuerdo comercial para exportar naranjas a Alemania.", "La firma de la paz definitiva entre España y Francia.", "La entrega de refugiados republicanos a la Gestapo."] },
+    { q: "¿Qué colonia obtuvo la independencia en 1956?", c: "Protectorado de Marruecos.", i: ["Guinea Ecuatorial.", "Ifni.", "Sáhara Occidental."] },
+    { q: "¿Quién visitó Madrid en 1959 para avalar el régimen?", c: "Dwight D. Eisenhower.", i: ["Harry Truman.", "Winston Churchill.", "Charles de Gaulle."] }
+];
+
 
     let preguntasPartida = [];
     let indice = 0;
     let aciertos = 0;
+    let modoActual = 'normal';
 
+    // --- LÓGICA DE PERSISTENCIA ---
+    function getAciertosGuardados() {
+        const data = localStorage.getItem('hispania_aciertos');
+        return data ? JSON.parse(data) : [];
+    }
+
+    function guardarAcierto(pregunta) {
+        let completadas = getAciertosGuardados();
+        if (!completadas.includes(pregunta)) {
+            completadas.push(pregunta);
+            localStorage.setItem('hispania_aciertos', JSON.stringify(completadas));
+        }
+    }
+
+    function resetHistorial() {
+        if(confirm("¿Deseas borrar las preguntas aprendidas y empezar de cero?")) {
+            localStorage.removeItem('hispania_aciertos');
+            alert("Archivo reiniciado.");
+            location.reload();
+        }
+    }
+
+    // --- LÓGICA DEL JUEGO ---
     function shuffle(array) {
         return array.sort(() => Math.random() - 0.5);
     }
 
-    function startGame() {
+    function startGame(modo) {
+        modoActual = modo;
+        const yaHechas = getAciertosGuardados();
+        
+        let poolPreguntas = [];
+
+        if (modo === 'repaso') {
+            // Solo preguntas que NO están en la lista de aciertos
+            poolPreguntas = banco.filter(p => !yaHechas.includes(p.q));
+            
+            if (poolPreguntas.length === 0) {
+                alert("¡Increíble! Ya has acertado todas las preguntas del archivo. Juega en Modo Normal.");
+                return;
+            }
+        } else {
+            // Modo normal: todo el banco disponible
+            poolPreguntas = [...banco];
+        }
+
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('quiz-ui').style.display = 'block';
-        preguntasPartida = shuffle([...banco]).slice(0, 20);
+        
+        // Seleccionamos 20 aleatorias (o las que queden si son menos de 20)
+        preguntasPartida = shuffle(poolPreguntas).slice(0, 20);
         renderQuestion();
     }
 
     function renderQuestion() {
         const data = preguntasPartida[indice];
         document.getElementById('q-text').innerText = data.q;
-        document.getElementById('current-q').innerText = indice + 1;
+        
+        // Actualizar contador visual
+        document.querySelector('.stats-bar').innerHTML = `
+            <span>Legajo: ${indice + 1} de ${preguntasPartida.length}</span>
+            <span>Aciertos: <span id="current-score">${aciertos}</span></span>
+        `;
+
         document.getElementById('feedback').style.display = 'none';
         document.getElementById('next-btn').style.display = 'none';
 
@@ -290,6 +431,7 @@
     }
 
     function check(elegida, correcta, boton) {
+        const dataActual = preguntasPartida[indice];
         const buttons = document.querySelectorAll('.option-btn');
         const feedback = document.getElementById('feedback');
         buttons.forEach(b => b.disabled = true);
@@ -298,12 +440,15 @@
             aciertos++;
             boton.style.background = "#d4edda";
             boton.style.borderColor = "var(--acierto)";
-            feedback.innerText = "¡Correcto, por la Gracia de Dios!";
+            feedback.innerText = "¡Correcto!";
             feedback.style.color = "var(--acierto)";
+            
+            // Guardamos el acierto para que en "Modo Erudito" ya no salga
+            guardarAcierto(dataActual.q);
         } else {
             boton.style.background = "#f8d7da";
             boton.style.borderColor = "var(--error)";
-            feedback.innerText = `Error. Lo cierto es: ${correcta}`;
+            feedback.innerText = `Incorrecto. La respuesta es: ${correcta}`;
             feedback.style.color = "var(--error)";
         }
 
@@ -314,7 +459,7 @@
 
     function handleNext() {
         indice++;
-        if(indice < 20) {
+        if(indice < preguntasPartida.length) {
             renderQuestion();
         } else {
             showFinal();
@@ -325,16 +470,14 @@
         document.getElementById('quiz-ui').style.display = 'none';
         const screen = document.getElementById('results-screen');
         screen.style.display = 'block';
-        document.getElementById('final-score').innerText = `${aciertos}/20`;
+        document.getElementById('final-score').innerText = `${aciertos}/${preguntasPartida.length}`;
         
-        let msg = "";
-        if(aciertos === 20) msg = "¡Sois un verdadero Cronista Real!";
-        else if(aciertos > 12) msg = "Buen conocimiento de nuestras raíces.";
-        else msg = "Debéis repasar los legajos de la historia.";
-        
-        document.getElementById('final-msg').innerText = msg;
+        const yaHechas = getAciertosGuardados().length;
+        document.getElementById('final-msg').innerHTML = `
+            Has completado este capítulo.<br>
+            <strong>Progreso total del archivo: ${yaHechas} de ${banco.length} preguntas dominadas.</strong>
+        `;
     }
 </script>
-
 </body>
 </html>
