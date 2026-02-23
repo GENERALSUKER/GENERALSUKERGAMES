@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Estatuas Cinematográfico</title>
+    <style>
+        /* Reset y Pantalla Completa */
+        * { box-sizing: border-box; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #000; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #game-viewport {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Ajuste de Video: Cubre toda la pantalla sin deformarse */
+        video { 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%; 
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            transition: opacity 0.8s ease;
+        }
+
+        /* Capa Interactiva */
+        #interactive-layer { 
+            display: none; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 100;
+            background: rgba(0,0,0,0.2); /* Sutil oscurecimiento para resaltar estatuas */
+        }
+
+        /* Grid de Estatuas en Pantalla Completa */
+        .items-grid { 
+            width: 100%;
+            height: 100%;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            gap: 20px;
+            padding: 0 5%;
+        }
+
+        .item { 
+            flex: 1;
+            height: 80vh; /* Ocupan casi todo el alto de la pantalla */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Mantiene la proporción de la estatua */
+            pointer-events: none;
+            drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        /* Efectos Visuales */
+        .item:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
+        .item.selected { 
+            transform: scale(1.1);
+            filter: brightness(1.5) drop-shadow(0 0 30px gold);
+            z-index: 10;
+        }
+
+        /* Botón de Confirmación */
+        #confirm { 
+            position: absolute; 
+            bottom: 5%; 
+            left: 50%; 
+            transform: translateX(-50%);
+            padding: 1.5rem 3rem; 
+            background: rgba(231, 76, 60, 0.9); 
+            color: white; 
+            border: 2px solid white;
+            border-radius: 50px; 
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #confirm:hover {
+            background: #ff4d4d;
+            transform: translateX(-50%) scale(1.1);
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-viewport">
+        <video id="videoA" src="Story1.mp4" preload="auto"></video>
+        <video id="videoB" preload="auto" style="opacity: 0; pointer-events: none;"></video>
+        
+        <div id="interactive-layer">
+            <div class="items-grid" id="grid">
+                <div class="item" data-id="A"><img src="Toro.png" alt="Toro"></div>
+                <div class="item" data-id="B"><img src="estatua_rey.png" alt="Rey"></div>
+                <div class="item" data-id="C"><img src="estatua_guerrero.png" alt="Guerrero"></div>
+                <div class="item" data-id="D"><img src="estatua_mujer.png" alt="Mujer"></div>
+            </div>
+            <button id="confirm">CONFIRMAR POSICIÓN</button>
+        </div>
+    </div>
+
+    <script>
+        const vA = document.getElementById('videoA');
+        const vB = document.getElementById('videoB');
+        const layer = document.getElementById('interactive-layer');
+        const grid = document.getElementById('grid');
+        
+        let selectedItem = null;
+
+        // Iniciar al primer clic
+        window.addEventListener('click', () => { 
+            if (vA.paused) vA.play(); 
+        }, { once: true });
+
+        // Cuando termina el video de intro, mostrar interfaz
+        vA.onended = () => { 
+            layer.style.display = 'block'; 
+        };
+
+        // Lógica de intercambio
+        grid.addEventListener('click', (e) => {
+            const target = e.target.closest('.item');
+            if (!target) return;
+
+            if (!selectedItem) {
+                selectedItem = target;
+                target.classList.add('selected');
+            } else {
+                if (selectedItem !== target) {
+                    intercambiarElementos(selectedItem, target);
+                }
+                selectedItem.classList.remove('selected');
+                selectedItem = null;
+            }
+        });
+
+        function intercambiarElementos(el1, el2) {
+            const content1 = el1.innerHTML;
+            const id1 = el1.dataset.id;
+
+            el1.innerHTML = el2.innerHTML;
+            el1.dataset.id = el2.dataset.id;
+
+            el2.innerHTML = content1;
+            el2.dataset.id = id1;
+        }
+
+        // Confirmar y lanzar video resultado
+        document.getElementById('confirm').onclick = () => {
+            const resultadoFinal = grid.children[0].dataset.id; 
+            layer.style.display = 'none';
+            lanzarResultado(resultadoFinal);
+        };
+
+        function lanzarResultado(id) {
+            let videoUrl = "";
+            switch(id) {
+                case 'A': videoUrl = 'Bull.mp4'; break;
+                case 'B': videoUrl = 'Wilhelm.mp4'; break;
+                case 'C': videoUrl = 'Harold.mp4'; break;
+                case 'D': videoUrl = 'Celestine.mp4'; break;
+            }
+
+            vB.src = videoUrl;
+            vB.load();
+            vB.oncanplaythrough = () => {
+                vB.style.opacity = 1;
+                vB.style.zIndex = 20;
+                vA.pause();
+                vB.play();
+                
+                vB.onended = () => {
+                    vA.src = 'Final.mp4';
+                    vA.load();
+                    vA.oncanplaythrough = () => {
+                        vA.style.opacity = 1;
+                        vA.style.zIndex = 30;
+                        vB.style.opacity = 0;
+                        vA.play();
+                    };
+                };
+            };
+        }
+    </script>
+</body>
+</html>
