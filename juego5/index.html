@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pasapalabra Game</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; box-sizing: border-box; }
+        /* Reduce el contenedor y el radio en el JS (paso siguiente) */
+.game-container { 
+    position: relative; 
+    width: 380px; 
+    height: 380px; 
+    margin-top: 0px; /* Pegado arriba */
+}
+.letter { 
+    width: 35px;   /* Antes 45px */
+    height: 35px;  /* Antes 45px */
+    font-size: 0.9em; 
+}
+        
+        /* El Rosco */
+        .circle-container { position: relative; width: 100%; height: 100%; border-radius: 50%; }
+        .letter { 
+            position: absolute; width: 45px; height: 45px; background: #0044cc; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.1em; border: 2px solid white; transition: all 0.3s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; /* Haz las letras clickeables si queremos un futuro para navegar */
+        }
+        .letter.active { background: #ffcc00; color: #333; transform: scale(1.25); box-shadow: 0 0 20px rgba(255,204,0,0.8); z-index: 10; }
+        .letter.success { background: #28a745; border-color: #28a745; }
+        .letter.error { background: #dc3545; border-color: #dc3545; }
+        .letter.pending-passed { background: #6c757d; border-color: #6c757d; } /* Nueva clase para letras pasadas */
+
+/* 1. Contenedor principal de controles: Estilo elegante y compacto */
+.controls {
+    margin-top: 20px; /* Sube el panel para que abrace al rosco */
+    text-align: center;
+    max-width: 500px; 
+    width: 90%;
+    background: rgba(255, 255, 255, 0.9); /* Fondo semi-transparente */
+    backdrop-filter: blur(10px); /* Efecto de desenfoque de cristal */
+    padding: 12px 20px;
+    border-radius: 20px; /* Bordes más orgánicos */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 20;
+}
+
+/* 2. Caja de la pregunta: Menos espacio desperdiciado */
+.question-box h3 {
+    color: #0044cc;
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.question-box p {
+    font-size: 1.05em;
+    margin: 8px 0;
+    min-height: 40px; /* Altura justa para 2 líneas */
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.3;
+}
+
+/* 3. Botones e Input: Alineación perfecta en una línea */
+.button-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+#answer-input {
+    padding: 8px 12px;
+    width: 140px;
+    font-size: 0.95em;
+    border: 2px solid #e0e6ed;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+#answer-input:focus {
+    border-color: #0044cc;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 68, 204, 0.1);
+    outline: none;
+}
+
+/* 4. Estilo de botones moderno (sin bordes toscos) */
+.button-group button {
+    padding: 8px 16px;
+    font-size: 0.85em;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.button-group button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.button-group button:active {
+    transform: translateY(0);
+}
+
+#send-button { background: #0044cc; color: white; }
+.pass-btn { background: #ffcc00; color: #333; }
+#pause-button { background: #6c757d; color: white; }
+
+/* 5. Estadísticas: Limpias y minimalistas */
+.stats {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #7f8c8d;
+}
+
+#score-success { color: #28a745; }
+#score-error { color: #dc3545; }
+#timer { color: #0044cc; font-family: monospace; font-size: 1.1em; }
+
+        /* Pantalla de inicio/fin */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); color: white; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        .overlay.active { opacity: 1; pointer-events: all; }
+        .overlay h2 { font-size: 3em; margin-bottom: 20px; }
+        .overlay p { font-size: 1.5em; margin-bottom: 30px; }
+        .overlay button { padding: 15px 40px; font-size: 1.5em; background: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer; transition: background-color 0.3s; }
+        .overlay button:hover { background: #218838; }
+
+        /* Animación de error (cinemática) */
+        .error-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(220, 53, 69, 0.4); /* Rojo semi-transparente */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.1s ease-out;
+            animation: none; /* Reset animation state */
+        }
+
+        .error-animation.active {
+            animation: flashRed 0.5s forwards;
+            pointer-events: all;
+        }
+
+        @keyframes flashRed {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .correct-answer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 101;
+            font-size: 1.8em;
+            color: #dc3545;
+            font-weight: bold;
+            display: none;
+            text-align: center;
+            animation: fadeInOut 2s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div id="rosco" class="circle-container"></div>
+    </div>
+
+    <div class="controls">
+        <div class="question-box">
+            <h3 id="letter-indicator">Bienvenido a Pasapalabra</h3>
+            <p id="question-text">Pulsa "Empezar Juego" cuando estés listo.</p>
+         <div class="button-group">
+    <input type="text" id="answer-input" placeholder="Tu respuesta..." disabled>
+    <button onclick="checkAnswer()" id="send-button" disabled>Enviar</button>
+    <button onclick="passTurn()" class="pass-btn" id="pass-button" disabled>Pasapalabra</button>
+    <button onclick="togglePause()" id="pause-button" style="background: #6c757d;" disabled>Pausar</button> 
+</div>
+        </div>
+
+        <div class="stats">
+            <span>Aciertos: <span id="score-success">0</span></span>
+            <span>Errores: <span id="score-error">0</span></span>
+            <span>Tiempo: <span id="timer">200</span>s</span>
+        </div>
+    </div>
+
+    <div id="start-overlay" class="overlay active">
+        <h2>¡Bienvenido a Pasapalabra!</h2>
+        <p>Acierta la palabra correcta para cada letra. Tienes <span id="initial-time">150</span> segundos.</p>
+        <button onclick="startGame()">Empezar Juego</button>
+    </div>
+
+    <div id="end-overlay" class="overlay">
+        <h2 id="final-message"></h2>
+        <p>Aciertos: <span id="final-score-success">0</span></p>
+        <p>Errores: <span id="final-score-error">0</span></p>
+        <button onclick="location.reload()">Jugar de Nuevo</button>
+    </div>
+
+    <div id="error-animation-overlay" class="error-animation"></div>
+    
+    <div id="correct-answer-display" class="correct-answer-display"></div>
+
+<script>
+    // 1. TU BASE DE DATOS (AQUÍ PUEDES AÑADIR LAS QUE QUIERAS)
+    const questionsDB = {
+    'A': [
+        { question: "Con la A: Nor zen 1931ko gobernuburua?", answer: "azaña" },
+        { question: "Con la A: EAEko lehen lehendakaria?", answer: "agirre" },
+        { question: "Con la A: Bizkaiko siderurgia enpresa nagusia?", answer: "altos hornos" },
+        { question: "Con la A: Asturiasen sortutako langile taldea?", answer: "alianza obrera" },
+        { question: "Con la A: Diktaduraren ondoren kargugabetutako erregea?", answer: "alfontso xiii" },
+        { question: "Con la A: 40ko hamarkadako ekonomia eredua?", answer: "autarkia" },
+        { question: "Con la A: Altxamendua gailendu zen euskal lurraldea?", answer: "araba" },
+        { question: "Con la A: 1934ko iraultzaren gune nagusia?", answer: "asturias" },
+        { question: "Con la A: 1931ko hauteskundeetara deitu zuen militarra?", answer: "aznar" }
+    ],
+    'B': [
+        { question: "Con la B: Siderurgiaren gune nagusia?", answer: "bizkaia" },
+        { question: "Con la B: Altzairua lortzeko bihurgailua?", answer: "bessemer" },
+        { question: "Con la B: 1930eko 'diktablandako' militarra?", answer: "berenguer" },
+        { question: "Con la B: Ehungintza bultzatu zuen taldea?", answer: "burgesia" },
+        { question: "Con la B: Yagüek egindako sarraskiaren tokia?", answer: "badajoz" },
+        { question: "Con la B: Aragoiko bataila gogorra?", answer: "belchite" },
+        { question: "Con la B: 1937ko ekainean hartutako hiria?", answer: "bilbo" },
+        { question: "Con la B: Bartzelonako indarren agintari militarra?", answer: "batet" },
+        { question: "Con la B: Langileek sortutako botere unitateak?", answer: "batzordeak" },
+        { question: "Con la B: Urrea gordetzen zuen erakundea?", answer: "banku zentrala" }
+    ],
+    'C': [
+        { question: "Con la C: Gil Roblesek gidatutako alderdia?", answer: "ceda" },
+        { question: "Con la C: Sindikatu anarkista nagusia?", answer: "cnt" },
+        { question: "Con la C: Kataluniako Errepublika aldarrikatu zuena?", answer: "companys" },
+        { question: "Con la C: Negrinen aurkako kolpea eman zuena?", answer: "casado" },
+        { question: "Con la C: Madrilen hildako asaltoko tenientea?", answer: "castillo" },
+        { question: "Con la C: Altxatuen aldeko italiar armada?", answer: "ctv" },
+        { question: "Con la C: Iparraldeko matxinatuen jenerala?", answer: "cabanellas" },
+    ],
+    'D': [
+        { question: "Con la D: Primo de Riveraren gobernu mota?", answer: "diktadura" },
+        { question: "Con la D: 1930ean errepublikanoek sinatutako ituna?", answer: "donostiako ituna" },
+        { question: "Con la D: SESBera bidalitako espainiar soldaduak?", answer: "dibisio urdina" },
+        { question: "Con la D: Bizkaian bonbardatutako herria?", answer: "durango" },
+        { question: "Con la D: Kapitala nekazaritzara bideratzeko prozesua?", answer: "desamortizazioa" },
+        { question: "Con la D: Madril defendatzeko sortutako taldea?", answer: "defentsa batzordea" },
+        { question: "Con la D: Irakasleak kanporatzeko prozesua?", answer: "depurazioa" },
+        { question: "Con la D: Ogasunak zuen arazo kronikoa?", answer: "defizita" },
+        { question: "Con la D: AEBk emandako moneta?", answer: "dolarrak" },
+        { question: "Con la D: 1931ko Konstituzioaren izaera?", answer: "demokratikoa" }
+    ],
+    'E': [
+        { question: "Con la E: Gerrako batailarik gogorrena?", answer: "ebroko bataila" },
+        { question: "Con la E: 1931ko apirilaren 14an aldarrikatua?", answer: "errepublika" },
+        { question: "Con la E: Autogobernua arautzen duen legea?", answer: "estatutua" },
+        { question: "Con la E: Lizarrako proiektua bultzatu zuen alderdia?", answer: "eaj" },
+        { question: "Con la E: Kataluniako alderdi abertzale ezkertiarra?", answer: "erc" },
+        { question: "Con la E: Oihalgintzan erabilitako baliabidea?", answer: "eskulan merkea" },
+        { question: "Con la E: Kataluniako industria sektore nagusia?", answer: "ehungintza" },
+        { question: "Con la E: Azañak murriztu nahi zuen erakundea?", answer: "ejertzitoa" },
+        { question: "Con la E: Espainia bisitatu zuen AEBetako presidentea?", answer: "eisenhower" },
+        { question: "Con la E: Milizia karlisten izena?", answer: "erreketeak" }
+    ],
+    'F': [
+        { question: "Con la F: Diktadura ezarri zuen jenerala?", answer: "franco" },
+        { question: "Con la F: Jose Antonio Primo de Riveraren alderdia?", answer: "falange" },
+        { question: "Con la F: Behetik ezartzea helburu zuen sistema?", answer: "federalismoa" },
+        { question: "Con la F: Euskaldunen eskubide historikoak?", answer: "foruak" },
+        { question: "Con la F: Frankismoaren alderdi bakarra?", answer: "fet y de las jons" },
+        { question: "Con la F: Madrilen altxatu zen jenerala?", answer: "fanjul" },
+        { question: "Con la F: Ezkerreko alderdien koalizioa?", answer: "fronte popularra" },
+        { question: "Con la F: Europan zabaltzen ari zen ideologia?", answer: "faxismoa" },
+        { question: "Con la F: Kataluniako industria bultzatu zuen klasea?", answer: "finantza burgesia" },
+        { question: "Con la F: Anarkismoaren barruko talde erradikala?", answer: "fai" }
+    ],
+    'G': [
+        { question: "Con la G: 1937an suntsitutako herri sakratua?", answer: "gernika" },
+        { question: "Con la G: 1936 eta 1939 arteko gatazka?", answer: "gerra zibila" },
+        { question: "Con la G: CEDA alderdiaren liderra?", answer: "gil robles" },
+        { question: "Con la G: Irun eta Donostia erori ziren herrialdea?", answer: "gipuzkoa" },
+        { question: "Con la G: Autarkian sortutako zerbitzu nazionala?", answer: "gariaren zerbitzua" },
+        { question: "Con la G: Errepublikaren aldeko hiri-polizia?", answer: "guardia de asalto" },
+        { question: "Con la G: Madril inguruko bataila?", answer: "guadalajara" },
+        { question: "Con la G: Kataluniako gobernua?", answer: "generalitat" },
+        { question: "Con la G: Bartzelonan menderatutako jenerala?", answer: "goded" },
+        { question: "Con la G: Konstituzioa egiten zuten ganberak?", answer: "gorteak" }
+    ],
+    'H': [
+        { question: "Con la H: Alemaniako diktadorea?", answer: "hitler" },
+        { question: "Con la H: Franco eta Hitler elkartu ziren tokia?", answer: "hendaia" },
+        { question: "Con la H: Errepublikaren erreforma nagusia?", answer: "hezkuntza laikoa" },
+        { question: "Con la H: Konstituzioak babestutako eskubidea?", answer: "habeas corpus" },
+        { question: "Con la H: Erretaguardian gertatutako sarraskiak?", answer: "hilketak" },
+        { question: "Con la H: Zenbat iraun zuen Gerra Zibilak?", answer: "hiru urte" },
+        { question: "Con la H: Latifundismoaren eremua?", answer: "hegoaldea" }
+    ],
+    'I': [
+        { question: "Con la I: Ekonomiaren eraldaketa prozesua?", answer: "industrializazioa" },
+        { question: "Con la I: Enpresa publikoak sortzeko erakundea?", answer: "ini" },
+        { question: "Con la I: Gipuzkoan irailaren 5ean hartutako hiria?", answer: "irun" },
+        { question: "Con la I: 1934ko urriko mugimendua?", answer: "iraultza" },
+        { question: "Con la I: Kanpoko langileen etorrera?", answer: "inmigrazioa" },
+        { question: "Con la I: Espainia nazioartetik kanpo egotea?", answer: "isolamendua" },
+        { question: "Con la I: Asturiasko meategietako produktua?", answer: "ikatza" },
+        { question: "Con la I: Espainian ez esku-hartzea proposatu zuena?", answer: "ingalaterra" },
+        { question: "Con la I: Matxinatuei soldaduak bidali zizkien herrialdea?", answer: "italia" },
+        { question: "Con la I: Atzerritik etorritako dirua?", answer: "inbertsioa" }
+    ],
+    'J': [
+        { question: "Con la J: Falangearekin bat egin zuen taldea?", answer: "jons" },
+        { question: "Con la J: Alfontso XIII.aren semea?", answer: "juan" },
+        { question: "Con la J: Lurrik gabeko nekazariak?", answer: "jornalariak" },
+        { question: "Con la J: 1930eko porrot egindako altxamendua?", answer: "jaca" },
+        { question: "Con la J: Interes orokorraren menpeko eskubidea?", answer: "jabetza pribatua" },
+        { question: "Con la J: Madrilgo batailako gudua?", answer: "jarama" },
+        { question: "Con la J: Militarraren maila altua?", answer: "jenerala" },
+        { question: "Con la J: Errepublikak bertan behera utzi zuena?", answer: "jesusen konpainia" },
+        { question: "Con la J: Boterea hartzen zuten langile taldeak?", answer: "juntak" },
+    ],
+    'K': [
+        { question: "Con la K: Lizarrako Estatutua babestu zutenak?", answer: "karlistak" },
+        { question: "Con la K: Anarkistek egindako lur banaketak?", answer: "kolektibizazioak" },
+        { question: "Con la K: Alemaniako hegazkin taldea?", answer: "kondor legioa" },
+        { question: "Con la K: Oihalgintzaren gune nagusia?", answer: "katalunia" },
+        { question: "Con la K: Burdingintzarako erabilitako ikatza?", answer: "koke ikatza" },
+        { question: "Con la K: 1931ko abenduaren 9ko legea?", answer: "konstituzioa" },
+        { question: "Con la K: Queipo de Llanok hartutako Andaluziako hiria?", answer: "kadiz" },
+        { question: "Con la K: Industrializaziorako beharrezko dirua?", answer: "kapitala" },
+        { question: "Con la K: Franco altxatu zen uharteak?", answer: "kanariak" },
+        { question: "Con la K: Elizako kideak?", answer: "kleroa" }
+    ],
+    'L': [
+        { question: "Con la L: Errepublikako ministro sozialista?", answer: "largo caballero" },
+        { question: "Con la L: Alderdi Erradikalaren burua?", answer: "lerroux" },
+        { question: "Con la L: 1931ko alkateen estatutu proiektua?", answer: "lizarrako estatutua" },
+        { question: "Con la L: 1938ko lan harremanen legea?", answer: "lanaren forua" },
+        { question: "Con la L: Afrikako Armada matxinatua?", answer: "legioa" },
+        { question: "Con la L: Produktuen sarrera askearen defentsa?", answer: "librekanbismoa" },
+        { question: "Con la L: 1938an hartutako Kataluniako hiria?", answer: "lleida" },
+        { question: "Con la L: Kataluniako eskuineko koalizioa?", answer: "lliga" },
+        { question: "Con la L: Ez esku-hartzea kontrolatzeko taldea?", answer: "londresko batzordea" },
+        { question: "Con la L: Lurjabe handien sistema?", answer: "latifundismoa" }
+    ],
+    'M': [
+        { question: "Con la M: Iruñetik zutabeak bidali zituena?", answer: "mola" },
+        { question: "Con la M: Gerrako helburu nagusia?", answer: "madril" },
+        { question: "Con la M: Afrikako armadaren jatorria?", answer: "maroko" },
+        { question: "Con la M: Trebide konpainia garrantzitsua?", answer: "mza" },
+        { question: "Con la M: Estraperloaren bidezko erosketak?", answer: "merkatu beltza" },
+        { question: "Con la M: Mineralen erauzketa lana?", answer: "meatzaritza" },
+        { question: "Con la M: 1845eko zerga erreforma?", answer: "mon-santillan" },
+        { question: "Con la M: Gerrilla antifrankista?", answer: "makiak" },
+        { question: "Con la M: Kultura nekazaritzara eramateko proiektua?", answer: "misiones pedagogicas" }
+    ],
+    'N': [
+        { question: "Con la N: Euskal Herriko ideologia abertzalea?", answer: "nazionalismoa" },
+        { question: "Con la N: Lizarrako proiektuan sartutako herrialdea?", answer: "nafarroa" },
+        { question: "Con la N: Gerra amaierako gobernuburua?", answer: "negrin" },
+        { question: "Con la N: Espainia gaitzetsi zuen erakundea?", answer: "nbe" },
+        { question: "Con la N: Frankismoaren oinarri erlijiosoa?", answer: "nazionalkatolizismoa"},
+        { question: "Con la N: Iparraldeko trenbide konpainia?", answer: "norte" },
+        { question: "Con la N: Alemaniako ideologia totalitarioa?", answer: "nazismoa" },
+        { question: "Con la N: 1958an Espainia onartu zuen funtsa?", answer: "ndf" },
+        { question: "Con la N: 1935eko ustelkeria auzia?", answer: "nombela auzia" },
+        { question: "Con la N: Lurreko lanaren sektorea?", answer: "nekazaritza" }
+    ],
+    'O': [
+        { question: "Con la O: Teknokratek osatutako talde katolikoa?", answer: "opus dei" },
+        { question: "Con la O: Diktaduraren aurkako indarrak?", answer: "oposizioa" },
+        { question: "Con la O: Lurrak hartzeari deitzeko izena?", answer: "okupazioak" },
+        { question: "Con la O: Estatuaren diru-kutxa publikoa?", answer: "ogasuna" },
+        { question: "Con la O: Itsasontziak egiteko industria?", answer: "ontzigintza" },
+        { question: "Con la O: Frankismoaren lege konstituzionalak?", answer: "oinarrizko legeak" },
+        { question: "Con la O: Arrazionamendu txartelarekin banatutakoa?", answer: "olioa" },
+        { question: "Con la O: Sindikatu bertikaleko sekzioa?", answer: "ose" },
+        { question: "Con la O: Aljeriako herri kolonial frantsesa?", answer: "oran" },
+        { question: "Con la O: Asturiasen kontrolatutako hiria?", answer: "oviedo" }
+    ],
+    'P': [
+        { question: "Con la P: Alderdia komunista?", answer: "pce" },
+        { question: "Con la P: Alderdia sozialista?", answer: "psoe" },
+        { question: "Con la P: 1868an onartutako dirua?", answer: "pezeta" },
+        { question: "Con la P: Kanpoko lehiaren aurkako babesa?", answer: "protekzionismoa" },
+        { question: "Con la P: Euskal alderdi nazionalista?", answer: "pnv" },
+        { question: "Con la P: Erretaguardiako bereizi gabeko hilketak?", answer: "paseoak" },
+        { question: "Con la P: Falangearen sortzailea?", answer: "primo de rivera" },
+        { question: "Con la P: Andreu Ninek zuzendutako alderdia?", answer: "poum" },
+        { question: "Con la P: Altxatuei lagundu zien auzokidea?", answer: "portugal" },
+        { question: "Con la P: Demokraziaren eztabaida tokia?", answer: "parlamentua" }
+    ],
+    'R': [
+        { question: "Con la R: Calvo Soteloren alderdi monarkikoa?", answer: "renovacion española" },
+        { question: "Con la R: Armada errepublikarraren Estatu Nagusia?", answer: "rojo" },
+        { question: "Con la R: Autarkian sortutako trenbide enpresa?", answer: "renfe" },
+        { question: "Con la R: Falangista hila?", answer: "ruiz de alda" },
+    ],
+    'S': [
+        { question: "Con la S: Militarren estatu kolpearen burua?", answer: "sanjurjo" },
+        { question: "Con la S: Bizkaiko burdin meategien tokia?", answer: "somorrostro" },
+        { question: "Con la S: Burdinaren industria?", answer: "siderurgia" },
+        { question: "Con la S: Espainian sortutako auto-fabrika?", answer: "seat" },
+        { question: "Con la S: Diktadurako sindikatu bakarra?", answer: "sindikatu bertikala" },
+        { question: "Con la S: 1932ko huts egindako estatu-kolpea?", answer: "sanjurjada" },
+        { question: "Con la S: Errepublikari lagundu zion herrialdea?", answer: "sesb" },
+        { question: "Con la S: 1937an hartutako Kantabriako hiria?", answer: "santander" },
+        { question: "Con la S: Euskal batailoiek amore eman zutenekoa?", answer: "santoña" },
+        { question: "Con la S: Kotoia garestitu zuen gerra?", answer: "sezesio gerra" }
+    ],
+    'T': [
+        { question: "Con la T: 1938ko neguan hartutako hiria?", answer: "teruel" },
+        { question: "Con la T: Opus Deiko ministro berria?", answer: "teknokrata" },
+        { question: "Con la T: Garraio-sarea integratzeko bidea?", answer: "trenbidea" },
+        { question: "Con la T: Faxismoaren gobernu sistema?", answer: "totalitarismoa" },
+        { question: "Con la T: Bartzelonako kontrol krisiaren tokia?", answer: "telefonika" },
+        { question: "Con la T: Toledoko korapilo estrategikoa?", answer: "talavera" },
+        { question: "Con la T: Tradizioa defendatzen zuen alderdia?", answer: "tradizionalista" },
+        { question: "Con la T: Madrilerako bideko alkazarra?", answer: "toledoko alkazarra" },
+        { question: "Con la T: 1939an eroritako Kataluniako hiria?", answer: "tarragona" },
+        { question: "Con la T: Hirietako bizitoki txiroak?", answer: "txabolismoa" }
+    ],
+    'U': [
+        { question: "Con la U: Sozialistei lotutako sindikatua?", answer: "ugt" },
+        { question: "Con la U: Madrigo batailako borroka tokia?", answer: "unibertsitate hiria" },
+        { question: "Con la U: SESBera bidalitako ordaina?", answer: "urre sobietarra" },
+        { question: "Con la U: Kolpea hasi zen eguna?", answer: "uztailaren 18a" },
+        { question: "Con la U: Falangearen nazionalismo mota?", answer: "ultranazionalismoa" },
+        { question: "Con la U: Gerraren iraupena?", answer: "hiru urte" },
+        { question: "Con la U: 1934ko urriko mugimendua?", answer: "urriko iraultza" },
+        { question: "Con la U: Brigada mistoetako taldea?", answer: "unitate militarra" },
+        { question: "Con la U: Estatuari saldutako nekazal produktuak?", answer: "uztak" }
+    ],
+    'V': [
+        { question: "Con la V: Elizaren estatu subiranoa?", answer: "vatikanoa" },
+        { question: "Con la V: Gobernu errepublikarraren egoitza?", answer: "valentzia" },
+        { question: "Con la V: Mediterraneora iristeko herria?", answer: "vinaroz" },
+        { question: "Con la V: 1936ko hauteskundeak deitu zituena?", answer: "valladares" },
+        { question: "Con la V: Portugaldar borrokalariak?", answer: "viriatoak" },
+        { question: "Con la V: Frantziako gobernu kolaborazionista?", answer: "vichyren frantzia" },
+        { question: "Con la V: Psikiatra frankista?", answer: "vallejo-najera" },
+        { question: "Con la V: Mola abiatu zen hiria?", answer: "valladolid" },
+        { question: "Con la V: Homosexualen aurkako legea?", answer: "vagos y maleantes" }
+    ],
+    'Z': [
+        { question: "Con la Z: Francok zuzentzen zuen eskola?", answer: "zaragozako akademia" },
+        { question: "Con la Z: Gerraren hasierako fasea?", answer: "zutabeen gerra" },
+        { question: "Con la Z: Prentsa eta iritzia kontrolatzea?", answer: "zentsura" },
+        { question: "Con la Z: Ogasunaren antolaketa eraginkorra?", answer: "zerga-sistema" },
+        { question: "Con la Z: 1936-1939ko gatazka?", answer: "gerra zibila" },
+        { question: "Con la Z: Madrilgo arazo politikoa?", answer: "zentralismoa" },
+        { question: "Con la Z: Bizkaiko industria-garapenaren eredua?", answer: "zirkulu birtuosoa" },
+        { question: "Con la Z: Industria-sarearen dentsitate falta?", answer: "zabalera txikia" },
+        { question: "Con la Z: Garaituei ezarritako neurriak?", answer: "zigorrak" },
+        { question: "Con la Z: Garia kontrolatzeko erakundea?", answer: "zerbitzu nazionala" }
+    ]
+};
+
+    const letters = "ABCDEFGHIJKLMNOPRSTUVZ".split("");
+    let currentIdx = 0;
+    let gameState = []; // Se inicializará al empezar el juego
+    let score = { success: 0, error: 0 };
+    let timeLeft = 200;
+    let timerInterval;
+    let gameStarted = false;
+    let isPaused = false; // Nueva variable de estado
+
+
+
+
+    // Inicializar Rosco visual
+    function initRosco() {
+        const container = document.getElementById('rosco');
+        container.innerHTML = ''; // Limpiar rosco si se reinicia
+        // Dentro de initRosco()
+const radius = 160; // Antes 220
+const xCenter = 172; // Ajustado para el nuevo ancho (380/2 - margen)
+const yCenter = 172;
+
+
+        
+        gameState = letters.map(l => ({ letter: l, status: 'pending', questionObj: null }));
+
+        letters.forEach((l, i) => {
+            const angle = (i * (360 / letters.length) - 90) * (Math.PI / 180);
+// Cuando calcules x e y:
+const x = xCenter + radius * Math.cos(angle);
+const y = yCenter + radius * Math.sin(angle);
+            
+            const div = document.createElement('div');
+            div.id = `let-${l}`;
+            div.className = 'letter';
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+            div.innerText = l;
+            container.appendChild(div);
+
+            // Selección aleatoria de la pregunta para esta partida
+            const options = questionsDB[l] || [{question: `Con la ${l}: Falta pregunta para esta letra.`, answer: "ninguna"}];
+            gameState[i].questionObj = options[Math.floor(Math.random() * options.length)];
+        });
+        updateDisplay();
+    }
+function startGame() {
+    document.getElementById('start-overlay').classList.remove('active');
+    gameStarted = true;
+    isPaused = false; // Aseguramos que empiece sin pausa
+    
+    initRosco(); 
+    startTimer();
+
+    // HABILITAR TODO
+    document.getElementById('answer-input').disabled = false;
+    document.getElementById('send-button').disabled = false;
+    document.getElementById('pass-button').disabled = false;
+    document.getElementById('pause-button').disabled = false;
+    
+    document.getElementById('answer-input').focus();
+    updateDisplay();
+}
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if (timeLeft > 0 && gameStarted) {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+            } else if (gameStarted) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+
+function updateDisplay() {
+    if (!gameStarted || isGameOver()) return;
+
+    const qText = document.getElementById('question-text');
+    const lInd = document.getElementById('letter-indicator');
+
+    if (isPaused) {
+        qText.innerText = "--- JUEGO PAUSADO ---";
+    } else {
+        const current = gameState[currentIdx];
+        lInd.innerText = `Letra ${current.letter}`;
+        qText.innerText = current.questionObj.question;
+    }
+
+    // PINTAR COLORES DEL ROSCO (Importante para que no se pierdan)
+    gameState.forEach((item, i) => {
+        const el = document.getElementById(`let-${item.letter}`);
+        if (el) {
+            el.classList.remove('active', 'success', 'error', 'pending-passed');
+            if (item.status === 'success') el.classList.add('success');
+            else if (item.status === 'error') el.classList.add('error');
+            else if (item.status === 'pending-passed') el.classList.add('pending-passed');
+            if (i === currentIdx && !isPaused) el.classList.add('active');
+        }
+    });
+
+    if (!isPaused) document.getElementById('answer-input').focus();
+}
+
+    function cleanAnswer(answer) {
+        return answer.toLowerCase().trim()
+                     .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+                     .replace(/[^a-z0-9\s]/g, ''); // Quitar caracteres no alfanuméricos (excepto espacios)
+    }
+
+    function checkAnswer() {
+        if (!gameStarted) return;
+
+        const input = document.getElementById('answer-input');
+        const userAns = cleanAnswer(input.value);
+        const correctAns = cleanAnswer(gameState[currentIdx].questionObj.answer);
+
+        if (userAns === correctAns) {
+            gameState[currentIdx].status = 'success';
+            score.success++;
+            
+        } else {
+            gameState[currentIdx].status = 'error';
+            score.error++;
+            // Mostrar cinemática de error
+            showErrorAnimation(gameState[currentIdx].questionObj.answer);
+        }
+
+        document.getElementById('score-success').innerText = score.success;
+        document.getElementById('score-error').innerText = score.error;
+        input.value = "";
+        nextLetter();
+    }
+
+    function passTurn() {
+        if (!gameStarted) return;
+
+        // Solo marcamos como 'pending-passed' si no ha sido respondida antes
+        if (gameState[currentIdx].status === 'pending') {
+            gameState[currentIdx].status = 'pending-passed';
+        }
+        
+        document.getElementById('answer-input').value = "";
+        nextLetter();
+    }
+
+    function nextLetter() {
+        let count = 0;
+        let originalIdx = currentIdx;
+
+        // Buscar la siguiente letra pendiente o pasada
+        do {
+            currentIdx = (currentIdx + 1) % letters.length;
+            count++;
+            if (count > letters.length * 2) { // Evitar bucle infinito si algo va mal
+                console.error("No se encontró una siguiente letra pendiente.");
+                break;
+            }
+        } while (gameState[currentIdx].status !== 'pending' && gameState[currentIdx].status !== 'pending-passed');
+        
+        // Si no hay más letras pendientes ni pasadas, el juego ha terminado.
+        if (count > letters.length && gameState[currentIdx].status !== 'pending' && gameState[currentIdx].status !== 'pending-passed') {
+             endGame();
+             return;
+        }
+
+        updateDisplay();
+    }
+    
+
+    function showErrorAnimation(correctAnswer) {
+        const errorOverlay = document.getElementById('error-animation-overlay');
+        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+
+        errorOverlay.classList.add('active');
+        correctAnswerDisplay.innerText = `¡Incorrecto! La respuesta era: ${correctAnswer.toUpperCase()}`;
+        correctAnswerDisplay.style.display = 'block';
+
+        setTimeout(() => {
+            errorOverlay.classList.remove('active');
+            correctAnswerDisplay.style.display = 'none';
+        }, 2000); // Duración de la animación y el mensaje
+    }
+
+    function isGameOver() {
+        return gameState.every(item => item.status === 'success' || item.status === 'error') || timeLeft <= 0;
+    }
+
+    function endGame() {
+        if (!gameStarted) return; // Evitar que se llame si el juego no ha empezado
+        gameStarted = false;
+        clearInterval(timerInterval);
+
+        const endOverlay = document.getElementById('end-overlay');
+        document.getElementById('final-score-success').innerText = score.success;
+        document.getElementById('final-score-error').innerText = score.error;
+
+        if (score.success === letters.length) {
+            document.getElementById('final-message').innerText = "¡Has completado el Rosco!";
+            endOverlay.style.background = 'rgba(40, 167, 69, 0.9)'; // Verde si gana
+        } else {
+            document.getElementById('final-message').innerText = "¡Tiempo terminado o Rosco sin completar!";
+            endOverlay.style.background = 'rgba(0,0,0,0.8)'; // Negro si pierde o tiempo
+        }
+        
+        endOverlay.classList.add('active');
+
+        // Deshabilitar controles al finalizar
+        document.getElementById('answer-input').disabled = true;
+        document.getElementById('send-button').disabled = true;
+        document.getElementById('pass-button').disabled = true;
+    }
+
+    // Event listener para la tecla Enter
+    document.getElementById('answer-input').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter' && !document.getElementById('send-button').disabled) {
+            checkAnswer();
+        }
+    });
+
+    // Inicializar el tiempo en la pantalla de inicio
+    document.getElementById('initial-time').innerText = timeLeft;
+    // ... (tus variables anteriores)
+function togglePause() {
+    if (!gameStarted) return;
+    
+    isPaused = !isPaused;
+    const btn = document.getElementById('pause-button');
+    const input = document.getElementById('answer-input');
+    const sendBtn = document.getElementById('send-button');
+    const passBtn = document.getElementById('pass-button');
+    
+    if (isPaused) {
+        btn.innerText = "Reanudar";
+        btn.style.background = "#28a745";
+        input.disabled = true;
+        sendBtn.disabled = true;
+        passBtn.disabled = true;
+        document.getElementById('question-text').innerText = "--- JUEGO EN PAUSA ---";
+    } else {
+        btn.innerText = "Pausar";
+        btn.style.background = "#6c757d";
+        input.disabled = false;
+        sendBtn.disabled = false;
+        passBtn.disabled = false;
+        input.focus();
+        updateDisplay(); // Esto vuelve a poner la pregunta en pantalla
+    }
+}
+
+// Modifica tu función startTimer para que use esta lógica:
+function startTimer() {
+    // Asegurarnos de limpiar cualquier intervalo previo
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        // La clave es el !isPaused
+        if (timeLeft > 0 && gameStarted && !isPaused) { 
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+        } else if (gameStarted && timeLeft <= 0) {
+            clearInterval(timerInterval);
+            endGame();
+        }
+    }, 1000);
+}
+
+// En tu función startGame(), asegúrate de habilitar el botón de pausa:
+function startGame() {
+    document.getElementById('start-overlay').classList.remove('active');
+    gameStarted = true;
+    initRosco();
+    updateDisplay();
+    startTimer();
+
+    document.getElementById('answer-input').disabled = false;
+    document.getElementById('send-button').disabled = false;
+    document.getElementById('pass-button').disabled = false;
+    document.getElementById('pause-button').disabled = false; // Habilitar pausa
+    document.getElementById('answer-input').focus();
+}
+</script>
+</body>
+</html>
