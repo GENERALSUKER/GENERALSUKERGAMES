@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Archivo Histórico Nacional</title>
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Courier New', Courier, monospace; 
+            color: #2b1d0e; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; 
+        }
+        .container { 
+            background: #e6dfcc; 
+            padding: 40px; 
+            border: 5px double #3e2723; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
+            width: 580px; text-align: center; 
+            position: relative;
+            background-image: radial-gradient(circle, #f4ecd8 0%, #e6dfcc 100%);
+        }
+        h1 { text-decoration: underline; letter-spacing: 2px; margin-bottom: 25px; font-size: 1.4rem; }
+        #game-screen { display: none; }
+        .item { 
+            background: #d7cdb4; 
+            margin: 8px 0; padding: 12px; 
+            border: 1px solid #5d4037; 
+            cursor: grab; display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 0.85rem;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        /* Clase para los que ya se han validado como correctos */
+        .item.correct { 
+            background: #8ea381 !important; 
+            border: 2px solid #2e7d32; 
+            cursor: default; color: #0a2e0c; 
+        }
+        .menu-btn { 
+            background: #3e2723; color: #e6dfcc; border: 2px solid #2b1d0e; 
+            padding: 15px 30px; margin: 10px; font-size: 1rem; 
+            cursor: pointer; width: 85%; font-family: inherit; font-weight: bold;
+        }
+        .menu-btn:hover { background: #5d4037; color: white; }
+        .check-btn { 
+            background: #2b1d0e; color: #e6dfcc; border: none; 
+            padding: 15px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 20px;
+            font-family: inherit; letter-spacing: 2px;
+        }
+        #score { 
+            font-size: 1.4rem; margin-bottom: 20px; border: 2px solid #3e2723; 
+            display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.3); 
+            font-weight: bold;
+        }
+        .date { font-weight: 900; color: #1b5e20; background: rgba(255,255,255,0.5); padding: 2px 8px; border-radius: 3px; font-size: 0.8rem; }
+        .stamp { position: absolute; top: 20px; right: 20px; border: 3px solid #7f0000; color: #7f0000; padding: 5px; transform: rotate(15deg); font-weight: bold; opacity: 0.6; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="stamp">MUY SECRETO</div>
+    
+    <div id="start-screen">
+        <h1>REGISTRO DE ORDEN CRONOLÓGICO</h1>
+        <p>Seleccione el nivel de dificultad:</p>
+        <button class="menu-btn" onclick="initGame(5)">NIVEL I (5 EXPEDIENTES)</button>
+        <button class="menu-btn" onclick="initGame(10)">NIVEL II (10 EXPEDIENTES)</button>
+    </div>
+
+    <div id="game-screen">
+        <div id="score">CRÉDITO: 100</div>
+        <div id="game-board"></div>
+        <button id="btn-check" class="check-btn" onclick="verifyOrder()">VALIDAR CLASIFICACIÓN (-25 PTS)</button>
+        <button id="replay-btn" class="menu-btn" style="display:none;" onclick="location.reload()">NUEVA CONSULTA</button>
+    </div>
+</div>
+<script>
+// Base de datos ampliable
+const eventsPool = [
+{ text: "ESTATU KOLPEA", y: 1936.1, date: "17/07/1936" },
+
+{ text: "BURGOSEKO DEFENTSA BATZORDEA", y: 1936.2, date: "24/07/1936" },
+
+{ text: "ERRETAGUARDIAKO ERREPRESIO GOGORRA ETA HILKETAK", y: 1936.3, date: "01/09/1936" },
+
+{ text: "FRANCO CAUDILLO ETA GENERALÍSIMO BIHURTU", y: 1936.4, date: "01/10/1936" },
+
+{ text: "FET Y DE LAS JONS SORTU ETA AGUR FAXISTA", y: 1937, date: "20/04/1937" },
+
+{ text: "FRANCOREN LEHEN GOBERNUA BURGOSEN", y: 1938.1, date: "30/01/1938" },
+
+{ text: "LANAREN FORUA ETA SINDIKATU BERTIKALA", y: 1938.2, date: "09/03/1938" },
+
+{ text: "ERANTZUNKIZUN POLITIKOEN LEGEA", y: 1939.1, date: "09/02/1939" },
+
+{ text: "GERRA AMAIERA ETA DIKTADURA EZARTZEA", y: 1939.2, date: "01/04/1939" },
+
+{ text: "ARRAZIONAMENDU-TXARTELEN HASIERA", y: 1939.3, date: "14/05/1939" },
+
+{ text: "BIGARREN MUNDU GERRA HASI (NEUTRALITATEA)", y: 1939.4, date: "01/09/1939" },
+
+{ text: "ESPETXERATUEN KOPURU ALTUENA (280.000)", y: 1939.5, date: "01/12/1939" },
+
+{ text: "SOLDADU LANGILEEN DIZIPLINA BATAILOIAK", y: 1940.1, date: "01/01/1940" },
+
+{ text: "MASONERIA ETA KOMUNISMOA ZIGORTZEKO LEGEA", y: 1940.2, date: "01/03/1940" },
+
+{ text: "HENDAIAKO ELKARRIZKETA (FRANCO-HITLER)", y: 1940.3, date: "23/10/1940" },
+
+{ text: "INI (INDUSTRIA INSTITUTU NAZIONALA) SORTU", y: 1941, date: "25/09/1941" },
+
+{ text: "GORTEAK ERATZEKO LEGEA (DEMOKRAZIA ORGANIKOA)", y: 1942, date: "17/07/1942" },
+
+{ text: "MAKIAK ARAN IBARRETIK SARTU", y: 1944, date: "19/10/1944" },
+
+{ text: "LAUSANAKO MANIFESTUA (DON JUAN BORBOIKOA)", y: 1945.1, date: "19/03/1945" },
+    
+{ text: "ESPAINIARREN FORUA EZARRI", y: 1945.2, date: "17/07/1945" },
+
+{ text: "MARTINEZ BARRIO ERREPUBLIKAKO PRESIDENTE IZENDATU", y: 1945.3, date: "17/08/1945" },
+
+{ text: "ERREFERENDUM NAZIONALAREN LEGEA", y: 1945.4, date: "22/10/1945" },
+
+{ text: "DIKTADURAKO LEHEN GREBAK (MANRESA)", y: 1946.1, date: "25/01/1946" },
+
+{ text: "NBEK FRANKISMOA GAITZESTU", y: 1946.2, date: "12/12/1946" },
+
+{ text: "MAKIAK ZIGORTZEKO LEGEA", y: 1947.1, date: "18/04/1947" },
+
+{ text: "BIZKAIKO GREBA OROKORRA", y: 1947.2, date: "01/05/1947" },
+
+{ text: "ONDORENGOTZA LEGEA", y: 1947.3, date: "26/07/1947" },
+    
+{ text: "FRANCO ETA JUAN BORBOIKOA BILDU", y: 1948.1, date: "25/08/1948" },
+
+{ text: "MARSHALL PLANA (ESPAINIA KANPOAN)", y: 1948.2, date: "16/04/1948" },
+
+{ text: "MAKIAK DESEGIN", y: 1949.1, date: "01/02/1949" },
+
+{ text: "NATOn SARTZEARI UKOA", y: 1949.2, date: "04/04/1949" },
+
+{ text: "AEBekiko HARREMAN DIPLOMATIKOAK", y: 1950, date: "04/11/1950" },
+
+{ text: "BARTZELONAKO TRANBIARI BOIKOTA", y: 1951, date: "01/03/1951" },
+
+{ text: "ARRAZIONAMENDU-TXARTELAK EZABATU", y: 1952, date: "01/06/1952" },
+
+{ text: "VATIKANOAREKIKO KONKORDATUA", y: 1953.1, date: "27/08/1953" },
+
+{ text: "MADRILGO ITUNAK", y: 1953.2, date: "26/09/1953" },
+
+{ text: "ESPAINIA NBEn ONARTUA", y: 1955, date: "14/12/1955" },
+
+{ text: "UNIBERTSITATEKO PROTESTAK", y: 1956.1, date: "01/02/1956" },
+
+{ text: "MAROKOKO INDEPENDENTZIA", y: 1956.2, date: "07/04/1956" },
+
+{ text: "HITZARMEN LEGEA", y: 1958.1, date: "24/04/1958" },
+
+{ text: "MUGIMENDU NAZIONALAREN PRINTZIPIOEN LEGEA", y: 1958.2, date: "17/05/1958" },
+
+{ text: "ESPAINIA NDF ETA MUNDUKO BANKUAN SARTU", y: 1958.3, date: "15/09/1958" },
+
+{ text: "EISENHOWERREN BISITA (ISOLAMENDUAREN AMAIERA)", y: 1959, date: "21/12/1959" }
+];
+let currentGame = [];
+let solvedIndices = []; // Aquí guardamos qué posiciones ya son correctas
+let userScore = 100;
+let gameOver = false;
+
+function initGame(n) {
+    userScore = 100;
+    gameOver = false;
+    solvedIndices = [];
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'block';
+    document.getElementById('score').innerText = `CRÉDITO: ${userScore}`;
+    
+    // Mezcla aleatoria
+    let selection = [...eventsPool].sort(() => 0.5 - Math.random()).slice(0, n);
+    currentGame = selection;
+    drawBoard();
+}
+
+function drawBoard() {
+    const board = document.getElementById('game-board');
+    board.innerHTML = '';
+    
+    currentGame.forEach((ev, i) => {
+        const isCorrect = solvedIndices.includes(i);
+        const div = document.createElement('div');
+        div.className = 'item' + (isCorrect ? ' correct' : '');
+        div.draggable = !isCorrect && !gameOver;
+        
+        div.innerHTML = `<span>${ev.text}</span> ${isCorrect ? `<span class="date">${ev.date}</span>` : ''}`;
+
+        div.ondragstart = (e) => { e.dataTransfer.setData("text/plain", i); };
+        div.ondragover = (e) => e.preventDefault();
+        div.ondrop = (e) => {
+            const from = e.dataTransfer.getData("text/plain");
+            swapPositions(from, i);
+        };
+        board.appendChild(div);
+    });
+}
+
+function swapPositions(from, to) {
+    from = parseInt(from);
+    to = parseInt(to);
+    // No permitir mover piezas ya bloqueadas como correctas
+    if (solvedIndices.includes(from) || solvedIndices.includes(to)) return;
+    
+    [currentGame[from], currentGame[to]] = [currentGame[to], currentGame[from]];
+    drawBoard();
+}
+
+function verifyOrder() {
+    if(gameOver) return;
+
+    const solution = [...currentGame].sort((a, b) => a.y - b.y);
+    let allRight = true;
+    let anyNewCorrect = false;
+
+    currentGame.forEach((item, i) => {
+        if (item.y === solution[i].y) {
+            if (!solvedIndices.includes(i)) {
+                solvedIndices.push(i); // Bloqueamos la que esté bien
+                anyNewCorrect = true;
+            }
+        } else {
+            allRight = false;
+        }
+    });
+
+    if (allRight) {
+        gameOver = true;
+        document.getElementById('score').innerText = `ÉXITO: ${userScore} PUNTOS`;
+        document.getElementById('btn-check').style.display = 'none';
+        document.getElementById('replay-btn').style.display = 'inline-block';
+        drawBoard();
+        alert("CLASIFICACIÓN COMPLETADA.");
+    } else {
+        userScore -= 25;
+        if (userScore <= 0) {
+            userScore = 0;
+            gameOver = true;
+            document.getElementById('score').innerText = `FRACASO: 0 PUNTOS`;
+            document.getElementById('btn-check').style.display = 'none';
+            document.getElementById('replay-btn').style.display = 'inline-block';
+            alert("EXPEDIENTE RECHAZADO. TE HAS QUEDADO SIN PUNTOS.");
+        } else {
+            document.getElementById('score').innerText = `CRÉDITO: ${userScore}`;
+            alert("ORDEN INCORRECTO. Se han validado los aciertos actuales.");
+        }
+        drawBoard();
+    }
+}
+</script>
+
+</body>
+</html>
