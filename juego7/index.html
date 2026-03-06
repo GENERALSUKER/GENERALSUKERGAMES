@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Quiz Professional</title>
+    <style>
+/* ==========================================================================
+   ESTILOS BASE E INTERFAZ QUIZ (NARANJA/NEGRO)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Barlow+Condensed:wght@600;800&display=swap');
+
+:root {
+    --psp-orange: #ff9d00;
+    --interface-bg: rgba(20, 25, 30, 0.85);
+    --text-main: #ffffff;
+    --timer-color: #f6ad55;
+}
+
+body {
+    background: #cbd5e0 url('https://www.transparenttextures.com/patterns/black-linen.png');
+    margin: 0;
+    height: 100vh;
+    font-family: 'Barlow Condensed', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#match-clock {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: #000;
+    color: #d4ff00;
+    padding: 10px 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    border: 2px solid #444;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+}
+
+#game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    width: 100%;
+    max-width: 800px;
+    transform: translateY(-50px);
+}
+
+.options-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+}
+
+.opt-btn {
+    background: linear-gradient(90deg, #1a1e22 0%, #323940 100%);
+    border: 1px solid #555;
+    color: var(--text-main);
+    padding: 20px 0;
+    font-size: 1.5rem;
+    text-transform: none;
+    cursor: pointer;
+    transform: skew(-25deg);
+    width: 350px;
+    transition: all 0.2s;
+    box-shadow: 8px 8px 15px rgba(0,0,0,0.2);
+}
+
+.opt-btn span {
+    transform: skew(25deg);
+    display: block;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.opt-btn:hover:not(:disabled) {
+    background: #444;
+    border-color: var(--psp-orange);
+}
+
+.correct { background: #2ecc71 !important; border-color: #fff !important; }
+.incorrect { background: #e74c3c !important; border-color: #fff !important; }
+.hidden-opt { opacity: 0; pointer-events: none; transform: scale(0.8) skew(-25deg); }
+
+.bottom-nav {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 130px;
+    background: var(--interface-bg);
+    border-top: 4px solid #4a5568;
+    display: flex;
+    align-items: center;
+    padding: 0 60px;
+    box-sizing: border-box;
+    color: white;
+}
+
+#q-text {
+    font-size: 1.9rem;
+    font-weight: 800;
+    flex: 1;
+    margin-right: 40px;
+}
+
+.score-box {
+    background: #000;
+    border: 3px solid var(--psp-orange);
+    padding: 8px 45px;
+    transform: skew(-15deg);
+}
+
+.score-box div { transform: skew(15deg); text-align: center; }
+.score-val { font-size: 2.8rem; font-weight: 900; line-height: 1; }
+
+#timer-container {
+    position: absolute;
+    left: 50px;
+    bottom: 150px;
+    width: 14px;
+    height: 140px;
+    background: #1a202c;
+    border: 2px solid #4a5568;
+    border-radius: 20px;
+    padding: 3px;
+}
+
+#timer-fill {
+    width: 100%;
+    height: 100%;
+    background: var(--timer-color);
+    border-radius: 20px;
+    transition: height 0.1s linear, background 0.3s;
+}
+
+/* ==========================================================================
+   ESTILOS DEL ESTADIO (MINIMAPA)
+   ========================================================================== */
+#stadium-map {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    width: 250px;
+    height: 400px;
+    background: #2d5a27;
+    border: 2px solid rgba(255,255,255,0.7);
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.pitch-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 100% 30px;
+    pointer-events: none;
+}
+
+.pitch-lines {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Línea de puntería (Aim Line) */
+#aim-line {
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 15px white;
+    z-index: 5;
+    top: 50%;
+    transition: top 0.1s linear;
+}
+
+.penalty-area {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 50px;
+    border: 2px solid rgba(255,255,255,0.6);
+}
+
+.penalty-top { top: -2px; border-top: none; }
+.penalty-bottom { bottom: -2px; border-bottom: none; }
+
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 50%;
+}
+
+.center-line {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    height: 2px;
+    background: rgba(255,255,255,0.6);
+}
+
+.ball-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 38px;
+    height: 38px;
+    background: url('https://cdn-icons-png.flaticon.com/512/33/33736.png') no-repeat center;
+    background-size: contain;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.6));
+    z-index: 10;
+    transition: top 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67), left 0.4s ease-in-out;
+}
+        
+
+/* ==========================================================================
+   OVERLAYS Y PANTALLAS FINALES
+   ========================================================================== */
+.overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    color: white;
+    text-align: center;
+    font-family: 'Barlow Condensed', sans-serif;
+}
+
+.final-score {
+    font-size: 8rem;
+    font-weight: 900;
+    color: var(--psp-orange);
+    text-shadow: 0 0 30px rgba(255, 157, 0, 0.4);
+    margin: 10px 0;
+}
+
+.stat-row {
+    font-size: 1.6rem;
+    border-bottom: 1px solid #333;
+    padding: 12px;
+    width: 350px;
+    display: flex;
+    justify-content: space-between;
+    text-transform: none;
+    color: #e2e8f0;
+}
+
+.difficulty-meter {
+    background: #2d3748;
+    color: #ecc94b;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    display: inline-block;
+    border: 1px solid #4a5568;
+}
+#penalty-options #game-area {
+    transform: none; /* Quitamos el desplazamiento de la pantalla normal */
+    position: static;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#penalty-scene {
+    padding-bottom: 100px; /* Espacio para que no tape la barra de abajo */
+}
+
+.goal-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#penalty-title {
+    color: var(--psp-orange);
+    font-size: 3.5rem;
+    font-family: 'Orbitron', sans-serif;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(255, 157, 0, 0.5);
+}
+
+.goal-frame {
+    width: 700px;
+    height: 300px;
+    border: 12px solid #fff;
+    border-bottom: none;
+    position: relative;
+    box-shadow: 0 0 50px rgba(255,255,255,0.2);
+    margin-bottom: 40px;
+    background: rgba(45, 90, 39, 0.3); /* Color césped al fondo */
+}
+
+.goal-net {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(white 2px, transparent 2px),
+        linear-gradient(90deg, white 2px, transparent 2px);
+    background-size: 30px 30px;
+    opacity: 0.15;
+}
+.difficulty-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Todo a la izquierda */
+            gap: 15px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+
+        .difficulty-meter {
+            background: #1a202c;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            border: 1px solid #4a5568;
+            display: inline-block;
+        }
+
+        .status-badge {
+            background: var(--psp-orange);
+            color: black;
+            padding: 4px 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(255, 157, 0, 0.4);
+        }
+
+        /* Estilo para el prefijo P: */
+        .q-prefix {
+            color: var(--psp-orange);
+            margin-right: 10px;
+        }
+        /* El fondo de portería cuando estamos en modo crítico */
+body.modo-penalty {
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80') center/cover !important;
+}
+
+/* Escondemos el mapa para que no estorbe en el penalty */
+body.modo-penalty #stadium-map { 
+    display: none; 
+}
+
+    </style>
+</head>
+<body>
+<div id="stadium-map">
+    <div class="pitch-overlay"></div>
+    <div class="pitch-lines">
+        <div id="aim-line"></div> 
+        
+        <div class="penalty-area penalty-top"></div>
+        <div class="center-line"></div>
+        <div class="center-circle"></div>
+        <div class="penalty-area penalty-bottom"></div>
+        
+        <div id="ball" class="ball-icon"></div>
+    </div>
+</div>
+
+<div id="start-screen" class="overlay">
+    <h1 style="color:var(--psp-orange); font-size: 3.5rem; margin-bottom: 40px;">MATCH READY</h1>
+    <button class="opt-btn" onclick="startGame()"><span>KICK OFF</span></button>
+</div>
+
+<div id="match-clock">00:00</div>
+
+<div id="timer-container">
+    <div id="timer-fill"></div>
+</div>
+
+<div id="game-area">
+    <div id="row-top" class="options-row"></div>
+    <div id="row-bottom" class="options-row"></div>
+</div>
+
+<div class="bottom-nav">
+    <div id="q-text">Cargando jugada...</div>
+    <div class="score-box">
+        <div>
+            <span style="font-size: 0.9rem; color: #a0aec0; display: block;">Marcador</span>
+            <span id="score" class="score-val">0-0</span>
+        </div>
+    </div>
+</div>
+
+<div id="goal-overlay" class="overlay" style="display: none;">
+    <h2 id="overlay-title" style="color: var(--psp-orange); font-size: 2.5rem;">¡OPORTUNIDAD!</h2>
+    <div style="margin: 20px 0; border: 4px solid white; width: 200px; height: 100px; border-bottom: none;"></div>
+    <div class="options-row">
+        <button class="opt-btn" style="width: 200px;" onclick="definirJugada(true)"><span>GOL</span></button>
+        <button class="opt-btn" style="width: 200px;" onclick="definirJugada(false)"><span>FALLAR</span></button>
+    </div>
+</div>
+
+<script>
+    const ball = document.getElementById('ball');
+const aimLine = document.getElementById('aim-line');
+    const questions = [
+        { q: "¿En qué temporada ganó el Modena la Supercopa de la Serie C?", options: ["2000-01", "1996-97", "1998-99"], correct: "2000-01",level:5 },
+{ q: "¿Cómo se llama el arquitecto responsable del diseño del nuevo estadio del Sporting de Braga?", options: ["Siza Vieira", "Eduardo Souto Moura", "Tomás Taveira"], correct: "Eduardo Souto Moura", level: 4 },
+{ q: "¿Qué jugador de campo del SL Benfica tuvo que acabar el partido como portero porque su equipo no disponía de más cambios tras la expulsión del portero?", options: ["Rui Costa", "Abel Xavier", "Paulo Sousa"], correct: "Paulo Sousa", level: 2 },
+{ q: "¿Dónde está el 'Estadio de la Amistad'?", options: ["Rostock", "Cottbus", "Leipzig"], correct: "Cottbus", level: 3 },
+{ q: "¿Qué sucede si el árbitro asistente ve que el balón entra en la portería pero el árbitro principal está convencido de que no ha sido gol?", options: ["El árbitro asistente tiene la última decisión", "El árbitro principal tiene la última decisión", "Se decide lanzando una moneda al aire"], correct: "El árbitro principal tiene la última decisión", level: 2 },
+{ q: "El Blackburn Rovers tuvo una famosa pareja de delanteros en los noventa. ¿Cómo se les apodaba?", options: ["SOS", "SAS", "Ro-Ro"], correct: "SAS", level: 2 },
+{ q: "¿Quién marcó el primer gol de la historia de Jamaica en la fase final de la Copa Mundial de la FIFA™ en 1998?", options: ["Fitzroy Simpson", "Onandi Lowe", "Robbie Earle"], correct: "Robbie Earle", level: 3 },
+{ q: "¿Quién marcó el gol de la victoria 1-0 contra Inglaterra en el partido de clasificación para la Copa Mundial de la FIFA™ de 2005 en Windsor Park?", options: ["David Healy", "James Quinn", "Keith Gillespie"], correct: "David Healy", level: 4 },
+{ q: "¿Por qué sobrenombre se conoce a Jorge Costa, el central del Oporto?", options: ["El bicho", "El capitán", "El animal"], correct: "El bicho", level: 3 },
+{ q: "¿Dónde está el estadio Playmobil?", options: ["Fürth", "Bielefeld", "Kiel"], correct: "Fürth", level: 3 },
+{ q: "¿En qué año se fundó el AS Monaco?", options: ["1920", "1900", "1924"], correct: "1924", level: 4 },
+{ q: "¿Qué año fue el del 'Horror del Triplete' del Leverkusen?", options: ["2000", "2001", "2002"], correct: "2002", level: 3 },
+{ q: "¿De qué selección eran los jugadores que se tiñeron el pelo de rubio tras clasificarse para la segunda fase de la Copa Mundial de la FIFA™ en 1998?", options: ["Rumanía", "Alemania", "Noruega"], correct: "Rumanía", level: 4 },
+{ q: "¿Qué gigante del fútbol ha inspirado sus colores en los del Nott's County?", options: ["Juventus", "AC Milán", "FC Barcelona"], correct: "Juventus", level: 4 },
+{ q: "En la temp. 1990-91 Abel Resino batió el récord europeo de minutos sin encajar goles. ¿Cuánto estuvo imbatido?", options: ["1.275 minutos", "1.316 minutos", "2.081 minutos"], correct: "1.275 minutos", level: 4 },
+{ q: "Sir Stanley Matthews fue el jugador más viejo que llegó a representar a Inglaterra. Tenía...", options: ["42 años", "38 años", "43 años"], correct: "42 años", level: 5 },
+{ q: "¿Cuál es el apodo habitual de los Tottenham Hotspurs de la Barclays PL?", options: ["The Black Cats", "The Blades", "Lilywhites"], correct: "Lilywhites", level: 2 },
+{ q: "¿Cuántos partidos de la Copa Mundial de la FIFA™ ha arbitrado Joel Quiniou?", options: ["7", "9", "8"], correct: "8", level: 4 },
+{ q: "¿En qué temporada ganó el Bologna su último campeonato de la Serie A?", options: ["1978-79", "1980-81", "1963-64"], correct: "1963-64", level: 5 },
+{ q: "El Eint. Frankfurt tiene el récord de partidos perdidos como visitante entre 1985 y 1987. ¿Cuántos perdió?", options: ["30", "35", "32"], correct: "32", level: 4 },
+{ q: "¿En cuántos Campeonatos de la Serie A ha participado el Pescara?", options: ["4", "5", "12"], correct: "5", level: 5 },
+{ q: "¿Qué jugador marcó el gol número 3.000 del Bayern München en la Bundesliga?", options: ["Michael Ballack", "Lucio", "Roy Makaay"], correct: "Roy Makaay", level: 4 },
+{ q: "Jaime Pacheco es un entrenador conocido por ser el autor de varias frases. ¿Cuál de las siguientes no es suya?", options: ["'Quieren usar al Boavista como chivo expiatorio.'", "'Las cosas difíciles no son fáciles.'", "'Jugar a la defensiva puede ser un arma de doble filo.'"], correct: "'Las cosas difíciles no son fáciles.'", level: 3 },
+{ q: "¿En qué año el FC Nürnberg descendió directamente de categoría tras ganar la Bundesliga?", options: ["1968", "1969", "1970"], correct: "1969", level: 4 },
+{ q: "¿Cómo se llamaba el viejo estadio del Manchester City?", options: ["Highfield Road", "Maine Road", "Burnden Park"], correct: "Maine Road", level: 1 },
+{ q: "¿Quién marcó el primer gol de la Barclays Premier League en 1992?", options: ["Brian Deane", "Teddy Sheringham", "Eric Cantona"], correct: "Brian Deane", level: 3 },
+{ q: "¿Cuál es el apodo habitual del Sunderland de la Barclays PL?", options: ["The Black Cats", "The Baggies", "The Toffees"], correct: "The Black Cats", level: 2 },
+{ q: "¿En qué año se fundó el C.F Getafe?", options: ["1883", "1983", "1960"], correct: "1983", level: 4 },
+{ q: "¿Qué equipo español lideró la liga tras el primer partido de la temporada 2000-01?", options: ["R. Zaragoza", "Real Madrid", "Rayo Vallecano"], correct: "Rayo Vallecano", level: 5 },
+{ q: "¿En qué temporada ganó el Crotone el campeonato de la Serie C?", options: ["1989-90", "1999-00", "2000-01"], correct: "1999-00", level: 5 },
+{ q: "¿Cuándo se construyó Anfield?", options: ["1889", "1895", "1884"], correct: "1884", level: 5 },
+{ q: "¿Cuántas temporadas ganó Protti el título de máximo goleador jugando con el Livorno?", options: ["4", "2", "3"], correct: "2", level: 4 },
+{ q: "¿En qué Copa Mundial de la FIFA se decidieron ambas semifinales en los penaltis?", options: ["1930", "1990", "1962"], correct: "1990", level: 5 },
+{ q: "¿En qué año se fundó el Bologna?", options: ["1921", "1909", "1919"], correct: "1909", level: 5 },
+{ q: "¿Cuál fue el resultado de la final de la Copa Mundial de la FIFA de 1986?", options: ["Argentina 3 - Alemania Occidental 1", "Argentina 4 - Alemania Occidental 2", "Argentina 3 - Alemania Occidental 2"], correct: "Argentina 3 - Alemania Occidental 2", level: 5 },
+{ q: "¿Quién jugó en la denominada 'casa de la liga del placer'?", options: ["Eintrach Frankfurt", "Wacker Burghausen", "FC Saint Pauli"], correct: "FC Saint Pauli", level: 3 },
+{ q: "¿En qué temporada consiguió la Juventus su 'stella' (décimo) campeonato?", options: ["1996-97", "1985-86", "1957-58"], correct: "1957-58", level: 2 },
+{ q: "¿Que árbitro ha participado en más partidos en la Liga BBVA?", options: ["López Nieto", "Guruceta", "Izco"], correct: "Izco", level: 3 },
+{ q: "¿Qué equipo ganó 1-0 al FC Bayern Munich marcando de saque de banda en 1982?", options: ["FC Bayern", "VfL Wolfsburg", "SV Werder Bremen"], correct: "SV Werder Bremen", level: 3 },
+{ q: "¿Quién fue el máximo goleador de la temporada 2002-2003 de la Liga BBVA?", options: ["Salva Ballesta", "Rivaldo", "Roy Makaay"], correct: "Roy Makaay", level: 4 },
+{ q: "¿En qué año se fundó el Hansa Rostock?", options: ["1965", "1955", "1960"], correct: "1965", level: 1 },
+{ q: "¿En qué puesto acabó el Wigan Athletic en su primera temporada en la Barclays Premier League?", options: ["8°", "16°", "10°"], correct: "10°", level: 2 },
+{ q: "¿Qué país recibió el premio al equipo más entretenido de la Copa Mundial de la FIFA™ de 2002?", options: ["Corea del Sur", "Inglaterra", "Francia"], correct: "Corea del Sur", level: 3 },
+{ q: "¿Quiénes marcaron los dos goles de Alemania en la final de la Copa Mundial de la FIFA™ de 1986?", options: ["Matthhaus y Voller", "Rummenigge y Matthhaus", "Rummenigge y Voller"], correct: "Rummenigge y Voller", level: 4 },
+{ q: "¿En qué Copa Mundial de la FIFA™ ganó Bélgica el premio al juego limpio?", options: ["2006", "1994", "2002"], correct: "2002", level: 4 },
+{ q: "¿En qué año se introdujeron los números en las camisetas de los jugadores?", options: ["1923", "1939", "1902"], correct: "1939", level: 5 },
+{ q: "¿Contra quién jugó Grecia su primer partido de la Copa Mundial de la FIFA™ de 1994?", options: ["Argentina", "Bulgaria", "Nigeria"], correct: "Argentina", level: 5 },
+{ q: "¿Contra quién perdió China su primer partido de la Copa Mundial de la FIFA™ de 2002?", options: ["Turquía", "Costa Rica", "Brasil"], correct: "Costa Rica", level: 5 },
+{ q: "¿Qué edad tenía Nwankwo Kanu cuando fue capitán de Nigeria en la Copa Mundial de la FIFA™ de 1998?", options: ["21 años y 364 días", "22 años y 32 días", "21 años y 327 días"], correct: "21 años y 327 días", level: 5 },
+{ q: "¿A cuántas selecciones diferentes ha entrenado Bora Milutinovic en Copas Mundiales de la FIFA?", options: ["6", "5", "4"], correct: "5", level: 4 },
+{ q: "¿Cuál es el apodo habitual del Wigan Athletic de la Barclays PL?", options: ["The Blades", "The Latics", "The Cottagers"], correct: "The Latics", level: 3 }
+
+    ];
+
+
+let goals = 0;
+let rivalGoals = 0;
+let totalQuestions = 0;
+let totalGameSecs = 0;
+let internalPoints = 0;
+let totalAciertos = 0;
+let questionSecsLeft = 15;
+let matchTimer, qTimer;
+let isFrozen = false;
+let optionRemoved = false;
+let availableQuestions = []; // Inicializado como array vacío
+
+// 2. Funciones de inicio y reloj
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    nextQuestion();
+    matchTimer = setInterval(() => {
+        if (!isFrozen) {
+            totalGameSecs += 5;
+            updateClock();
+            if (totalGameSecs >= 5400) endGame();
+        }
+    }, 100);
+}
+
+function updateClock() {
+    let m = Math.floor(totalGameSecs / 60).toString().padStart(2, '0');
+    let s = (totalGameSecs % 60).toString().padStart(2, '0');
+    document.getElementById('match-clock').innerText = `${m}:${s}`;
+}
+
+// 3. Lógica de preguntas
+function nextQuestion() {
+    isFrozen = false;
+    optionRemoved = false;
+    questionSecsLeft = 15;
+
+    if (availableQuestions.length === 0) {
+        availableQuestions = [...questions];
+        availableQuestions.sort(() => Math.random() - 0.5);
+    }
+    
+    const data = availableQuestions.pop(); 
+    totalQuestions++;
+
+    let starColor = data.level >= 4 ? "#ff4d4d" : (data.level >= 3 ? "#ffa500" : "#d4ff00");
+    const stars = "★".repeat(data.level) + "☆".repeat(5 - data.level);
+    
+    let avisoHtml = "";
+    if (document.body.classList.contains('modo-penalty')) {
+        let textoAviso = internalPoints >= 10 ? 'OCASIÓN DE GOL' : 'PELIGRO RIVAL';
+        avisoHtml = `<span class="status-badge">${textoAviso}</span>`;
+    }
+
+    // Inyectamos el header con estrellas a la izquierda y el prefijo P:
+    document.getElementById('q-text').innerHTML = `
+        <div class="difficulty-header">
+            <div class="difficulty-meter" style="color:${starColor}; border-color:${starColor}">${stars}</div>
+            ${avisoHtml}
+        </div>
+        <span class="q-prefix">P:</span>${data.q}`;
+
+    const rowTop = document.getElementById('row-top');
+    const rowBottom = document.getElementById('row-bottom');
+    rowTop.innerHTML = ''; 
+    rowBottom.innerHTML = '';
+
+    const shuffled = [...data.options].sort(() => Math.random() - 0.5);
+    shuffled.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.dataset.answer = opt;
+        btn.innerHTML = `<span>${opt}</span>`;
+        btn.onclick = () => checkAnswer(opt, data.correct, btn, data.level);
+        if (i < 2) rowTop.appendChild(btn); else rowBottom.appendChild(btn);
+    });
+
+    updateVisualMap((internalPoints + 10) * 5, (internalPoints + 10) * 5 + (data.level * 6));
+    startQTimer(data.correct, data.level);
+}
+
+// 4. Temporizador de pregunta
+function startQTimer(correct, level) {
+    clearInterval(qTimer);
+    qTimer = setInterval(() => {
+        if (!isFrozen) {
+            questionSecsLeft -= 0.1;
+            const fill = document.getElementById('timer-fill');
+            if (fill) fill.style.height = (questionSecsLeft / 15 * 100) + "%";
+
+            let ballVisualPos = (internalPoints + 10) * 5;
+            let currentLinePos = ballVisualPos + (questionSecsLeft / 15 * (level * 6));
+            updateVisualMap(ballVisualPos, currentLinePos);
+
+            if (questionSecsLeft <= 2) removeIncorrectOption(correct);
+
+            if (questionSecsLeft <= 0) {
+                clearInterval(qTimer);
+                document.body.classList.remove('modo-penalty');
+                internalPoints -= 2; 
+                if (internalPoints <= -10) { rivalGoals++; internalPoints = 0; }
+                actualizarMarcadorVisual();
+                handleResult("timeout", correct, null);
+            }
+        }
+    }, 100);
+}
+
+// 5. Validación y Marcador
+function checkAnswer(selected, correct, btn, level) {
+    if (isFrozen) return;
+    const isCorrect = (selected === correct);
+
+    if (document.body.classList.contains('modo-penalty')) {
+        document.body.classList.remove('modo-penalty');
+        if (internalPoints >= 10) { 
+            if (isCorrect) { goals++; internalPoints = 0; } 
+            else { internalPoints -= (6 - level); }
+        } else { 
+            if (isCorrect) { internalPoints += level; } 
+            else { rivalGoals++; internalPoints = 0; }
+        }
+    } else {
+        if (isCorrect) {
+            totalAciertos++;
+            internalPoints += Math.max(0.1, level * (questionSecsLeft / 15));
+        } else {
+            internalPoints -= (6 - level);
+        }
+    }
+
+    actualizarMarcadorVisual();
+    const nuevaPos = (internalPoints + 10) * 5;
+    updateVisualMap(nuevaPos, nuevaPos); 
+
+    if (internalPoints >= 10 || internalPoints <= -10) {
+        document.body.classList.add('modo-penalty');
+    }
+
+    handleResult(isCorrect ? "win" : "fail", correct, btn);
+}
+
+function handleResult(status, correct, clickedBtn) {
+    isFrozen = true;
+    clearInterval(qTimer);
+    const btns = document.querySelectorAll('.opt-btn');
+    btns.forEach(b => {
+        b.disabled = true;
+        if (b.dataset.answer === correct) b.classList.add('correct');
+    });
+    if (status === "fail" && clickedBtn) clickedBtn.classList.add('incorrect');
+    
+    setTimeout(() => {
+        if (totalGameSecs < 5400) nextQuestion();
+    }, 1500);
+}
+
+// 6. Visuales del Mapa
+function updateVisualMap(bPos, lPos) {
+    if (!ball || !aimLine) return;
+    let bPercent = Math.max(0, Math.min(100, bPos));
+    let lPercent = Math.max(0, Math.min(100, lPos));
+    
+    ball.style.top = (100 - bPercent) + "%";
+    aimLine.style.top = (100 - lPercent) + "%";
+    ball.style.left = (50 + (internalPoints * 2)) + "%"; 
+}
+
+function actualizarMarcadorVisual() {
+    document.getElementById('score').innerText = `${goals}-${rivalGoals}`;
+}
+
+function removeIncorrectOption(correct) {
+    if (optionRemoved) return;
+    const btns = Array.from(document.querySelectorAll('.opt-btn:not(.hidden-opt)'));
+    const incorrectBtns = btns.filter(b => b.dataset.answer !== correct);
+    if (incorrectBtns.length > 0) {
+        optionRemoved = true;
+        incorrectBtns[Math.floor(Math.random() * incorrectBtns.length)].classList.add('hidden-opt');
+    }
+}
+
+function endGame() {
+    isFrozen = true;
+    clearInterval(matchTimer);
+    clearInterval(qTimer);
+    document.body.innerHTML = `
+        <div class='overlay'>
+            <h1 style="color:white; font-size:3rem; margin:0;">¡FINAL DEL PARTIDO!</h1>
+            <div class="final-score">${goals} - ${rivalGoals}</div>
+            <button class='opt-btn' onclick='location.reload()'><span>REINTENTAR</span></button>
+        </div>`;
+}
+</script>
+</body>
+</html>
