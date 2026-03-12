@@ -1,1 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Expedientes de Sangre</title>
+    <style>
+:root {
+            --rojo: #800000;
+            --papel: #dccfb8;
+            --tinta: #1a1a1a;
+        }
 
+        body { 
+            background-color: #0a0a0a; 
+            color: var(--tinta); 
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0;
+        }
+
+     #contenedor { 
+    background: var(--papel); 
+    width: 90%; 
+    max-width: 480px; 
+    /* Cambiamos 100px por 60px para reducir el vacío */
+    padding: 30px 30px 60px 30px; 
+    box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(0,0,0,0.1);
+    border-radius: 2px;
+    position: relative;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+        /* Pantallas */
+        .pantalla { display: none; width: 100%; }
+        .activa { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        h1 { font-size: 1.3em; letter-spacing: 4px; border-bottom: 2px solid var(--tinta); margin-bottom: 20px; padding-bottom: 5px; }
+
+        /* MARCO DE FOTO CENTRADO */
+        .foto-marco {
+            width: 65%; 
+            aspect-ratio: 3 / 4; 
+            background: #000;
+            border: 4px solid #222;
+            margin: 0 auto 20px auto; /* Centrado horizontal */
+            overflow: hidden;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        img { width: 100%; height: 100%; object-fit: contain; }
+
+        #corazones { font-size: 1.5em; margin-bottom: 10px; }
+
+        /* Formulario */
+        input { 
+            background: transparent; 
+            border: none;
+            border-bottom: 1px solid var(--rojo);
+            color: #000; 
+            padding: 8px; 
+            width: 80%; 
+            font-size: 1.1em; 
+            text-align: center; 
+            outline: none;
+            margin-bottom: 15px;
+        }
+
+        button { 
+            background: var(--tinta); 
+            color: var(--papel); 
+            border: none; 
+            padding: 12px 24px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            letter-spacing: 2px;
+            font-size: 0.8em;
+            transition: 0.3s;
+        }
+
+        button:hover { background: var(--rojo); }
+
+        /* Sátira */
+        .info-satira { 
+            font-size: 0.75em; 
+            line-height: 1.5; 
+            margin: 15px 0; 
+            padding: 15px;
+            background: rgba(0,0,0,0.05);
+            border: 1px dashed rgba(0,0,0,0.2);
+            text-align: justify;
+        }
+
+      .progreso-footer { 
+    position: absolute;
+    /* Subimos un poco el texto si es necesario o lo dejamos cerca del borde */
+    bottom: 15px; 
+    left: 0;
+    width: 100%;
+    font-size: 0.75em;
+    letter-spacing: 3px;
+    color: rgba(0,0,0,0.5);
+}
+    </style>
+</head>
+<body>
+
+<div id="contenedor">
+    <div id="pantalla-inicio" class="pantalla activa">
+        <h1>EXPEDIENTES PROHIBIDOS</h1>
+        <p>Identifica a 30 verdugos de la historia.</p>
+        <p>Tienes 20 segundos por expediente y 5 vidas.</p>
+        <button onclick="comenzarJuego()">ABRIR ARCHIVOS</button>
+    </div>
+
+    <div id="pantalla-juego" class="pantalla">
+        <div id="corazones"></div>
+        <div class="foto-marco"><img id="retrato" src=""></div>
+        
+        <div id="zona-input">
+            <input type="text" id="respuesta-user" placeholder="Escribe el nombre..." onkeypress="if(event.key === 'Enter') comprobar()">
+            <button onclick="comprobar()">SENTENCIAR</button>
+        </div>
+
+        <div id="feedback-area" style="display:none;">
+            <div id="mensaje" style="font-size: 1.4em; font-weight: bold; margin-bottom: 10px;"></div>
+            <div id="historia" class="info-satira"></div>
+            <button id="btn-siguiente" onclick="siguiente()" style="display:none;">CONTINUAR</button>
+        </div>
+
+        <div class="progreso-footer">CONFIRMADOS: <span id="num-aciertos">0</span>/30</div>
+    </div>
+
+    <div id="pantalla-final" class="pantalla">
+        <h1 id="final-titulo"></h1>
+        <h2 id="final-score"></h2>
+        <button onclick="location.reload()">VOLVER A EMPEZAR</button>
+    </div>
+</div>
+
+<script>
+    // PEGA AQUÍ TU LISTA DE PERSONAJES
+    const pool = [
+        {n: "Vlad el Empalador", u: "https://static.wikia.nocookie.net/dracula/images/d/de/Vlad_Tepes.jpg/revision/latest/scale-to-width-down/300?cb=20210422124937&path-prefix=es", d: "¿Cruel? Para nada. Solo era un visionario del orden público. Mis estacas eran un recordatorio visual de que, en Valaquia, si no te portas bien, terminas siendo parte del mobiliario urbano."},
+        {n: "Sadam Husein", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Saddam_Hussein_in_1998.png/330px-Saddam_Hussein_in_1998.png", d: "Gobernar es como la jardinería: a veces hay que usar pesticidas químicos contra las malas hierbas. No fue una purga, fue un tratamiento de spa intensivo para la estabilidad del Estado."},
+        {n: "Osama bin Laden", u: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Osama_bin_Laden_portrait.jpg", d: "Me llamaron terrorista, pero yo me veía como un crítico arquitectónico radical. Solo quería demostrar que el acero neoyorquino no tenía tanta resistencia como el ego americano."},
+        {n: "Kim Jong-un", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Russia%27s_President_Vladimir_Putin_on_state_visit_to_North_Korea_%28cropped_3%29.jpg/330px-Russia%27s_President_Vladimir_Putin_on_state_visit_to_North_Korea_%28cropped_3%29.jpg", d: "En mi país la dieta es obligatoria y el aplauso es un deporte de riesgo. No soy un dictador, soy un influencer con armas nucleares y el 100% de los votos positivos."},
+        {n: "Iosif Stalin", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Joseph_Stalin_in_1932_%284%29_%28cropped%29%282%29.jpg/330px-Joseph_Stalin_in_1932_%284%29_%28cropped%29%282%29.jpg", d: "Las estadísticas son maravillosas: una muerte es una tragedia, pero veinte millones son solo una auditoría de población necesaria para que el paraíso funcione."},
+        {n: "Pablo Escobar", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Pablo_Escobar_Mug.jpg/330px-Pablo_Escobar_Mug.jpg", d: "Fui un pionero de la exportación a domicilio. Mi único pecado fue querer que el mundo entero se relajara un poco. Plata o plomo, yo siempre daba a elegir... soy un demócrata."},
+        {n: "Benito Mussolini", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Benito_Mussolini_colored.jpg/330px-Benito_Mussolini_colored.jpg", d: "Inventé el postureo político antes de Instagram. Que los italianos me colgaran boca abajo fue solo su forma de admitir que les había dado la vuelta al país."},
+        {n: "Pol Pot", u: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Pol_Pot_%28cropped%29.jpg", d: "Quería una sociedad sin clases, así que quité la clase de matemáticas, la de historia y, de paso, a todo el que supiera leer. Menos gente, menos problemas de tráfico."},
+        {n: "Leopoldo II", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Leopold_ii_garter_knight_%28cropped_1%29.jpg/330px-Leopold_ii_garter_knight_%28cropped_1%29.jpg", d: "El Congo era mi jardín privado y las manos de los nativos eran el abono. No se puede hacer una tortilla industrial sin romper unos cuantos millones de extremidades."},
+        {n: "Muammar el Gadafi", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Moamer_el_Gadafi_%28cropped%29.jpg/330px-Moamer_el_Gadafi_%28cropped%29.jpg", d: "Tenía el mejor armario de África y una guardia personal que parecía sacada de un videoclip. Si mi pueblo me sacó de una alcantarilla, fue por pura envidia de mi estilo."},
+        {n: "Augusto Pinochet", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Augusto_Pinochet_foto_oficial_%283x4_cropped%29.jpg/330px-Augusto_Pinochet_foto_oficial_%283x4_cropped%29.jpg", d: "Ahorré muchísimo en pasajes de avión: a mis oponentes les daba un tour en helicóptero por el Pacífico. El único problema es que el tour era de solo ida."},
+        {n: "Genghis Khan", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/YuanEmperorAlbumGenghisPortrait.jpg/500px-YuanEmperorAlbumGenghisPortrait.jpg", d: "Fui el padre de la globalización y, literalmente, el padre de un 0.5% de la población mundial actual. Matar a los hombres y quedarse con el resto es eficiencia mongola."},
+        {n: "Heinrich Himmler", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Bundesarchiv_Bild_183-S72707%2C_Heinrich_Himmler.jpg/330px-Bundesarchiv_Bild_183-S72707%2C_Heinrich_Himmler.jpg", d: "La logística es aburrida hasta que la aplicas a la pureza racial. Yo no odiaba a nadie, simplemente me gustaba que los archivos estuvieran bien organizados y las cámaras vacías."},
+        {n: "Idi Amin", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Idi_Amin_at_UN_%28United_Nations%2C_New_York%29_gtfy.00132_%28cropped%29.jpg/330px-Idi_Amin_at_UN_%28United_Nations%2C_New_York%29_gtfy.00132_%28cropped%29.jpg", d: "Me autoproclamé 'Señor de todas las bestias de la tierra' y confieso que algunas de esas bestias estaban deliciosas. Un dictador con un paladar... exquisito."},
+        {n: "Francisco Pizarro", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Portrait_of_Francisco_Pizarro.jpg/500px-Portrait_of_Francisco_Pizarro.jpg", d: "Vine por el oro y me quedé por el genocidio. Atahualpa llenó una habitación de tesoros, pero se le olvidó pagar el seguro de vida. Mala suerte."},
+        {n: "Hernan Cortes", u: "https://content-historia.nationalgeographic.com.es/medio/2023/04/17/bal_45f774d0_448222_230417174654_800x1042.jpg", d: "Quemar mis barcos fue la mejor estrategia de marketing de la historia. O ganábamos el oro azteca o terminábamos decorando una pirámide. Ganamos, obviamente."},
+        {n: "Grigori Rasputin", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Rasputin_PA.jpg/330px-Rasputin_PA.jpg", d: "Me echaron cianuro, me pegaron tiros y me tiraron al río... y aun así me costó morir. Supongo que el infierno no estaba listo para mi barba todavía."},
+        {n: "Alí Jameneí", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Ali_Khamenei_Nowruz_message_official_portrait_1397_02_%28cropped%29%282%29.jpg/330px-Ali_Khamenei_Nowruz_message_official_portrait_1397_02_%28cropped%29%282%29.jpg", d: "La moralidad es una cuestión de perspectiva: la mía es la correcta y la tuya te lleva a la horca en una grúa. Un sistema de justicia muy elevado."},
+        {n: "Adolf Eichmann", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Adolf_Eichmann%2C_1942.jpg/500px-Adolf_Eichmann%2C_1942.jpg", d: "Fui un mártir de la burocracia. Si mandaba trenes al este no era por maldad, era porque no soportaba ver un formulario sin rellenar."},
+        {n: "Mao Zedong", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Mao_Tse_Tung.jpg/330px-Mao_Tse_Tung.jpg", d: "El Gran Salto Adelante fue fantástico, lástima que el suelo estuviera lleno de cadáveres. Pero oye, China ahora es una potencia, así que valió la pena el hambre."},
+        {n: "Hideki Tojo", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Hideki_T%C5%8Dj%C5%8D_portrait.jpg/330px-Hideki_T%C5%8Dj%C5%8D_portrait.jpg", d: "Expandir el imperio requiere algunos sacrificios, preferiblemente de ciudadanos de otros países. Mi bigote era el símbolo de un Asia unida... bajo mi bota."},
+        {n: "Fulgencio Batista", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Fulgencio_Batista%2C_1938.jpg/330px-Fulgencio_Batista%2C_1938.jpg", d: "Convertí a Cuba en el patio de recreo de la mafia y me llevaba una comisión por cada carta repartida. La corrupción es solo otra forma de propina."},
+        {n: "Bashar al-Ásad", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Bashar_al-Assad_in_May_2024.png/330px-Bashar_al-Assad_in_May_2024.png", d: "Soy oftalmólogo, así que sé perfectamente cuando mi pueblo me mira mal. La solución es un poco de gas lacrimógeno... o del otro, el que no te deja pestañear."},
+    {n: "Adolf Hitler", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Hitler_portrait_crop.jpg/500px-Hitler_portrait_crop.jpg", d: "Mi error no fue la ideología, fue intentar invadir Rusia en invierno sin un buen abrigo. El espacio vital requiere limpieza, orden y mucha propaganda."},
+    {n: "Francisco Franco", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/RETRATO_DEL_GRAL._FRANCISCO_FRANCO_BAHAMONDE_%28adjusted_levels%29.jpg/330px-RETRATO_DEL_GRAL._FRANCISCO_FRANCO_BAHAMONDE_%28adjusted_levels%29.jpg", d: "España es un país difícil, por eso decidí congelarlo durante cuarenta años. No es una dictadura, es que el Generalísimo sabe lo que te conviene mejor que tú."},
+    {n: "Santiago Carrillo", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Santiago_Carrillo_003.jpg/330px-Santiago_Carrillo_003.jpg", d: "Paracuellos fue un malentendido logístico en tiempos convulsos. Al final, lo importante no es cuántos cayeron, sino lo bien que me sentaba la peluca en la Transición."},
+    {n: "Che Guevara", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Che_Guevara_-_Guerrillero_Heroico_by_Alberto_Korda.jpg/330px-Che_Guevara_-_Guerrillero_Heroico_by_Alberto_Korda.jpg", d: "Para hacer la revolución hay que endurecerse sin perder la ternura, aunque un buen pelotón de fusilamiento en La Cabaña ayuda a que el mensaje cale más rápido."},
+    {n: "Fidel Castro", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Fidel_Castro_1950s.jpg/330px-Fidel_Castro_1950s.jpg", d: "La historia me absolverá, pero mientras tanto, me aseguré de que nadie más pudiera presentarse a las elecciones. Hablar durante siete horas es mi tortura favorita."},
+    {n: "Richard Nixon", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Richard_Nixon_presidential_portrait_%281%29.jpg/330px-Richard_Nixon_presidential_portrait_%281%29.jpg", d: "Si lo hace el Presidente, no es ilegal. Watergate solo fue un error de fontanería política; lo malo no fue espiar, fue que me pillaron con las cintas puestas."},
+    {n: "Kim Jong-il", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Kim_Jong_il_Portrait-2.jpg/330px-Kim_Jong_il_Portrait-2.jpg", d: "Inventé la hamburguesa y escribí seis óperas en dos años. En Corea del Norte no hay hambre, solo hay un ayuno patriótico por respeto a mi peinado."},
+    {n: "Vladimir Putin", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%9F%D1%83%D1%82%D0%B8%D0%BD_%282025-09-30%29.jpg/330px-%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%9F%D1%83%D1%82%D0%B8%D0%BD_%282025-09-30%29.jpgg", d: "No es una invasión, es una operación especial de mudanza forzada. En Rusia, el té de plutonio es la bebida favorita de los periodistas que preguntan demasiado."},
+    {n: "Al Capone", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Al_Capone_in_1930.jpg/500px-Al_Capone_in_1930.jpg", d: "Solo soy un hombre de negocios que da a la gente lo que quiere: alcohol y plomo. Al final me pillaron por los impuestos; la Hacienda americana da más miedo que la mafia."},
+    {n: "Jeffrey Epstein", u: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Jeffrey_Epstein_mug_shot.jpg/330px-Jeffrey_Epstein_mug_shot.jpg", d: "Mi agenda de contactos era el mapa del tesoro de la élite. Lástima que las cámaras de mi celda tuvieran un sueño tan pesado el día que decidí 'retirarme' del negocio."}
+    ];
+
+    let partida = [], indice = 0, aciertos = 0, vidas = 5;
+    let timer, tiempoRestante;
+
+    function comenzarJuego() {
+        partida = pool.sort(() => 0.5 - Math.random());
+        document.getElementById('pantalla-inicio').classList.remove('activa');
+        document.getElementById('pantalla-juego').classList.add('activa');
+        actualizarVidas();
+        mostrar();
+    }
+
+    function actualizarVidas() {
+        document.getElementById('corazones').innerHTML = "🩸".repeat(vidas);
+    }
+
+    function iniciarReloj() {
+        clearInterval(timer);
+        tiempoRestante = 20;
+        timer = setInterval(() => {
+            tiempoRestante--;
+            if (tiempoRestante <= 0) {
+                clearInterval(timer);
+                comprobar(); 
+            }
+        }, 1000);
+    }
+
+    function mostrar() {
+        if (aciertos < 30 && vidas > 0 && indice < partida.length) {
+            document.getElementById('retrato').src = partida[indice].u;
+            document.getElementById('zona-input').style.display = "block";
+            document.getElementById('feedback-area').style.display = "none";
+            document.getElementById('btn-siguiente').style.display = "none"; 
+            document.getElementById('respuesta-user').value = "";
+            document.getElementById('respuesta-user').focus();
+            iniciarReloj();
+        } else {
+            finalizar();
+        }
+    }
+
+    function comprobar() {
+        clearInterval(timer);
+        let user = document.getElementById('respuesta-user').value.trim();
+        let target = partida[indice].n;
+        
+        document.getElementById('zona-input').style.display = "none";
+        document.getElementById('feedback-area').style.display = "block";
+
+        if (user !== "" && similitud(user, target) > 0.95) {
+            aciertos++;
+            document.getElementById('num-aciertos').innerText = aciertos;
+            document.getElementById('mensaje').innerText = "IDENTIFICADO";
+            document.getElementById('mensaje').style.color = "#006600";
+        } else {
+            vidas--;
+            actualizarVidas();
+            document.getElementById('mensaje').innerText = (tiempoRestante <= 0) ? "TIEMPO AGOTADO: " + target : "ERROR DE REGISTRO: " + target;
+            document.getElementById('mensaje').style.color = "#990000";
+        }
+        
+        document.getElementById('historia').innerText = partida[indice].d;
+
+        // Mostrar botón tras 5 segundos
+        setTimeout(() => {
+            if (vidas > 0) {
+                document.getElementById('btn-siguiente').style.display = "inline-block";
+            } else {
+                finalizar();
+            }
+        }, 5000);
+    }
+
+    function siguiente() {
+        indice++;
+        mostrar();
+    }
+
+    function finalizar() {
+        clearInterval(timer);
+        document.getElementById('pantalla-juego').classList.remove('activa');
+        document.getElementById('pantalla-final').classList.add('activa');
+        document.getElementById('final-titulo').innerText = aciertos >= 30 ? "LEYENDA DEL HORROR" : "EXPEDIENTE CERRADO";
+        document.getElementById('final-score').innerText = `Aciertos: ${aciertos}/30`;
+    }
+
+    // ALGORITMO DE SIMILITUD (Mínimo 85% para aceptar)
+    function similitud(s1, s2) {
+        let longer = s1.length > s2.length ? s1 : s2;
+        let shorter = s1.length > s2.length ? s2 : s1;
+        if (longer.length === 0) return 1.0;
+        return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
+    }
+
+    function editDistance(s1, s2) {
+        s1 = s1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        s2 = s2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        let costs = new Array();
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i == 0) costs[j] = j;
+                else {
+                    if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0) costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+</script>
+</body>
+</html>
