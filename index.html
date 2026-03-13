@@ -2,44 +2,475 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi Portal de Juegos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Juegos Infinito</title>
     <style>
-        body { text-align: center; font-family: sans-serif; background: #222; color: white; }
-        .container { margin-top: 50px; }
-        .btn {
-            padding: 15px 25px;
-            font-size: 1.2rem;
-            margin: 10px;
-            cursor: pointer;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn:hover { background: #0056b3; }
+:root {
+    --bg: #0b0c10;
+    --color-historia: #ff4757;
+    --color-edu: #2ed573;
+    --color-gaming: #1e90ff;
+    --color-politica: #ffa502;
+    --text-main: #e0e0e0;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.carousel-view {
+    position: relative;
+    width: 100%;
+    max-width: 1150px;
+    overflow: hidden;
+    padding: 20px 0 80px 0; /* Reducimos arriba (20px) y damos margen abajo (80px) */
+}
+
+.cards-container {
+    display: flex;
+    gap: 25px;
+    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    padding: 10px;
+}
+
+/* --- CARTAS --- */
+.card-item {
+    min-width: 280px;
+    height: 500px;
+    perspective: 1000px;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    cursor: pointer;
+}
+
+.card-item:hover .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+/* --- CARA FRONTAL --- */
+.card-front {
+    background: #16161d;
+}
+
+/* --- CORRECCIÓN DE IMÁGENES --- */
+.card-front img {
+    width: 100%;
+    height: 350px;       /* Altura fija para que todas las cartas sean iguales */
+    object-fit: cover;   /* ESTO ES LA CLAVE: ajusta la imagen sin deformarla */
+    object-position: center; /* Centra el recorte de la imagen */
+    display: block;
+    filter: brightness(0.9);
+    border-bottom: 2px solid var(--accent); /* Un detalle extra para que quede pro */
+}
+
+/* Ajustamos el contenedor del título para que no se pegue */
+.card-front h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;        /* Ocupa el resto del espacio de la carta */
+    font-size: 1.1rem;
+    padding: 10px;
+    color: var(--accent); /* Aplicamos el color de categoría que querías */
+    text-transform: uppercase;
+}
+
+/* --- CARA TRASERA --- */
+.card-back {
+    background: #1c1c24;
+    transform: rotateY(180deg);
+    padding: 30px 25px;
+    box-sizing: border-box;
+}
+
+.card-back h4 {
+    margin: 0 0 15px 0;
+    color: var(--accent);
+    text-align: center; /* Centrado como pediste */
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.card-back p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #bbb;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.card-back ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto 25px auto;
+    font-size: 0.85rem;
+    color: var(--text-main);
+}
+
+.card-back ul li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.card-back ul li::before {
+    content: "→";
+    color: var(--accent);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* --- BOTÓN JUGAR (ENCUADRADO Y BONITO) --- */
+.btn-play {
+    margin-top: auto;
+    background: transparent;
+    color: white;
+    text-decoration: none;
+    padding: 12px 0;
+    width: 100%;
+    border-radius: 12px;
+    font-weight: 700;
+    text-align: center;
+    border: 2px solid var(--accent);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+.btn-play:hover {
+    background: var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+    transform: translateY(-2px);
+}
+
+.btn-play:active {
+    transform: translateY(0);
+}
+
+/* --- NAVEGACIÓN --- */
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 100;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.nav-btn:hover {
+    background: white;
+    color: black;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.prev { left: 15px; }
+.next { right: 15px; }
+
+/* Color por defecto si olvidas la categoría */
+.card-item {
+    --accent: #00d2ff; 
+}
+
+/* Colores por Categoría - Copia y pega esto sobre lo anterior */
+.cat-historia { --accent: var(--color-historia) !important; }
+.cat-edu      { --accent: var(--color-edu) !important; }
+.cat-gaming   { --accent: var(--color-gaming) !important; }
+.cat-politica { --accent: var(--color-politica) !important; }
+
+/* Para que el título frontal también brille con el color de la categoría */
+.card-front h3 {
+    color: var(--accent);
+}
     </style>
 </head>
 <body>
 
     <h1>Selecciona un Juego</h1>
-    
-    <div class="container">
-        <a href="./juego1/" class="btn">GEOGRAFÍA</a>
-        <a href="./juego2/" class="btn">LENGUA CASTELLANA</a>
-        <a href="./juego3/" class="btn">HISTORIA DE ESPAÑA</a>
-        <a href="./juego5/" class="btn">HISTORIA DE ESPAÑA PASAPALABRA</a>
-        <a href="./juego6/" class="btn">HISTORIA DE ESPAÑA DENBORA LERROA</a>
-         <a href="./juego4/" class="btn">SILENT HILL</a>
-        <a href="./juego8/" class="btn">WHO?</a>
-        <a href="https://generalsuker.github.io/FIFA14MODOMANAGER/" class="btn">FIFA 14</a>
-         <a href="./juego7/" class="btn">FIFA 14 TRIVIAL</a>
-        <a href="https://politicaltests.github.io/12axes/" class="btn">12 AXES</a>
-        <a href="https://8values.github.io/" class="btn">8 VALUES</a>
-        <a href="https://9axes.github.io/" class="btn">9 AXES</a>
-        <a href="https://bracketfights.com/create/goat-of-philosophy-201954" class="btn">GOAT OF PHILOSOPHY</a>
-    </div>
 
+    <div class="carousel-view">
+        <button class="nav-btn prev" onclick="moveCarousel(-1)">&#10094;</button>
+        <button class="nav-btn next" onclick="moveCarousel(1)">&#10095;</button>
+        
+        <div class="cards-container" id="carousel">
+            <div class="card-item cat-edu">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB3m00ddORfLFecgdm0fmoHaMgbKB04-AJdrNB2cgBM0-P9Kz0fRhJMKFpNw&s" alt="Geo">
+                        <h3>GEOGRAFÍA</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>Geografía Visual</h4>
+<p>Pon a prueba tus reflejos y tu memoria visual identificando emblemas en tiempo récord.</p>
+    <ul>
+        <li><strong>Vuelta al mundo:</strong> Las banderas de diversos países, desde las más icónicas hasta las más remotas.</li>
+        <li><strong>Heráldica avanzada:</strong> Escudos históricos, blasones reales y simbología de estado.</li>
+        <li><strong>Especial Euskadi:</strong> Un recorrido detallado por la identidad de nuestras provincias y municipios.</li>
+        <li><strong>Modo Competición:</strong> Supera tus propios límites y escala en el ranking global.</li>
+    </ul>
+                        <a href="./juego1/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-item cat-edu">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://m.media-amazon.com/images/I/518a4q4zYbL._SY445_SX342_ML2_.jpg" alt="Lengua">
+                        <h3>LENGUA CASTELLANA</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>Refranero Popular</h4>
+    <p>Demuestra tu dominio de la sabiduría popular completando las sentencias más famosas de nuestra lengua.</p>
+    <ul>
+        <li><strong>El Reto:</strong> Basado en el libro "200 refranes más famosos del idioma castellano".</li>
+        <li><strong>Dinámica:</strong> Supera niveles de 5 en 5 acertando la continuación correcta.</li>
+        <li><strong>La Galería:</strong> Colecciona los 200 refranes en tu biblioteca personal si los completas.</li>
+    </ul>
+                        <a href="./juego2/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+                        <div class="card-item cat-edu">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Gottfried_Wilhelm_Leibniz%2C_Bernhard_Christoph_Francke.jpg/250px-Gottfried_Wilhelm_Leibniz%2C_Bernhard_Christoph_Francke.jpg" alt="Filo">
+                        <h3>GOAT OF PHILOSOPHY</h3>
+                    </div>
+                    <div class="card-face card-back">
+    <h4>GOAT OF PHILOSOPHY</h4>
+    <p>¿Quién es el verdadero "GOAT"? No es un examen, es un combate intelectual por la supremacía de las ideas.</p>
+    <ul>
+        <li><strong>Formato Bracket:</strong> Enfrentamientos directos 1 contra 1. Tú decides quién avanza a la siguiente ronda.</li>
+        <li><strong>El Criterio:</strong> Elige al ganador basándote en su influencia, su lógica o simplemente en quién tiene las mejores respuestas.</li>
+        <li><strong>El Ganador Absoluto:</strong> Filtra entre los más grandes pensadores de la historia hasta coronar al filósofo supremo.</li>
+    </ul>
+
+                        <a href="https://bracketfights.com/create/goat-of-philosophy-201954" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-item cat-historia">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Fuero_de_Vizcaya.png/250px-Fuero_de_Vizcaya.png" alt="Historia">
+                        <h3>HISTORIA DE ESPAÑA</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>Historia de España</h4>
+    <p>Un recorrido interactivo por los hitos que forjaron el país. Enfréntate a desafíos rápidos de 20 preguntas por partida.</p>
+    <ul>
+        <li><strong>Modo Crónica:</strong> Partidas dinámicas con preguntas variadas para repasar los conceptos generales.</li>
+        <li><strong>Modo Erudito:</strong> El reto definitivo. Las preguntas que aciertes no volverán a aparecer, obligándote a dominar todo el temario.</li>
+        <li><strong>Dinámica:</strong> Cuatro opciones de respuesta y un ritmo ágil para poner a prueba tu retentiva histórica.</li>
+    </ul>
+                        <a href="./juego3/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-item cat-historia">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://estaticos-cdn.prensaiberica.es/clip/7c80613b-0e7a-43c1-9717-877f4f6f9428_16-9-discover-aspect-ratio_default_0.webp" alt="Historia">
+                        <h3>HISTORIA DE ESPAÑA PASAPALBRA</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>Pasapalabra Histórico</h4>
+    <p>El desafío definitivo para los amantes de las fechas y los personajes. ¿Serás capaz de completar el rosco sin que los nervios te traicionen?</p>
+    <ul>
+        <li><strong>El Rosco:</strong> 23 letras que esconden conceptos clave de la España contemporánea.</li>
+        <li><strong>Contra el Reloj:</strong> Dispones de solo 200 segundos para resolver todas las definiciones.</li>
+        <li><strong>Estrategia:</strong> ¿Responder rápido o decir "Pasapalabra"? Gestiona tu tiempo para no quedarte a medias en las últimas letras.</li>
+    </ul>
+                        <a href="./juego5/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-item cat-historia">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/RETRATO_DEL_GRAL._FRANCISCO_FRANCO_BAHAMONDE_%28adjusted_levels%29.jpg/250px-RETRATO_DEL_GRAL._FRANCISCO_FRANCO_BAHAMONDE_%28adjusted_levels%29.jpg" alt="Historia">
+                        <h3>HISTORIA DE ESPAÑA LINEA DE TIEMPO</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>Linea de tiempo</h4>
+    <p>La historia es un puzzle. ¿Sabes ordenar sus piezas? Demuestra tu dominio de la cronología en la España Contemporánea.</p>
+    <ul>
+        <li><strong>Modo Fácil:</strong> Ordena 5 eventos clave. Perfecto para practicar y consolidar fechas.</li>
+        <li><strong>Modo Desafío:</strong> Un reto más complejo donde deberás colocar correctamente 10 hitos históricos.</li>
+        <li><strong>Precisión:</strong> Cada evento debe ir en su lugar exacto en la línea del tiempo. Un pequeño error puede cambiar el futuro.</li>
+    </ul>
+                        <a href="./juego6/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="card-item cat-gaming">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://static.wikia.nocookie.net/silenthill/images/b/b1/Psychiatrist.png/revision/latest?cb=20110910235330&path-prefix=es" alt="SH">
+                        <h3>SILENT HILL</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>SILENT HILL</h4>
+    <p>No es un juego, es un espejo. Entra en una experiencia audiovisual donde el verdadero monstruo podrías ser tú mismo.</p>
+    <ul>
+        <li><strong>Dilema Moral:</strong> Enfréntate a una situación límite donde no hay respuestas correctas. </li>
+        <li><strong>El Psicólogo:</strong> Tus elecciones serán analizadas. Cada respuesta cambiará drásticamente el diagnóstico final.</li>
+        <li><strong>Atmósfera:</strong> Déjate envolver por el sonido y la imagen. Lo que elijas revelará lo que escondes en tu subconsciente.</li>
+    </ul>
+                        <a href="./juego4/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-item cat-gaming">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MP_156595368?x=536&y=402&format=jpg&quality=80&sp=yes&strip=yes&trim&ex=536&ey=402&align=center&resizesource&unsharp=1.5x1+0.7+0.02&cox=0&coy=0&cdx=536&cdy=402" alt="FIFA">
+                        <h3>FIFA 14 MANAGER</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>FIFA 14: MODO MÁNAGER</h4>
+    <p>¿Tienes lo necesario para gestionar un club de élite?</p>
+    <ul>
+        <li><strong>Ruedas de Prensa:</strong> Toma decisiones críticas bajo presión. Tus respuestas afectan directamente al vestuario.</li>
+        <li><strong>Supervivencia:</strong> Suma el máximo de puntos posibles por temporada. Un paso en falso y te darán la carta de despido.</li>
+        <li><strong>Gestión Total:</strong> Equilibra la ambición con la diplomacia para convertirte en una leyenda del banquillo.</li>
+    </ul>
+                        <a href="https://generalsuker.github.io/FIFA14MODOMANAGER/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+                       <div class="card-item cat-gaming">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://m.media-amazon.com/images/I/51HRt63yifL._SY445_SX342_ML2_.jpg" alt="FIFA">
+                        <h3>FIFA 14 TRIVIAL</h3>
+                    </div>
+                    <div class="card-face card-back">
+<h4>FIFA 14 TRIVIAL</h4>
+    <p>El partido se juega en tu mente. Tienes 90 minutos virtuales para demostrar que eres el que más sabe de fútbol y de la saga FIFA.</p>
+    <ul>
+        <li><strong>Marca Goles:</strong> Cada respuesta acertada es una jugada de peligro. Suma tantos goles como puedas antes del pitido final.</li>
+        <li><strong>Dificultad Dinámica:</strong> No todos los balones son fáciles. Te enfrentarás a preguntas de "empujar a puerta" y a verdaderos "disparos por la escuadra".</li>
+        <li><strong>Gana el Encuentro:</strong> Supera al rival respondiendo con precisión bajo la presión del cronómetro.</li>
+    </ul>
+                        <a ref="./juego7/" class="btn-play">JUGAR</a>
+                    </div>
+                </div>
+            </div>
+                                  <div class="card-item cat-gaming">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Jeffrey_Epstein_mug_shot.jpg/250px-Jeffrey_Epstein_mug_shot.jpg" alt="WHO">
+                        <h3>WHO?</h3>
+                    </div>
+                  <div class="card-face card-back">
+    <h4>WHO?</h4>
+    <p>¿Eres capaz de poner nombre a los rostros más icónicos de la cultura, el deporte y la historia? La memoria visual es tu única arma.</p>
+    <ul>
+        <li><strong>El Desafío:</strong> Identifica correctamente a la persona de la imagen escribiendo su nombre y apellido.</li>
+        <li><strong>Supervivencia:</strong> Dispones de 5 vidas. Cada error te acerca al Game Over. ¡No hay margen para el titubeo!</li>
+        <li><strong>La Meta:</strong> Debes alcanzar los 30 aciertos consecutivos para cantar victoria. ¿Tienes la cultura necesaria?</li>
+    </ul>
+    <a href="./juego8/" class="btn-play">JUGAR</a>
+</div>
+
+</div></div>
+
+            <div class="card-item cat-politica">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://politicaltests.github.io/12axes/values.png" alt="Test">
+                        <h3>12 AXES</h3>
+                    </div>
+                    <div class="card-face card-back">
+    <h4>12 AXES TEST</h4>
+    <p>¿Dónde encajas realmente en el espectro ideológico? </p>
+    <ul>
+        <li><strong>Personalización:</strong> Elige entre el Modo Corto para un vistazo rápido o el Modo Largo*para un diagnóstico profundo y detallado.</li>
+        <li><strong>Multidimensional:</strong> Evalúa tu postura sobre economía, sociedad, estado, religión y mucho más.</li>
+        <li><strong>Resultado Visual:</strong> Al finalizar, obtendrás un gráfico con tus porcentajes y la ideología que más se aproxima a tu pensamiento.</li>
+    </ul>
+    <a href="https://politicaltests.github.io/12axes/" class="btn-play">JUGAR</a>
+</div>
+
+            </div>
+    </div></div></div>
+
+    <script>
+        const carousel = document.getElementById('carousel');
+        
+        function moveCarousel(direction) {
+            const cards = document.querySelectorAll('.card-item');
+            const cardWidth = cards[0].offsetWidth + 20; // Ancho + gap
+
+            if (direction === 1) {
+                // Mover hacia adelante: animamos y luego movemos el primer elemento al final
+                carousel.style.transition = "transform 0.5s ease";
+                carousel.style.transform = `translateX(-${cardWidth}px)`;
+                
+                setTimeout(() => {
+                    carousel.style.transition = "none";
+                    carousel.appendChild(cards[0]); // Mueve el primero al final
+                    carousel.style.transform = `translateX(0)`;
+                }, 500);
+                
+            } else {
+                // Mover hacia atrás: primero movemos el último al principio sin que se note
+                carousel.style.transition = "none";
+                carousel.prepend(cards[cards.length - 1]); // Mueve el último al inicio
+                carousel.style.transform = `translateX(-${cardWidth}px)`;
+                
+                // Forzamos un reflow para que la transición funcione
+                setTimeout(() => {
+                    carousel.style.transition = "transform 0.5s ease";
+                    carousel.style.transform = `translateX(0)`;
+                }, 10);
+            }
+        }
+    </script>
 </body>
 </html>
