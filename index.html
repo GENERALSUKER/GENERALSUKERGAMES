@@ -224,9 +224,19 @@ body {
     </style>
 </head>
 <body>
-<button id="openChangelog" style="position: fixed; bottom: 20px; right: 20px; background: rgba(255,255,255,0.1); border: 1px solid var(--accent); color: white; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 1000;">
-  🕒
-</button>
+<button id="openChangelog" style="position: fixed; bottom: 20px; right: 20px; background: #1c1c24; border: 2px solid var(--color-gaming); color: white; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 1000; font-size: 20px;">🕒</button>
+
+<div id="changelogModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; backdrop-filter: blur(5px);">
+    <div style="background: #16161d; width: 90%; max-width: 500px; margin: 50px auto; padding: 25px; border-radius: 20px; border: 1px solid var(--accent); max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: var(--accent);">Historial de Cambios</h2>
+            <button id="closeChangelog" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div id="changelogContent" style="color: #bbb; line-height: 1.6;">
+            Cargando actualizaciones...
+        </div>
+    </div>
+</div>
     <h1>Selecciona un Juego</h1>
 
     <div class="carousel-view">
@@ -489,6 +499,40 @@ carousel.addEventListener('mouseleave', () => {
         moveCarousel(1);
     }, 3000);
 });
+// Inicializar Supabase en la principal
+const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.co', 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC');
+
+const modal = document.getElementById('changelogModal');
+const btnOpen = document.getElementById('openChangelog');
+const btnClose = document.getElementById('closeChangelog');
+const content = document.getElementById('changelogContent');
+
+// Abrir y cargar datos
+btnOpen.onclick = async () => {
+    modal.style.display = 'block';
+    
+    // Consultar Supabase
+    const { data, error } = await _supabase
+        .from('changelog')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        content.innerHTML = "Error al cargar los cambios.";
+    } else {
+        content.innerHTML = data.map(item => `
+            <div style="margin-bottom: 20px; border-left: 3px solid var(--accent); padding-left: 15px;">
+                <strong style="color: white;">${item.game_title} - ${item.version}</strong>
+                <p style="margin: 5px 0; font-size: 0.9rem;">${item.description}</p>
+                <small style="color: #666;">${new Date(item.created_at).toLocaleDateString()}</small>
+            </div>
+        `).join('');
+    }
+}
+
+// Cerrar modal
+btnClose.onclick = () => modal.style.display = 'none';
+window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; }
     </script>
 </body>
 </html>
