@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idiom Master: Chaos Mode</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #2d3436;
+            --success: #00b894;
+            --error: #d63031;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            background: var(--card);
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border-top: 8px solid var(--primary);
+        }
+
+        .level-indicator {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin: 20px 0;
+            line-height: 1.4;
+            min-height: 60px;
+        }
+
+        .answer-zone { margin: 25px 0; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            text-align: center;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(108, 92, 231, 0.2); }
+
+        .options-grid { display: grid; gap: 10px; }
+
+        .btn {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .btn-check { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        .btn-check:hover { background: #5b4bc4; }
+
+        .btn-opt { background: white; border: 2px solid #dfe6e9; width: 100%; }
+        .btn-opt:hover { border-color: var(--primary); background: #f9f8ff; }
+
+        .btn-next { background: var(--success); color: white; width: 100%; margin-top: 20px; }
+
+        #feedback { font-weight: bold; margin-top: 15px; height: 24px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="type-badge" class="level-indicator">Ready?</div>
+    <div id="question-text" class="question-text">Press the button to start!</div>
+    
+    <div id="answer-zone" class="answer-zone">
+        <button class="btn btn-check" onclick="nextRandomQuestion()">Start Game</button>
+    </div>
+
+    <div id="feedback"></div>
+    <button id="next-btn" class="btn btn-next hidden" onclick="nextRandomQuestion()">Next Random Challenge →</button>
+</div>
+
+<script>
+    // Base de datos estática de 25 preguntas (5 idioms x 5 niveles)
+    const quizData = [
+        // IDIOM: To start from scratch
+{ type: 1, q: "Definition: 'To start from scratch' means...", opts: ["To finish quickly", "To begin from the very beginning", "To scratch an itch"], ans: "To begin from the very beginning" },
+{ type: 2, q: "Complete: 'They had to start...'", ans: "from scratch" },
+{ type: 3, q: "Translate 'Empezar desde cero' to English:", ans: "to start from scratch" },
+{ type: 4, q: "Context: The recipe failed, so I threw it away to...", ans: "start from scratch" },
+{ type: 5, q: "Dialogue:<br>A: Can we save any part of this project?<br>B: No, we need to ___ ___ ___.", ans: "start from scratch" },
+
+{ type: 1, q: "Definition: 'To shoot the breeze' means...", opts: ["To argue loudly", "To talk about unimportant things", "To go hunting"], ans: "To talk about unimportant things" },
+{ type: 2, q: "Complete: 'We spent the afternoon shooting ...'", ans: "the breeze" },
+{ type: 3, q: "Translate 'Hablar por hablar' to English:", ans: "To shoot the breeze" },
+{ type: 4, q: "Context: They weren't working; they were just standing there to...", ans: "shoot the breeze" },
+{ type: 5, q: "Dialogue:<br>A: Are you guys discussing the contract?<br>B: No, we are just here to ___ ___ ___.", ans: "shoot the breeze" }
+    ];
+
+    let currentQuestion = null;let questionsRemaining = [...quizData]; 
+let totalAnswered = 0; // Contador de progreso
+
+function nextRandomQuestion() {
+    // Si ya no quedan preguntas, mostramos el final
+    if (questionsRemaining.length === 0) {
+        showEndScreen();
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * questionsRemaining.length);
+    currentQuestion = questionsRemaining.splice(randomIndex, 1)[0];
+    
+    // Actualizamos el badge para mostrar el progreso (ej: 1/25)
+    totalAnswered++;
+    const badge = document.getElementById('type-badge');
+    badge.textContent = `Question ${totalAnswered} / 10`;
+
+    const qText = document.getElementById('question-text');
+    const zone = document.getElementById('answer-zone');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+
+    feedback.textContent = "";
+    nextBtn.classList.add('hidden');
+    zone.innerHTML = "";
+    
+    qText.innerHTML = currentQuestion.q;
+
+if (currentQuestion.type === 1) {
+        const grid = document.createElement('div');
+        grid.className = "options-grid";
+        currentQuestion.opts.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = "btn btn-opt";
+            b.textContent = opt;
+            b.onclick = () => check(opt);
+            grid.appendChild(b);
+        });
+        zone.appendChild(grid);
+    } else {
+        const input = document.createElement('input');
+        input.type = "text";
+        input.id = "user-input";
+        input.placeholder = "Type here...";
+        input.onkeyup = (e) => { if(e.key === "Enter") check(input.value) };
+        
+        const b = document.createElement('button');
+        b.className = "btn btn-check";
+        b.textContent = "Verify";
+        b.onclick = () => check(input.value);
+        
+        zone.appendChild(input);
+        zone.appendChild(b);
+        input.focus();
+    }
+}
+
+    function check(val) {
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        
+        const userVal = val.toLowerCase().trim().replace(/[.!?]$/, "");
+        const correctVal = currentQuestion.ans.toLowerCase().trim();
+
+        if (userVal === correctVal) {
+            feedback.textContent = "Correct! 🌟";
+            feedback.style.color = "var(--success)";
+            nextBtn.classList.remove('hidden');
+        } else {
+            feedback.textContent = "Incorrect, try again! ❌";
+            feedback.style.color = "var(--error)";
+        }
+    }
+    function showEndScreen() {
+    const container = document.getElementById('game-container');
+    container.innerHTML = `
+        <div class="level-indicator">🏆 Finished!</div>
+        <h2 class="question-text">¡Enhorabuena! Has completado los 10 desafíos de modismos.</h2>
+        <p>Tu dominio del inglés está aumentando.</p>
+        <button class="btn btn-check" onclick="location.reload()">Jugar de nuevo</button>
+    `;
+}
+</script>
+</body>
+</html>
