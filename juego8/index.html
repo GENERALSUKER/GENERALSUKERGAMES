@@ -20,6 +20,12 @@
             min-height: 100vh; 
             margin: 0;
         }
+        #retrato { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain;
+    background-color: #000; /* Fondo negro por si la imagen tarda medio segundo */
+}
 
      #contenedor { 
     background: var(--papel); 
@@ -246,6 +252,7 @@
         }
         
         document.getElementById('historia').innerText = partida[indice].d;
+        precargarSiguiente();
 
         // Mostrar botón tras 5 segundos
         setTimeout(() => {
@@ -269,7 +276,15 @@
         document.getElementById('final-titulo').innerText = aciertos >= 30 ? "LEYENDA DEL HORROR" : "EXPEDIENTE CERRADO";
         document.getElementById('final-score').innerText = `Aciertos: ${aciertos}/30`;
     }
-
+function precargarSiguiente() {
+    // Verificamos que no sea el último personaje
+    if (indice + 1 < partida.length) {
+        const imgPreload = new Image();
+        imgPreload.src = partida[indice + 1].u;
+        // Opcional: Consola para que veas que está trabajando
+        console.log("Precargando verdugo: " + partida[indice + 1].n);
+    }
+}
     // ALGORITMO DE SIMILITUD (Mínimo 85% para aceptar)
     function similitud(s1, s2) {
         let longer = s1.length > s2.length ? s1 : s2;
