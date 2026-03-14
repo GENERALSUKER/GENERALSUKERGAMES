@@ -510,23 +510,28 @@ const content = document.getElementById('changelogContent');
 // Abrir y cargar datos
 btnOpen.onclick = async () => {
     modal.style.display = 'block';
+    content.innerHTML = "Cargando historial...";
     
-    // Consultar Supabase
+    // Consultamos tu tabla "noticias"
     const { data, error } = await _supabase
-        .from('changelog')
+        .from('noticias')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('fecha', { ascending: false }); // Usamos 'fecha' como en tu SQL
 
     if (error) {
-        content.innerHTML = "Error al cargar los cambios.";
+        content.innerHTML = "Error al conectar con el historial.";
+        console.error(error);
     } else {
-        content.innerHTML = data.map(item => `
-            <div style="margin-bottom: 20px; border-left: 3px solid var(--accent); padding-left: 15px;">
-                <strong style="color: white;">${item.game_title} - ${item.version}</strong>
-                <p style="margin: 5px 0; font-size: 0.9rem;">${item.description}</p>
-                <small style="color: #666;">${new Date(item.created_at).toLocaleDateString()}</small>
-            </div>
-        `).join('');
+        if (data.length === 0) {
+            content.innerHTML = "No hay novedades aún.";
+        } else {
+            content.innerHTML = data.map(item => `
+                <div style="margin-bottom: 20px; border-left: 3px solid var(--accent); padding-left: 15px;">
+                    <p style="margin: 0; color: white; font-size: 0.95rem;">${item.texto}</p>
+                    <small style="color: #666;">${new Date(item.fecha).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        }
     }
 }
 
