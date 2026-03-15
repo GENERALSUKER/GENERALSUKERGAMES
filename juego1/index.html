@@ -267,7 +267,6 @@ const supabaseUrl = 'https://obwmxhzbpprllnngsitr.supabase.co';
 const supabaseKey = 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC';
 // Configuración de conexión
 const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.co', 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC');
-    const packs = 
     
     Object.values(packs).forEach(pack => {
         while (pack.length < 25) {
@@ -275,14 +274,13 @@ const _supabase = supabase.createClient('https://obwmxhzbpprllnngsitr.supabase.c
         }
     });
 // --- VARIABLES GLOBALES ---
+let packs = {};
 let packActual = "";
 let indiceActual = 0;
 let aciertos = 0;
 let preguntasMezcladas = [];
 let interactuable = true;
 let indiceCorrectoActual = 0;
-const MI_CLAVE_MAESTRA = "1234"; // <--- Tu contraseña para noticias
-
 // --- DICCIONARIO CORREGIDO (Pack 5 incluido) ---
 const nombresBonitos = {
     'pack1': 'MUNDIAL',
@@ -292,18 +290,38 @@ const nombresBonitos = {
     'pack5': 'ESPAÑA 100K'
 };
 
-// --- LÓGICA DEL JUEGO ---
-function seleccionarPack(nombreDelPack) {
+async function seleccionarPack(nombreDelPack) {
+    // Si por alguna razón los datos no han cargado, esperamos
+    if (Object.keys(packs).length === 0) {
+        await cargarDatos();
+    }
     packActual = nombreDelPack;
     startGame(nombreDelPack);
 }
+// --- FUNCIÓN DE CONEXIÓN ---
+async function cargarDatos() {
+    try {
+        const respuesta = await fetch('datos.json');
+        packs = await respuesta.json();
+        
+        // Rellenar packs pequeños (mínimo 25 preguntas)
+        Object.values(packs).forEach(pack => {
+            if (pack.length > 0) {
+                while (pack.length < 25) {
+                    pack.push({...pack[Math.floor(Math.random() * pack.length)]});
+                }
+            }
+        });
+        console.log("Datos cargados correctamente");
+    } catch (error) {
+        console.error("Error cargando el JSON:", error);
+    }
+}
 
 function startGame(packElegido) {
-    packActual = packElegido; 
     document.getElementById('start-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
 
-    // Mezclar y seleccionar 25 preguntas
     preguntasMezcladas = packs[packElegido].sort(() => Math.random() - 0.5).slice(0, 25);
     indiceActual = 0;
     aciertos = 0;
@@ -313,7 +331,6 @@ function startGame(packElegido) {
 function renderQuestion() {
     interactuable = true;
     const data = preguntasMezcladas[indiceActual];
-
     let opcionesConEstado = data.opciones.map((opt, i) => ({ texto: opt, esCorrecta: i === data.correcta }));
     opcionesConEstado.sort(() => Math.random() - 0.5);
     indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
@@ -427,6 +444,7 @@ function enviarPuntuacion() {
 
 // --- CARGA INICIAL ---
 document.addEventListener('DOMContentLoaded', () => {
+    cargarDatos(); // Cargamos el JSON nada más abrir la web
     cargarMejoresPorCategoria();
 });
 </script>
