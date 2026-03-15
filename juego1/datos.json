@@ -350,7 +350,7 @@
     { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Escudo_de_la_provincia_de_Zamora.svg/120px-Escudo_de_la_provincia_de_Zamora.svg.png", "opciones": ["Salamanca", "Orense", "Zamora", "Pontevedra"], "correcta": 2 },
     { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Escudo_d%27a_probinzia_de_Zaragoza.svg/120px-Escudo_d%27a_probinzia_de_Zaragoza.svg.png", "opciones": ["León", "Córdoba", "Cáceres", "Zaragoza"], "correcta": 3 }],
 
-        pack5: [
+        "pack5": [
 { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Bandera_de_la_ciudad_de_Madrid.svg/120px-Bandera_de_la_ciudad_de_Madrid.svg.png", "opciones": ["Murcia", "Valladolid", "Madrid", "Alcorcón"], "correcta": 2 },
     { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Flag_of_Barcelona.svg/120px-Flag_of_Barcelona.svg.png", "opciones": ["Barcelona", "L'Hospitalet", "Badalona", "Girona"], "correcta": 0 },
     { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Flag_of_the_Land_of_Valencia_%28official%29.svg/120px-Flag_of_the_Land_of_Valencia_%28official%29.svg.png", "opciones": ["Torrent", "Valencia", "Castellón", "Zaragoza"], "correcta": 1 },
