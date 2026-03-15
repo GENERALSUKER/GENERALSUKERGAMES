@@ -608,7 +608,7 @@
   { "img": "https://flagcdn.com/ye.svg", "opciones": ["Yemen", "Omán", "Arabia Saudita", "Eritrea"], "correcta": 0 },
   { "img": "https://flagcdn.com/dj.svg", "opciones": ["Yibuti", "Eritrea", "Etiopía", "Somalia"], "correcta": 0 },
   { "img": "https://flagcdn.com/zm.svg", "opciones": ["Zambia", "Zimbabue", "Malaui", "Angola"], "correcta": 0 },
-  { "img": "https://flagcdn.com/zw.svg", "opciones": ["Zimbabue", "Zambia", "Botsuana", "Mozambique"], "correcta": 0 },
+  { "img": "https://flagcdn.com/zw.svg", "opciones": ["Zimbabue", "Zambia", "Botsuana", "Mozambique"], "correcta": 0 }
   
 ] 
         }
