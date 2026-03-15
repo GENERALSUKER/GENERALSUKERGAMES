@@ -232,6 +232,11 @@
         ESPAÑA 100K
         <div id="best-pack5" class="best-player">Cargando récord...</div>
     </button>
+            </button>
+        <button class="btn-start" onclick="seleccionarPack('pack6')">
+        MUNDO OFICIAL
+        <div id="best-pack6" class="best-player">Cargando récord...</div>
+    </button>
 </div>
 
     <!-- PANTALLA QUIZ -->
@@ -283,6 +288,7 @@ const nombresBonitos = {
     'pack3': 'ARMARRI',
     'pack4': 'PROVINCIAS',
     'pack5': 'ESPAÑA 100K'
+    'pack6': 'MUNDO OFICIAL'
 };
 
 // --- FUNCIONES DE CARGA ---
@@ -429,7 +435,7 @@ async function mostrarRankingActualizado(nombrePack) {
 }
 
 async function cargarMejoresPorCategoria() {
-    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5'];
+    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5','pack6'];
     for (const pack of packsArray) {
         const { data, error } = await _supabase
             .from('ranking')
