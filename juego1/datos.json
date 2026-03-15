@@ -416,4 +416,4 @@
     { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Barakaldoko_ikurra_berria.svg/120px-Barakaldoko_ikurra_berria.svg.png", "opciones": ["Sestao", "Getxo", "Barakaldo", "Bilbao"], "correcta": 2 },
     { "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Bandera_Pamplona.svg/120px-Bandera_Pamplona.svg.png", "opciones": ["Vitoria-Gasteiz", "Pamplona", "Cádiz", "Castellón"], "correcta": 1 }
         ],
-        };
+        }
