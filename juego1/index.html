@@ -550,20 +550,25 @@ async function mostrarRankingActualizado(nombrePack) {
     }).join('');
 }
 async function cargarMejoresPorCategoria() {
-    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5','pack6'];
+    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6'];
     for (const pack of packsArray) {
         const { data, error } = await _supabase
             .from('ranking')
-            .select('username, score')
+            .select('username, score, tiempo') // Añadimos tiempo
             .eq('pack_name', pack)
-            .order('score', { ascending: false })
+            .order('score', { ascending: false }) // Prioridad: Aciertos
+            .order('tiempo', { ascending: true })  // Desempate: Rapidez
             .limit(1)
             .maybeSingle();
 
         const contenedor = document.getElementById(`best-${pack}`);
         if (contenedor) {
-            if (data) contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b>`;
-            else contenedor.innerText = "Sin récords aún";
+            if (data) {
+                const t = formatearTiempo(data.tiempo);
+                contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b> <small>(${t})</small>`;
+            } else {
+                contenedor.innerText = "Sin récords aún";
+            }
         }
     }
 }
