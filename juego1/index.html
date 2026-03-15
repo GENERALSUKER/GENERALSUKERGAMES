@@ -280,6 +280,7 @@ let aciertos = 0;
 let preguntasMezcladas = [];
 let interactuable = true;
 let indiceCorrectoActual = 0;
+let tiempoInicio = 0;
 
 // --- DICCIONARIO ---
 const nombresBonitos = {
@@ -334,43 +335,54 @@ function startGame(packElegido) {
     document.getElementById('start-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
 
-    // Mezclamos y agarramos 25
-    preguntasMezcladas = [...packs[packElegido]].sort(() => Math.random() - 0.5).slice(0, 25);
+    // 1. Preparamos las preguntas (Sustituye a tu línea de .sort)
+    let todasLasPreguntas = [...packs[packElegido]]; 
+    shuffle(todasLasPreguntas); // Mezcla profesional de todas
+    preguntasMezcladas = todasLasPreguntas.slice(0, 25); // Agarramos 25
+    
+    // 2. Reiniciamos contadores
     indiceActual = 0;
     aciertos = 0;
+    
+    // 3. ¡Iniciamos el cronómetro!
+    tiempoInicio = Date.now(); 
+
     renderQuestion();
+}
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
 }
 
 function renderQuestion() {
     interactuable = true;
     const data = preguntasMezcladas[indiceActual];
     
-    // Creamos opciones y las mezclamos
+    // Creamos los objetos de las opciones
     let opcionesConEstado = data.opciones.map((opt, i) => ({ 
         texto: opt, 
         esCorrecta: i === data.correcta 
     }));
-    opcionesConEstado.sort(() => Math.random() - 0.5);
+
+    // MEZCLA PROFESIONAL: Usamos Fisher-Yates en lugar de .sort()
+    shuffle(opcionesConEstado); 
     
     // Guardamos dónde quedó la correcta después de mezclar
     indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
 
+    // ... (resto del código igual: poner imagen, limpiar contenedor, crear botones)
     document.getElementById('flag-img').src = data.img;
-    document.getElementById('current-q').innerText = indiceActual + 1;
-    document.getElementById('hits').innerText = aciertos;
-
-    const container = document.getElementById('options-container');
-    container.innerHTML = '';
-
-    opcionesConEstado.forEach((obj, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerText = obj.texto;
-        btn.onclick = () => checkAnswer(i, btn);
-        container.appendChild(btn);
-    });
+    // etc...
 }
-
+function formatearTiempo(segundos) {
+    if (!segundos && segundos !== 0) return "--:--"; // Por si el dato es NULL
+    const min = Math.floor(segundos / 60);
+    const seg = segundos % 60;
+    return `${min}:${seg.toString().padStart(2, '0')}`;
+}
 function checkAnswer(elegida, btn) {
     if (!interactuable) return;
     interactuable = false;
@@ -397,29 +409,46 @@ function checkAnswer(elegida, btn) {
 }
 
 function finishGame() {
+    // Calculamos segundos totales
+    const tiempoFinal = Math.floor((Date.now() - tiempoInicio) / 1000);
+    
     document.getElementById('quiz-screen').classList.remove('active');
     document.getElementById('end-screen').classList.add('active');
-    document.getElementById('final-result').innerText = `Has conseguido ${aciertos} aciertos.`;
+    
+    // Mostramos el resultado incluyendo el tiempo
+    document.getElementById('final-result').innerText = 
+        `Has conseguido ${aciertos} aciertos en ${tiempoFinal} segundos.`;
+    
+    // Guardamos el tiempo en una variable global temporal para enviarla luego
+    window.ultimoTiempo = tiempoFinal; 
+
     mostrarRankingActualizado(packActual);
 }
 
 // --- RANKING Y SUPABASE ---
 async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
+    const tiempo = window.ultimoTiempo; // Recuperamos el tiempo del juego
+    
     const { data, error } = await _supabase
         .from('ranking')
-        .insert([{ username: nombre, score: puntos, pack_name: nombrePack }]);
+        .insert([{ 
+            username: nombre, 
+            score: puntos, 
+            pack_name: nombrePack,
+            tiempo: tiempo // <--- ASEGÚRATE DE CREAR ESTA COLUMNA EN SUPABASE
+        }]);
 
     if (error) console.error("Error al guardar:", error);
     else mostrarRankingActualizado(nombrePack);
 }
-
 async function mostrarRankingActualizado(nombrePack) {
     if (!nombrePack) return;
     const { data: ranking, error } = await _supabase
         .from('ranking')
-        .select('username, score')
+        .select('username, score, tiempo') // <--- Asegúrate de pedir la columna tiempo
         .eq('pack_name', nombrePack) 
         .order('score', { ascending: false })
+        .order('tiempo', { ascending: true }) // <--- Orden secundario por rapidez
         .limit(10);
 
     if (error) return;
@@ -429,11 +458,20 @@ async function mostrarRankingActualizado(nombrePack) {
     const nombreVisual = nombresBonitos[nombrePack] || nombrePack.toUpperCase();
     
     if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
-    lista.innerHTML = ranking.map((user, index) => 
-        `<li><span>#${index + 1}</span> ${user.username} <b>${user.score} pts</b></li>`
-    ).join('');
-}
 
+    lista.innerHTML = ranking.map((user, index) => {
+        const tiempoLegible = formatearTiempo(user.tiempo);
+        return `
+            <li>
+                <span>#${index + 1}</span> 
+                ${user.username} 
+                <div>
+                    <b>${user.score} pts</b> 
+                    <small style="color: #888; margin-left: 8px;">⏱️ ${tiempoLegible}</small>
+                </div>
+            </li>`;
+    }).join('');
+}
 async function cargarMejoresPorCategoria() {
     const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5','pack6'];
     for (const pack of packsArray) {
