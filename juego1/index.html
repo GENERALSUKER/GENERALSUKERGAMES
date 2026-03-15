@@ -45,7 +45,35 @@
         cursor: pointer;
         margin: 10px 0;
     }
+#timer-container {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 50px;
+    display: inline-block;
+    min-width: 120px;
+    border: 1px solid #333;
+}
 
+.timer-low {
+    color: #ff9800 !important; /* Naranja si pasa de 1 min */
+}
+
+.timer-critical {
+    color: #f44336 !important; /* Rojo si pasa de 2 min */
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
     /* CONTENEDOR EQUILIBRADO */
     .flag-container {
         width: 100%;
@@ -241,7 +269,7 @@
 
     <!-- PANTALLA QUIZ -->
     <div id="quiz-screen" class="screen">
-        <div class="flag-container">
+        <div id="timer-container">0:00</div> <div class="flag-container">
             <img id="flag-img" src="" alt="Bandera">
         </div>
         <div class="options-grid" id="options-container"></div>
@@ -281,6 +309,7 @@ let preguntasMezcladas = [];
 let interactuable = true;
 let indiceCorrectoActual = 0;
 let tiempoInicio = 0;
+let intervaloTimer;
 
 // --- DICCIONARIO ---
 const nombresBonitos = {
@@ -345,10 +374,15 @@ function startGame(packElegido) {
     aciertos = 0;
     
     // 3. ¡Iniciamos el cronómetro!
-    tiempoInicio = Date.now(); 
-
+tiempoInicio = Date.now();
+    
+    // Iniciar el contador visual cada segundo
+    clearInterval(intervaloTimer); // Limpiar por si acaso
+    intervaloTimer = setInterval(actualizarCronometro, 1000); 
+    
     renderQuestion();
 }
+
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -376,6 +410,22 @@ function renderQuestion() {
     // ... (resto del código igual: poner imagen, limpiar contenedor, crear botones)
     document.getElementById('flag-img').src = data.img;
     // etc...
+}
+function actualizarCronometro() {
+    const ahora = Date.now();
+    const transcurrido = Math.floor((ahora - tiempoInicio) / 1000);
+    const display = document.getElementById('timer-container');
+    
+    // Formatear
+    display.innerText = formatearTiempo(transcurrido);
+
+    // Cambiar colores según el tiempo
+    if (transcurrido > 60 && transcurrido <= 120) {
+        display.classList.add('timer-low');
+    } else if (transcurrido > 120) {
+        display.classList.remove('timer-low');
+        display.classList.add('timer-critical');
+    }
 }
 function formatearTiempo(segundos) {
     if (!segundos && segundos !== 0) return "--:--"; // Por si el dato es NULL
@@ -409,18 +459,16 @@ function checkAnswer(elegida, btn) {
 }
 
 function finishGame() {
-    // Calculamos segundos totales
-    const tiempoFinal = Math.floor((Date.now() - tiempoInicio) / 1000);
+clearInterval(intervaloTimer); // ¡IMPORTANTE! Detener el reloj
     
+    const tiempoFinal = Math.floor((Date.now() - tiempoInicio) / 1000);
+    window.ultimoTiempo = tiempoFinal; 
+
     document.getElementById('quiz-screen').classList.remove('active');
     document.getElementById('end-screen').classList.add('active');
     
-    // Mostramos el resultado incluyendo el tiempo
     document.getElementById('final-result').innerText = 
-        `Has conseguido ${aciertos} aciertos en ${tiempoFinal} segundos.`;
-    
-    // Guardamos el tiempo en una variable global temporal para enviarla luego
-    window.ultimoTiempo = tiempoFinal; 
+        `Has conseguido ${aciertos} aciertos en ${formatearTiempo(tiempoFinal)}.`;
 
     mostrarRankingActualizado(packActual);
 }
