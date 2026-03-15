@@ -227,6 +227,25 @@
         max-height: 400px;
     }
 }
+/* Añade esto a tu bloque <style> */
+#lista-ranking li div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#lista-ranking li b {
+    min-width: 50px;
+    text-align: right;
+}
+
+#lista-ranking li small {
+    font-family: monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
 </style>
 </head>
 <body>
@@ -395,21 +414,31 @@ function renderQuestion() {
     interactuable = true;
     const data = preguntasMezcladas[indiceActual];
     
-    // Creamos los objetos de las opciones
+    // 1. Preparamos y mezclamos opciones
     let opcionesConEstado = data.opciones.map((opt, i) => ({ 
         texto: opt, 
         esCorrecta: i === data.correcta 
     }));
-
-    // MEZCLA PROFESIONAL: Usamos Fisher-Yates en lugar de .sort()
     shuffle(opcionesConEstado); 
     
-    // Guardamos dónde quedó la correcta después de mezclar
     indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
 
-    // ... (resto del código igual: poner imagen, limpiar contenedor, crear botones)
+    // 2. Actualizamos imagen y contadores
     document.getElementById('flag-img').src = data.img;
-    // etc...
+    document.getElementById('current-q').innerText = indiceActual + 1;
+    document.getElementById('hits').innerText = aciertos;
+
+    // 3. Generamos los botones físicamente
+    const container = document.getElementById('options-container');
+    container.innerHTML = ''; // Limpiar botones anteriores
+
+    opcionesConEstado.forEach((obj, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = obj.texto;
+        btn.onclick = () => checkAnswer(i, btn);
+        container.appendChild(btn);
+    });
 }
 function actualizarCronometro() {
     const ahora = Date.now();
