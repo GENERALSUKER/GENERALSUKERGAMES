@@ -503,7 +503,6 @@
   { "img": "https://flagcdn.com/ir.svg", "opciones": ["Irán", "Irak", "Afganistán", "Pakistán"], "correcta": 0 },
   { "img": "https://flagcdn.com/ie.svg", "opciones": ["Irlanda", "Reino Unido", "Francia", "Islandia"], "correcta": 0 },
   { "img": "https://flagcdn.com/is.svg", "opciones": ["Islandia", "Groenlandia", "Noruega", "Irlanda"], "correcta": 0 },
-  { "img": "https://flagcdn.com/il.svg", "opciones": ["Israel", "Palestina", "Líbano", "Jordania"], "correcta": 0 },
   { "img": "https://flagcdn.com/it.svg", "opciones": ["Italia", "España", "Francia", "Grecia"], "correcta": 0 },
   { "img": "https://flagcdn.com/jm.svg", "opciones": ["Jamaica", "Bahamas", "Cuba", "Haití"], "correcta": 0 },
   { "img": "https://flagcdn.com/jp.svg", "opciones": ["Japón", "Corea del Sur", "China", "Corea del Norte"], "correcta": 0 },
