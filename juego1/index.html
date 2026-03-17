@@ -284,6 +284,10 @@
         MUNDO OFICIAL
         <div id="best-pack6" class="best-player">Cargando récord...</div>
     </button>
+    <button class="btn-start" onclick="seleccionarPack('pack_espana_top')">
+    ESPAÑA PRO
+    <div id="best-pack_espana_top" class="best-player">Cargando récord...</div>
+</button>
 </div>
 
     <!-- PANTALLA QUIZ -->
@@ -337,7 +341,8 @@ const nombresBonitos = {
     'pack3': 'ARMARRI',
     'pack4': 'PROVINCIAS',
     'pack5': 'ESPAÑA 100K',
-    'pack6': 'MUNDO OFICIAL'
+    'pack6': 'MUNDO OFICIAL',
+    'pack_espana_top': 'ESPAÑA PRO'
 };
 
 // --- FUNCIONES DE CARGA ---
@@ -365,16 +370,30 @@ async function cargarDatos() {
 }
 
 async function seleccionarPack(nombreDelPack) {
-    // Si los datos aún no están listos, esperamos a que carguen
     if (Object.keys(packs).length === 0) {
         await cargarDatos();
     }
     
+    // Lógica nueva para el pack dinámico
+    if (nombreDelPack === 'pack_espana_top') {
+        const btn = event.currentTarget;
+        btn.innerText = "CARGANDO BANDERAS...";
+        const nuevoPack = await generarPackEspanaPro();
+        if (nuevoPack.length > 0) {
+            packs['pack_espana_top'] = nuevoPack;
+            packActual = 'pack_espana_top';
+            startGame('pack_espana_top');
+        } else {
+            alert("Error al conectar con Wikidata");
+            btn.innerText = "ESPAÑA PRO";
+        }
+        return;
+    }
+
+    // Lógica normal para los packs del JSON
     if (packs[nombreDelPack]) {
         packActual = nombreDelPack;
         startGame(nombreDelPack);
-    } else {
-        console.error("El pack seleccionado no existe o no ha cargado.");
     }
 }
 
@@ -501,7 +520,50 @@ clearInterval(intervaloTimer); // ¡IMPORTANTE! Detener el reloj
 
     mostrarRankingActualizado(packActual);
 }
+async function generarPackEspanaPro() {
+    const sparql = `
+    SELECT DISTINCT ?itemLabel ?flag WHERE {
+      ?item wdt:P17 wd:Q29 ;
+            wdt:P41 ?flag ;
+            wdt:P31 ?type .
+      VALUES ?type { wd:Q202166 wd:Q15089 wd:Q515 wd:Q171585 }
+      OPTIONAL { ?item wdt:P1082 ?poblacion . }
+      FILTER (!bound(?poblacion) || ?poblacion > 50000)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
+    } LIMIT 100`;
 
+    try {
+        const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
+            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoQuiz/1.0' }
+        });
+        const data = await res.json();
+        const lista = data.results.bindings.map(b => ({
+            img: b.flag.value,
+            nombre: b.itemLabel.value
+        }));
+
+        // Transformar al formato de tu Quiz (4 opciones, 1 correcta)
+        return lista.sort(() => Math.random() - 0.5).slice(0, 25).map(entidad => {
+            // Creamos 3 distractores aleatorios de la misma lista
+            let distractores = lista
+                .filter(f => f.nombre !== entidad.nombre)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3)
+                .map(f => f.nombre);
+            
+            let opciones = [entidad.nombre, ...distractores].sort(() => Math.random() - 0.5);
+            
+            return {
+                img: entidad.img,
+                opciones: opciones,
+                correcta: opciones.indexOf(entidad.nombre)
+            };
+        });
+    } catch (e) {
+        console.error("Error generando pack dinámico", e);
+        return [];
+    }
+}
 // --- RANKING Y SUPABASE ---
 async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
     const tiempo = window.ultimoTiempo; // Recuperamos el tiempo del juego
