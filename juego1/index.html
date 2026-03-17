@@ -330,18 +330,10 @@ let indiceActual = 0;
 let aciertos = 0;
 let preguntasMezcladas = [];
 let interactuable = true;
-let indiceCorrectoActual = 0;
 let tiempoInicio = 0;
 let intervaloTimer;
 
-const nombresBonitos = {
-    'pack1': 'MUNDIAL', 'pack2': 'BIZKAIA', 'pack3': 'ARMARRI',
-    'pack4': 'PROVINCIAS', 'pack5': 'ESPAÑA 100K', 'pack6': 'MUNDO OFICIAL',
-    'pack_espana_top': 'ESPAÑA PRO'
-};
-
-// --- UTILIDADES ---
-// Única función Shuffle para todo el programa (Algoritmo Fisher-Yates)
+// --- UTILIDADES (MOVIDA ARRIBA PARA EVITAR ERRORES) ---
 function shuffle(array) {
     let m = array.length, t, i;
     while (m) {
@@ -365,33 +357,27 @@ async function cargarDatos() {
     try {
         const respuesta = await fetch('datos.json');
         const datosCargados = await respuesta.json();
-        
-        Object.keys(datosCargados).forEach(key => {
-            let p = datosCargados[key];
-            if (p && p.length > 0) {
-                while (p.length < 25) {
-                    p.push({...p[Math.floor(Math.random() * p.length)]});
-                }
-            }
-        });
         packs = datosCargados;
     } catch (e) { console.error("Error cargando JSON:", e); }
 }
 
 // --- LÓGICA DE SELECCIÓN ---
 async function seleccionarPack(nombreDelPack) {
-    const btn = event?.currentTarget; // Captura el botón clicado de forma segura
+    // Usamos el evento global para el botón
+    const btn = event?.currentTarget; 
 
     if (nombreDelPack === 'pack_espana_top') {
-        if (btn) btn.innerText = "🌀 GENERANDO...";
+        if (btn) btn.innerHTML = "🌀 GENERANDO... <div class='best-player'>Buscando municipios > 5K</div>";
+        
         const nuevoPack = await generarPackEspanaPro();
-        if (nuevoPack && nuevoPack.length >= 25) {
+        
+        if (nuevoPack && nuevoPack.length >= 10) { // Bajamos el umbral por si acaso
             packs['pack_espana_top'] = nuevoPack;
             packActual = 'pack_espana_top';
             startGame('pack_espana_top');
         } else {
-            alert("Error de conexión con la base de datos de banderas.");
-            if (btn) btn.innerText = "ESPAÑA PRO";
+            alert("No se pudieron cargar suficientes municipios. Reintenta.");
+            if (btn) btn.innerHTML = "ESPAÑA PRO <div class='best-player'>Error de conexión</div>";
         }
         return;
     }
@@ -402,10 +388,10 @@ async function seleccionarPack(nombreDelPack) {
     }
 }
 
-async function generarPackMunicipiosEspana() {
-    // Añadimos un "seed" aleatorio para romper la caché de la API
+// --- GENERADOR DINÁMICO (WIKIDATA) ---
+async function generarPackEspanaPro() {
     const randomSeed = Math.floor(Math.random() * 1000);
-    
+    // SPARQL: Municipios España (Q15284) con Población (P1082) > 5000
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag WHERE {
       ?item wdt:P17 wd:Q29 ; 
@@ -415,27 +401,22 @@ async function generarPackMunicipiosEspana() {
       FILTER(?pob >= 5000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
     } 
-    ORDER BY SAMPLE(UUID()) # Aleatoriedad desde el servidor
-    LIMIT 150`; // Pedimos más para luego filtrar duplicados en JS
+    ORDER BY SAMPLE(UUID()) 
+    LIMIT 100`;
 
     try {
         const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&nocache=${randomSeed}`;
-        
-        const res = await fetch(url, {
-            headers: { 'Accept': 'application/sparql-results+json' }
-        });
+        const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+        if (!res.ok) throw new Error("Error en Wikidata");
 
         const data = await res.json();
-        
-        // --- FILTRADO DE DUPLICADOS ---
         const vistar = new Set();
         let pool = [];
 
+        // Limpiar duplicados de imagen o nombre
         for (let b of data.results.bindings) {
             let nombre = b.itemLabel.value;
             let img = b.flag.value.replace("http://", "https://");
-            
-            // Si el nombre o la imagen ya existen en nuestro set, los saltamos
             if (!vistar.has(nombre) && !vistar.has(img)) {
                 vistar.add(nombre);
                 vistar.add(img);
@@ -443,9 +424,8 @@ async function generarPackMunicipiosEspana() {
             }
         }
 
-        if (pool.length < 25) throw new Error("No hay suficientes municipios únicos");
+        if (pool.length < 15) throw new Error("Pocos datos");
 
-        // Mezcla final (Fisher-Yates)
         shuffle(pool);
         const seleccionadas = pool.slice(0, 25);
 
@@ -465,16 +445,17 @@ async function generarPackMunicipiosEspana() {
             };
         });
     } catch (e) {
-        console.error("Error:", e);
+        console.error("Fallo:", e);
         return null; 
     }
 }
+
 // --- MOTOR DEL JUEGO ---
 function startGame(packElegido) {
     document.getElementById('start-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
 
-    // Mezclamos el pack seleccionado y cogemos 25
+    // Mezclamos y limitamos a 25
     preguntasMezcladas = shuffle([...packs[packElegido]]).slice(0, 25);
     
     indiceActual = 0;
@@ -490,10 +471,6 @@ function renderQuestion() {
     interactuable = true;
     const data = preguntasMezcladas[indiceActual];
     
-    // El pack ya viene con las opciones mezcladas desde el generador o el JSON
-    // Pero por seguridad las remezclamos aquí también
-    indiceCorrectoActual = data.correcta; 
-
     document.getElementById('flag-img').src = data.img;
     document.getElementById('current-q').innerText = indiceActual + 1;
     document.getElementById('hits').innerText = aciertos;
@@ -514,26 +491,27 @@ function checkAnswer(elegida, btn) {
     if (!interactuable) return;
     interactuable = false;
 
+    const correcta = preguntasMezcladas[indiceActual].correcta;
     const botones = document.querySelectorAll('.option-btn');
-    if (elegida === preguntasMezcladas[indiceActual].correcta) {
+
+    if (elegida === correcta) {
         btn.classList.add('correct');
         aciertos++;
     } else {
         btn.classList.add('wrong');
-        botones[preguntasMezcladas[indiceActual].correcta].classList.add('correct');
+        botones[correcta].classList.add('correct');
     }
 
     setTimeout(() => {
         indiceActual++;
-        if (indiceActual < 25) renderQuestion();
+        if (indiceActual < preguntasMezcladas.length) renderQuestion();
         else finishGame();
-    }, 1500);
+    }, 1200);
 }
 
 function actualizarCronometro() {
     const transcurrido = Math.floor((Date.now() - tiempoInicio) / 1000);
-    const display = document.getElementById('timer-container');
-    display.innerText = formatearTiempo(transcurrido);
+    document.getElementById('timer-container').innerText = formatearTiempo(transcurrido);
 }
 
 function finishGame() {
@@ -544,11 +522,10 @@ function finishGame() {
     document.getElementById('quiz-screen').classList.remove('active');
     document.getElementById('end-screen').classList.add('active');
     document.getElementById('final-result').innerText = `Has conseguido ${aciertos} aciertos en ${formatearTiempo(tiempoFinal)}.`;
-
     mostrarRankingActualizado(packActual);
 }
 
-// --- SUPABASE & RANKING ---
+// --- SUPABASE & RANKING (Mantenido igual) ---
 async function enviarPuntuacion() {
     const nombre = document.getElementById('player-name').value;
     if (!nombre) return;
