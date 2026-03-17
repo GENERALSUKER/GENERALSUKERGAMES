@@ -402,69 +402,60 @@ async function seleccionarPack(nombreDelPack) {
     }
 }
 
-// --- GENERADOR DINÁMICO (WIKIDATA) ---
-async function generarPackEspanaPro() {
-    // 1. La consulta SPARQL (Filtrada para ser rápida y eficiente)
+async function generarPackMunicipiosEspana() {
+    // Añadimos un "seed" aleatorio para romper la caché de la API
+    const randomSeed = Math.floor(Math.random() * 1000);
+    
     const sparql = `
-    SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
+    SELECT DISTINCT ?itemLabel ?flag WHERE {
       ?item wdt:P17 wd:Q29 ; 
             wdt:P41 ?flag ; 
-            wdt:P31 ?type . 
-      VALUES (?type ?typeLabel) { 
-        (wd:Q202166 "Comunidad") (wd:Q15089 "Provincia") 
-        (wd:Q515 "Ciudad") (wd:Q171585 "Histórico")
-      }
+            wdt:P31/wdt:P279* wd:Q15284 ;
+            wdt:P1082 ?pob .
+      FILTER(?pob >= 5000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-      FILTER(?item != wd:Q29)
-      FILTER(!CONTAINS(LCASE(?itemLabel), "españa"))
-      OPTIONAL { ?item wdt:P1082 ?pob . }
-      FILTER (!bound(?pob) || ?pob > 25000)
     } 
-    ORDER BY UUID() 
-    LIMIT 100`;
+    ORDER BY SAMPLE(UUID()) # Aleatoriedad desde el servidor
+    LIMIT 150`; // Pedimos más para luego filtrar duplicados en JS
 
     try {
-        // 2. Llamada a la API con una identidad (User-Agent) para que no nos bloqueen
-        const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
+        const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&nocache=${randomSeed}`;
         
         const res = await fetch(url, {
             headers: { 'Accept': 'application/sparql-results+json' }
         });
 
-        if (!res.ok) throw new Error("Error en respuesta de Wikidata");
-
         const data = await res.json();
-        let pool = data.results.bindings.map(b => ({
-            img: b.flag.value.replace("http://", "https://"), // Forzar HTTPS para evitar bloqueos de imagen
-            nombre: b.itemLabel.value,
-            tipo: b.typeLabel.value
-        }));
+        
+        // --- FILTRADO DE DUPLICADOS ---
+        const vistar = new Set();
+        let pool = [];
 
-        if (pool.length < 25) throw new Error("Datos insuficientes");
+        for (let b of data.results.bindings) {
+            let nombre = b.itemLabel.value;
+            let img = b.flag.value.replace("http://", "https://");
+            
+            // Si el nombre o la imagen ya existen en nuestro set, los saltamos
+            if (!vistar.has(nombre) && !vistar.has(img)) {
+                vistar.add(nombre);
+                vistar.add(img);
+                pool.push({ img, nombre });
+            }
+        }
 
-        // 3. Mezclamos el total
+        if (pool.length < 25) throw new Error("No hay suficientes municipios únicos");
+
+        // Mezcla final (Fisher-Yates)
         shuffle(pool);
         const seleccionadas = pool.slice(0, 25);
 
-        // 4. Creamos las preguntas con distractores inteligentes
         return seleccionadas.map(entidad => {
-            // Buscamos 3 nombres de la MISMA categoría (Provincia con Provincia, etc.)
             let distractores = pool
-                .filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre)
+                .filter(f => f.nombre !== entidad.nombre)
                 .map(d => d.nombre);
 
-            // Si no hay suficientes de su tipo, cogemos de cualquiera del pool
-            if (distractores.length < 3) {
-                distractores = pool
-                    .filter(f => f.nombre !== entidad.nombre)
-                    .map(d => d.nombre);
-            }
-
-            // Barajamos distractores y cogemos 3
             shuffle(distractores);
             let opcionesFinales = [entidad.nombre, ...distractores.slice(0, 3)];
-            
-            // Barajamos las 4 opciones finales para que la correcta no sea siempre la primera
             shuffle(opcionesFinales);
 
             return {
@@ -474,7 +465,7 @@ async function generarPackEspanaPro() {
             };
         });
     } catch (e) {
-        console.error("Fallo en la traca de España Pro:", e);
+        console.error("Error:", e);
         return null; 
     }
 }
