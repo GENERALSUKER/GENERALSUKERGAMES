@@ -136,14 +136,59 @@
     text-align: left;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-    .btn-start {
+/* CONTENEDOR DE BOTONES EN FILAS DE 3 */
+#start-screen {
+    max-width: 600px; /* Un poco más ancho para que quepan 3 */
+    margin: 0 auto;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* BOTÓN REDISEÑADO */
+.btn-start {
+    background-color: var(--card-color);
+    color: white;
+    border: 2px solid #333;
+    padding: 20px 10px;
+    font-size: 1rem; /* Reducimos un poco para que quepa en la rejilla */
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px; /* Un poco más de espacio */
-    font-size: 1.5rem; /* El nombre del pack grande */
-    margin-bottom: 10px;
-    width: 100%;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.btn-start:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-color);
+    background-color: #252525;
+}
+
+.btn-start:active {
+    transform: scale(0.95);
+}
+
+.best-player {
+    font-size: 0.7rem; /* Más pequeño para que no rompa el botón */
+    margin-top: 10px;
+    color: #ffcc00;
+    line-height: 1.2;
+}
+
+/* Ajuste para móviles: de 3 columnas pasamos a 2 */
+@media (max-width: 480px) {
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 }
 
 .best-player {
@@ -252,47 +297,51 @@
 
 <div id="game-container">
 
-    <!-- PANTALLA INICIO -->
-    <div id="start-screen" class="screen active">
-    <h1>Flags Quiz</h1>
+<div id="start-screen" class="screen active">
+    <h1>Flags & Shields Quiz</h1>
     
-    <button class="btn-start" onclick="seleccionarPack('pack1')">
-        WORLD
-        <div id="best-pack1" class="best-player">Cargando récord...</div>
-    </button>
+    <div class="menu-grid">
+        <button class="btn-start" onclick="seleccionarPack('pack1')">
+            🌍 WORLD
+            <div id="best-pack1" class="best-player">Cargando...</div>
+        </button>
 
-    <button class="btn-start" onclick="seleccionarPack('pack2')">
-        BIZKAIA
-        <div id="best-pack2" class="best-player">Cargando récord...</div>
-    </button>
+        <button class="btn-start" onclick="seleccionarPack('pack2')">
+            🏙️ BIZKAIA
+            <div id="best-pack2" class="best-player">Cargando...</div>
+        </button>
 
-    <button class="btn-start" onclick="seleccionarPack('pack3')">
-        ARMARRI
-        <div id="best-pack3" class="best-player">Cargando récord...</div>
-    </button>
+        <button class="btn-start" onclick="seleccionarPack('pack3')">
+            🛡️ ARMARRI
+            <div id="best-pack3" class="best-player">Cargando...</div>
+        </button>
 
-    <button class="btn-start" onclick="seleccionarPack('pack4')">
-        PROVINCIAS
-        <div id="best-pack4" class="best-player">Cargando récord...</div>
-    </button>
+        <button class="btn-start" onclick="seleccionarPack('pack4')">
+            📍 PROVINCIAS
+            <div id="best-pack4" class="best-player">Cargando...</div>
+        </button>
+
         <button class="btn-start" onclick="seleccionarPack('pack5')">
-        ESPAÑA 100K
-        <div id="best-pack5" class="best-player">Cargando récord...</div>
-    </button>
-            </button>
+            🇪🇸 ESPAÑA 100K
+            <div id="best-pack5" class="best-player">Cargando...</div>
+        </button>
+
         <button class="btn-start" onclick="seleccionarPack('pack6')">
-        MUNDO OFICIAL
-        <div id="best-pack6" class="best-player">Cargando récord...</div>
-    </button>
-    <button class="btn-start" onclick="seleccionarPack('pack_espana_top')">
-    ESPAÑA PRO
-    <div id="best-pack_espana_top" class="best-player">Cargando récord...</div>
-</button>
+            🌐 OFICIAL
+            <div id="best-pack6" class="best-player">Cargando...</div>
+        </button>
+
+        <button class="btn-start" onclick="seleccionarPack('pack_espana_top')">
+            🔥 ESPAÑA PRO
+            <div id="best-pack_espana_top" class="best-player">Cargando...</div>
+        </button>
+
+        <button class="btn-start" onclick="seleccionarPack('pack_escudos')">
+            🏛️ ESCUDOS PRO
+            <div id="best-pack_escudos" class="best-player">Cargando...</div>
+        </button>
+    </div>
 </div>
-    <button class="btn-start" onclick="seleccionarPack('pack_escudos')">
-    HERÁLDICA PRO
-    <div id="best-pack_escudos" class="best-player">Cargando récord...</div>
-</button>
 
     <!-- PANTALLA QUIZ -->
     <div id="quiz-screen" class="screen">
