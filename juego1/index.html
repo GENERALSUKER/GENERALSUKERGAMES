@@ -388,68 +388,92 @@ async function seleccionarPack(nombreDelPack) {
     }
 }
 
-// --- GENERADOR DINÁMICO (WIKIDATA) ---
+// --- GENERADOR DINÁMICO (WIKIDATA) VERSIÓN MIGUEL "LIGHT & FAST" ---
 async function generarPackEspanaPro() {
-    const randomSeed = Math.floor(Math.random() * 1000);
-    // SPARQL: Municipios España (Q15284) con Población (P1082) > 5000
+    const randomSeed = Math.floor(Math.random() * 10000);
+    
+    // SPARQL Optimizado:
+    // - Limitamos a 35 para que la respuesta sea instantánea.
+    // - Filtro poblacional de 10.000.
+    // - Solo municipios reales (Q2074737).
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag WHERE {
-      ?item wdt:P17 wd:Q29 ; 
-            wdt:P41 ?flag ; 
-            wdt:P31/wdt:P279* wd:Q15284 ;
-            wdt:P1082 ?pob .
-      FILTER(?pob >= 5000)
+      ?item wdt:P17 wd:Q29 ;                   
+            wdt:P41 ?flag ;                    
+            wdt:P31 wd:Q2074737 ;              
+            wdt:P1082 ?pob .                   
+      FILTER(?pob >= 10000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
+      BIND(MD5(CONCAT(STR(?item), STR(${randomSeed}))) AS ?random)
     } 
-    ORDER BY SAMPLE(UUID()) 
-    LIMIT 100`;
+    ORDER BY ?random
+    LIMIT 35`;
 
     try {
         const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&nocache=${randomSeed}`;
         const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
-        if (!res.ok) throw new Error("Error en Wikidata");
-
+        
+        if (!res.ok) throw new Error("Error en red Wikidata");
         const data = await res.json();
-        const vistar = new Set();
+        
         let pool = [];
+        const nombresVistos = new Set();
 
-        // Limpiar duplicados de imagen o nombre
+        // Procesado rápido
         for (let b of data.results.bindings) {
             let nombre = b.itemLabel.value;
-            let img = b.flag.value.replace("http://", "https://");
-            if (!vistar.has(nombre) && !vistar.has(img)) {
-                vistar.add(nombre);
-                vistar.add(img);
+            let img = b.flag.value.replace("http://", "https://") + "?width=400";
+
+            // Limpieza: Evitar códigos Q, nombres repetidos o nombres de provincias genéricos
+            if (!nombresVistos.has(nombre) && !nombre.includes("Q") && !nombre.startsWith("Provincia")) {
+                nombresVistos.add(nombre);
                 pool.push({ img, nombre });
             }
         }
 
-        if (pool.length < 15) throw new Error("Pocos datos");
+        // Si por filtros extremos nos quedamos cortos, avisamos
+        if (pool.length < 25) {
+            console.warn("Pocos municipios encontrados, bajando el requerimiento de preguntas...");
+        }
 
+        // Mezclamos el pool para que los distractores no sigan el orden de la consulta
         shuffle(pool);
-        const seleccionadas = pool.slice(0, 25);
 
-        return seleccionadas.map(entidad => {
-            let distractores = pool
+        // Generamos las 25 preguntas finales
+        const preguntasFinales = pool.slice(0, 25).map((entidad, index) => {
+            // Buscamos distractores de entre el resto del pool
+            let otros = pool
                 .filter(f => f.nombre !== entidad.nombre)
                 .map(d => d.nombre);
-
-            shuffle(distractores);
-            let opcionesFinales = [entidad.nombre, ...distractores.slice(0, 3)];
-            shuffle(opcionesFinales);
+            
+            shuffle(otros);
+            
+            // Creamos el set de 4 opciones (Correcta + 3 distractores)
+            let opciones = [entidad.nombre, ...otros.slice(0, 3)];
+            shuffle(opciones);
 
             return {
                 img: entidad.img,
-                opciones: opcionesFinales,
-                correcta: opcionesFinales.indexOf(entidad.nombre)
+                opciones: opciones,
+                correcta: opciones.indexOf(entidad.nombre)
             };
         });
+
+        return preguntasFinales;
+
     } catch (e) {
-        console.error("Fallo:", e);
+        console.error("Fallo crítico en Generador:", e);
         return null; 
     }
 }
 
+// Helper: Mezcla aleatoria robusta
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
 // --- MOTOR DEL JUEGO ---
 function startGame(packElegido) {
     document.getElementById('start-screen').classList.remove('active');
