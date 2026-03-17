@@ -289,6 +289,10 @@
     <div id="best-pack_espana_top" class="best-player">Cargando récord...</div>
 </button>
 </div>
+    <button class="btn-start" onclick="seleccionarPack('pack_escudos')">
+    HERÁLDICA PRO
+    <div id="best-pack_escudos" class="best-player">Cargando récord...</div>
+</button>
 
     <!-- PANTALLA QUIZ -->
     <div id="quiz-screen" class="screen">
@@ -365,7 +369,21 @@ async function cargarDatos() {
 async function seleccionarPack(nombreDelPack) {
     // Usamos el evento global para el botón
     const btn = event?.currentTarget; 
-
+// CASO ESCUDOS
+    if (nombreDelPack === 'pack_escudos') {
+        if (btn) btn.innerHTML = "🌀 DIBUJANDO ESCUDOS... <div class='best-player'>Buscando heráldica > 10K</div>";
+        const nuevoPack = await generarPackEscudosPro(); // Llamamos a la nueva función
+        
+        if (nuevoPack && nuevoPack.length >= 10) {
+            packs['pack_escudos'] = nuevoPack;
+            packActual = 'pack_escudos';
+            startGame('pack_escudos');
+        } else {
+            alert("No se pudieron cargar los escudos. Reintenta.");
+            if (btn) btn.innerHTML = "HERÁLDICA PRO <div class='best-player'>Error de conexión</div>";
+        }
+        return;
+    }
     if (nombreDelPack === 'pack_espana_top') {
         if (btn) btn.innerHTML = "🌀 GENERANDO... <div class='best-player'>Buscando municipios > 5K</div>";
         
@@ -471,6 +489,77 @@ async function generarPackEspanaPro() {
 
         return packFinal;
 
+    } catch (e) {
+        console.error("Fallo:", e);
+        return [];
+    }
+}
+async function generarPackEscudosPro() {
+    // Consulta idéntica pero con P94 (escudo) en lugar de P41 (bandera)
+    const sparql = `SELECT DISTINCT ?itemLabel ?escudo ?provinciaLabel WHERE {
+      ?item wdt:P31 wd:Q2074737 ;
+            wdt:P17 wd:Q29 ;
+            wdt:P1082 ?pob ;
+            wdt:P131 ?provincia .
+      OPTIONAL { ?item wdt:P94 ?escudo . }
+      FILTER(?pob >= 10000)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
+    } LIMIT 300`; 
+
+    const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
+
+    try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+        if (!res.ok) throw new Error("Error en Wikidata");
+        
+        const data = await res.json();
+        let poolCompleto = [];
+        const nombresVistos = new Set();
+
+        for (let b of data.results.bindings) {
+            let nombre = b.itemLabel.value;
+            let provincia = b.provinciaLabel.value;
+            let img = b.escudo ? b.escudo.value.replace("http://", "https://") : null;
+
+            if (!nombre.startsWith("Q") && !nombresVistos.has(nombre)) {
+                nombresVistos.add(nombre);
+                poolCompleto.push({ nombre, img, provincia });
+            }
+        }
+
+        poolCompleto.sort(() => Math.random() - 0.5);
+        const candidatosConImagen = poolCompleto.filter(m => m.img !== null);
+        const preguntasReales = candidatosConImagen.slice(0, 25);
+        const nombresEnJuego = new Set(preguntasReales.map(p => p.nombre));
+        const sacoMentiras = poolCompleto.filter(m => !nombresEnJuego.has(m.nombre));
+
+        const packFinal = preguntasReales.map((municipio) => {
+            let delamismaProvincia = sacoMentiras
+                .filter(m => m.provincia === municipio.provincia)
+                .map(m => m.nombre);
+            
+            let opcionesFalsas = [];
+            if (delamismaProvincia.length >= 3) {
+                delamismaProvincia.sort(() => Math.random() - 0.5);
+                opcionesFalsas = delamismaProvincia.slice(0, 3);
+            } else {
+                let relleno = sacoMentiras.filter(m => m.provincia !== municipio.provincia).map(m => m.nombre);
+                relleno.sort(() => Math.random() - 0.5);
+                opcionesFalsas = [...delamismaProvincia, ...relleno].slice(0, 3);
+            }
+            
+            let opciones = [municipio.nombre, ...opcionesFalsas];
+            opciones.sort(() => Math.random() - 0.5);
+
+            return {
+                img: municipio.img + "?width=400",
+                nombreCorrecto: municipio.nombre,
+                opciones: opciones,
+                correcta: opciones.indexOf(municipio.nombre)
+            };
+        });
+
+        return packFinal;
     } catch (e) {
         console.error("Fallo:", e);
         return [];
@@ -590,7 +679,7 @@ async function mostrarRankingActualizado(nombrePack) {
 }
 
 async function cargarMejoresPorCategoria() {
-    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6', 'pack_espana_top'];
+    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6', 'pack_espana_top','pack_escudos'];
     for (const packKey of packsArray) {
         const { data } = await _supabase
             .from('ranking')
