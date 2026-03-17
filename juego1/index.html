@@ -388,69 +388,73 @@ async function seleccionarPack(nombreDelPack) {
     }
 }
 
-// --- GENERADOR DINÁMICO (WIKIDATA) VERSIÓN MIGUEL "LIGHT & FAST" ---
 async function generarPackEspanaPro() {
-    const randomSeed = Math.floor(Math.random() * 10000);
-    
-    // SPARQL Optimizado:
-    // - Limitamos a 35 para que la respuesta sea instantánea.
-    // - Filtro poblacional de 10.000.
-    // - Solo municipios reales (Q2074737).
-    const sparql = `
-    SELECT DISTINCT ?itemLabel ?flag WHERE {
-      ?item wdt:P17 wd:Q29 ;                   
-            wdt:P41 ?flag ;                    
-            wdt:P31 wd:Q2074737 ;              
-            wdt:P1082 ?pob .                   
+    // Consulta ultra-limpia: Solo lo necesario para que no pese
+    const sparql = `SELECT DISTINCT ?itemLabel ?flag WHERE {
+      ?item wdt:P31 wd:Q2074737 ;
+            wdt:P17 wd:Q29 ;
+            wdt:P41 ?flag ;
+            wdt:P1082 ?pob .
       FILTER(?pob >= 10000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-      BIND(MD5(CONCAT(STR(?item), STR(${randomSeed}))) AS ?random)
-    } 
-    ORDER BY ?random
-    LIMIT 35`;
+    } LIMIT 100`; 
+
+    const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
 
     try {
-        const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&nocache=${randomSeed}`;
-        const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+        const res = await fetch(url, { 
+            headers: { 'Accept': 'application/sparql-results+json' } 
+        });
+
+        if (!res.ok) throw new Error("Error en red");
         
-        if (!res.ok) throw new Error("Error en red Wikidata");
         const data = await res.json();
-        
+        const bindings = data.results.bindings;
+
+        if (!bindings || bindings.length === 0) {
+            console.error("Wikidata no devolvió datos");
+            return []; // Devolvemos array vacío para evitar error de .slice()
+        }
+
         let pool = [];
         const nombresVistos = new Set();
 
-        // Procesado rápido
-        for (let b of data.results.bindings) {
+        for (let b of bindings) {
             let nombre = b.itemLabel.value;
-            let img = b.flag.value.replace("http://", "https://") + "?width=400";
+            let img = b.flag.value.replace("http://", "https://");
 
-            // Limpieza: Evitar códigos Q, nombres repetidos o nombres de provincias genéricos
-            if (!nombresVistos.has(nombre) && !nombre.includes("Q") && !nombre.startsWith("Provincia")) {
+            // Filtro de seguridad para nombres válidos
+            if (!nombre.startsWith("Q") && !nombresVistos.has(nombre)) {
                 nombresVistos.add(nombre);
-                pool.push({ img, nombre });
+                pool.push({ 
+                    nombre: nombre, 
+                    img: img + "?width=400" 
+                });
             }
         }
 
-        // Si por filtros extremos nos quedamos cortos, avisamos
-        if (pool.length < 25) {
-            console.warn("Pocos municipios encontrados, bajando el requerimiento de preguntas...");
+        // Mezclamos el pool total
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
         }
 
-        // Mezclamos el pool para que los distractores no sigan el orden de la consulta
-        shuffle(pool);
+        // Tomamos los necesarios para el juego
+        const seleccionadas = pool.slice(0, 25);
 
-        // Generamos las 25 preguntas finales
-        const preguntasFinales = pool.slice(0, 25).map((entidad, index) => {
-            // Buscamos distractores de entre el resto del pool
-            let otros = pool
+        return seleccionadas.map(entidad => {
+            // Creamos distractores usando el resto del pool
+            let distractores = pool
                 .filter(f => f.nombre !== entidad.nombre)
                 .map(d => d.nombre);
             
-            shuffle(otros);
+            // Mezclar distractores
+            distractores.sort(() => Math.random() - 0.5);
             
-            // Creamos el set de 4 opciones (Correcta + 3 distractores)
-            let opciones = [entidad.nombre, ...otros.slice(0, 3)];
-            shuffle(opciones);
+            let opciones = [entidad.nombre, ...distractores.slice(0, 3)];
+            
+            // Mezclar las 4 opciones finales
+            opciones.sort(() => Math.random() - 0.5);
 
             return {
                 img: entidad.img,
@@ -459,19 +463,9 @@ async function generarPackEspanaPro() {
             };
         });
 
-        return preguntasFinales;
-
     } catch (e) {
-        console.error("Fallo crítico en Generador:", e);
-        return null; 
-    }
-}
-
-// Helper: Mezcla aleatoria robusta
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        console.error("Fallo en generarPack:", e);
+        return []; // Retornar array vacío en caso de error evita el crash de .slice()
     }
 }
 // --- MOTOR DEL JUEGO ---
