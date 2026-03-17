@@ -404,45 +404,73 @@ async function seleccionarPack(nombreDelPack) {
 
 // --- GENERADOR DINÁMICO (WIKIDATA) ---
 async function generarPackEspanaPro() {
-    // Usamos UUID() para romper la caché de la API y obtener resultados frescos
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
-      ?item wdt:P17 wd:Q29 ;
-            wdt:P41 ?flag ;
-            wdt:P31 ?type .
+      ?item wdt:P17 wd:Q29 ; 
+            wdt:P41 ?flag ; 
+            wdt:P31 ?type . 
+      
       VALUES (?type ?typeLabel) { 
-        (wd:Q202166 "Region") (wd:Q15089 "Provincia") 
-        (wd:Q515 "Ciudad") (wd:Q171585 "Historico")
+        (wd:Q202166 "Región") (wd:Q15089 "Provincia") 
+        (wd:Q515 "Ciudad") (wd:Q171585 "Histórico")
       }
+
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
+      
+      FILTER(?item != wd:Q29)
+      FILTER(!CONTAINS(LCASE(?itemLabel), "españa"))
+      
       OPTIONAL { ?item wdt:P1082 ?pob . }
       FILTER (!bound(?pob) || ?pob > 25000)
-      SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-    } ORDER BY UUID() LIMIT 150`;
+    } 
+    ORDER BY UUID() 
+    LIMIT 500`;
 
     try {
         const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
-            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoQuiz/2.0' }
+            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoProQuiz/2.0' }
         });
         const data = await res.json();
-        const pool = data.results.bindings.map(b => ({
-            img: b.flag.value,
-            nombre: b.itemLabel.value,
-            tipo: b.typeLabel.value
-        }));
+        
+        // 1. Creamos el pool y lo limpiamos de nombres raros
+        let pool = data.results.bindings
+            .map(b => ({
+                img: b.flag.value,
+                nombre: b.itemLabel.value,
+                tipo: b.typeLabel.value
+            }))
+            .filter(entidad => !entidad.nombre.toLowerCase().includes("españa"));
 
-        // Barajamos toda la piscina de datos antes de elegir
+        // 2. Barajamos TODO el pool para que el orden de tipos sea aleatorio
         shuffle(pool);
+
+        // 3. Seleccionamos las 25 para la partida
         const seleccionadas = pool.slice(0, 25);
 
         return seleccionadas.map(entidad => {
-            // Buscamos distractores del MISMO TIPO para máxima dificultad
-            let candidatos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
-            if (candidatos.length < 3) candidatos = pool.filter(f => f.nombre !== entidad.nombre);
+            // --- LÓGICA DE COHERENCIA ESTRICTA ---
+            // Buscamos distractores que sean EXACTAMENTE del mismo tipo
+            // Si la bandera es CCAA, las opciones son CCAA. Si es Ciudad, son Ciudades.
+            let mismosTipos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
             
-            shuffle(candidatos);
-            let opciones = [entidad.nombre, ...candidatos.slice(0, 3).map(c => c.nombre)];
-            shuffle(opciones);
+            let distractoresFinales;
+            
+            if (mismosTipos.length >= 3) {
+                // Hay suficientes del mismo tipo: barajamos y cogemos 3
+                distractoresFinales = shuffle([...mismosTipos]).slice(0, 3);
+            } else {
+                // Caso extremo (ej. Históricos con poca gente): 
+                // Buscamos lo más parecido (si es Provincia, buscamos Región o viceversa)
+                let parecidos = pool.filter(f => 
+                    f.nombre !== entidad.nombre && 
+                    (f.tipo === "Provincia" || f.tipo === "Región")
+                );
+                distractoresFinales = shuffle(parecidos).slice(0, 3);
+            }
 
+            let opciones = [entidad.nombre, ...distractoresFinales.map(d => d.nombre)];
+            shuffle(opciones); 
+            
             return {
                 img: entidad.img,
                 opciones: opciones,
@@ -450,10 +478,10 @@ async function generarPackEspanaPro() {
             };
         });
     } catch (e) {
+        console.error("Error en pack:", e);
         return [];
     }
 }
-
 // --- MOTOR DEL JUEGO ---
 function startGame(packElegido) {
     document.getElementById('start-screen').classList.remove('active');
