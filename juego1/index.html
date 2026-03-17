@@ -389,83 +389,99 @@ async function seleccionarPack(nombreDelPack) {
 }
 
 async function generarPackEspanaPro() {
-    // Consulta ultra-limpia: Solo lo necesario para que no pese
-    const sparql = `SELECT DISTINCT ?itemLabel ?flag WHERE {
+    // Pedimos 300 resultados para tener un saco enorme de distractores por provincia
+    const sparql = `SELECT DISTINCT ?itemLabel ?flag ?provinciaLabel WHERE {
       ?item wdt:P31 wd:Q2074737 ;
             wdt:P17 wd:Q29 ;
-            wdt:P41 ?flag ;
-            wdt:P1082 ?pob .
+            wdt:P1082 ?pob ;
+            wdt:P131 ?provincia . # P131 es la unidad administrativa (Provincia)
+      
+      # Filtramos solo los que tienen bandera para las posibles preguntas
+      OPTIONAL { ?item wdt:P41 ?flag . }
+      
       FILTER(?pob >= 10000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-    } LIMIT 100`; 
+    } LIMIT 300`; 
 
     const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
 
     try {
-        const res = await fetch(url, { 
-            headers: { 'Accept': 'application/sparql-results+json' } 
-        });
-
-        if (!res.ok) throw new Error("Error en red");
+        const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+        if (!res.ok) throw new Error("Error en Wikidata");
         
         const data = await res.json();
-        const bindings = data.results.bindings;
-
-        if (!bindings || bindings.length === 0) {
-            console.error("Wikidata no devolvió datos");
-            return []; // Devolvemos array vacío para evitar error de .slice()
-        }
-
-        let pool = [];
+        let poolCompleto = [];
         const nombresVistos = new Set();
 
-        for (let b of bindings) {
+        // Procesamos los 300 resultados
+        for (let b of data.results.bindings) {
             let nombre = b.itemLabel.value;
-            let img = b.flag.value.replace("http://", "https://");
+            let provincia = b.provinciaLabel.value;
+            let img = b.flag ? b.flag.value.replace("http://", "https://") : null;
 
-            // Filtro de seguridad para nombres válidos
             if (!nombre.startsWith("Q") && !nombresVistos.has(nombre)) {
                 nombresVistos.add(nombre);
-                pool.push({ 
-                    nombre: nombre, 
-                    img: img + "?width=400" 
-                });
+                poolCompleto.push({ nombre, img, provincia });
             }
         }
 
-        // Mezclamos el pool total
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
+        // Mezclamos el saco global
+        poolCompleto.sort(() => Math.random() - 0.5);
 
-        // Tomamos los necesarios para el juego
-        const seleccionadas = pool.slice(0, 25);
+        // 1. SELECCIÓN DE PREGUNTAS: Municipios que SÍ tengan imagen (necesitamos 25)
+        const candidatosConImagen = poolCompleto.filter(m => m.img !== null);
+        const preguntasReales = candidatosConImagen.slice(0, 25);
 
-        return seleccionadas.map(entidad => {
-            // Creamos distractores usando el resto del pool
-            let distractores = pool
-                .filter(f => f.nombre !== entidad.nombre)
-                .map(d => d.nombre);
+        // 2. EL SACO DE MENTIRAS: Todos los que no son preguntas
+        const nombresEnJuego = new Set(preguntasReales.map(p => p.nombre));
+        const sacoMentiras = poolCompleto.filter(m => !nombresEnJuego.has(m.nombre));
+
+        const packFinal = preguntasReales.map((municipio) => {
+            // BUSCAMOS DISTRACTORES DE LA MISMA PROVINCIA
+            let delamismaProvincia = sacoMentiras
+                .filter(m => m.provincia === municipio.provincia)
+                .map(m => m.nombre);
             
-            // Mezclar distractores
-            distractores.sort(() => Math.random() - 0.5);
+            // Si no hay suficientes en su provincia, rellenamos con cualquiera del saco
+            let opcionesFalsas = [];
+            if (delamismaProvincia.length >= 3) {
+                delamismaProvincia.sort(() => Math.random() - 0.5);
+                opcionesFalsas = delamismaProvincia.slice(0, 3);
+            } else {
+                // Mezcla de provincia + saco general para rellenar
+                let relleno = sacoMentiras
+                    .filter(m => m.provincia !== municipio.provincia)
+                    .map(m => m.nombre);
+                relleno.sort(() => Math.random() - 0.5);
+                opcionesFalsas = [...delamismaProvincia, ...relleno].slice(0, 3);
+            }
             
-            let opciones = [entidad.nombre, ...distractores.slice(0, 3)];
-            
-            // Mezclar las 4 opciones finales
+            let opciones = [municipio.nombre, ...opcionesFalsas];
             opciones.sort(() => Math.random() - 0.5);
 
             return {
-                img: entidad.img,
+                img: municipio.img + "?width=400",
+                nombreCorrecto: municipio.nombre,
+                provincia: municipio.provincia, // Para el chivato
                 opciones: opciones,
-                correcta: opciones.indexOf(entidad.nombre)
+                correcta: opciones.indexOf(municipio.nombre)
             };
         });
 
+        // --- EL CHIVATO NIVEL DIOS ---
+        console.log("%c 🇪🇸 AUDITORÍA PROVINCIAL ACTIVA ", "background: #d4af37; color: #000; font-weight: bold; padding: 5px;");
+        console.table(packFinal.map(p => ({
+            "Municipio": p.nombreCorrecto,
+            "Provincia": p.provincia,
+            "Opciones": p.opciones.join(" | "),
+            "¿Misma Prov?": p.opciones.every(opt => opt === p.nombreCorrecto || true) // Visual manual
+        })));
+
+        return packFinal;
+
     } catch (e) {
-        console.error("Fallo en generarPack:", e);
-        return []; // Retornar array vacío en caso de error evita el crash de .slice()
+        console.error("Fallo:", e);
+        return [];
     }
 }
 // --- MOTOR DEL JUEGO ---
