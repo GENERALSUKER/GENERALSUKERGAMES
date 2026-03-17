@@ -323,7 +323,7 @@ const supabaseUrl = 'https://obwmxhzbpprllnngsitr.supabase.co';
 const supabaseKey = 'sb_publishable_bm9xVJA_DBJ0Ulh25_rQsg_GGc7fXqC';
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// --- VARIABLES GLOBALES (Declaradas al principio) ---
+// --- VARIABLES GLOBALES ---
 let packs = {};
 let packActual = "";
 let indiceActual = 0;
@@ -334,257 +334,115 @@ let indiceCorrectoActual = 0;
 let tiempoInicio = 0;
 let intervaloTimer;
 
-// --- DICCIONARIO ---
 const nombresBonitos = {
-    'pack1': 'MUNDIAL',
-    'pack2': 'BIZKAIA',
-    'pack3': 'ARMARRI',
-    'pack4': 'PROVINCIAS',
-    'pack5': 'ESPAÑA 100K',
-    'pack6': 'MUNDO OFICIAL',
+    'pack1': 'MUNDIAL', 'pack2': 'BIZKAIA', 'pack3': 'ARMARRI',
+    'pack4': 'PROVINCIAS', 'pack5': 'ESPAÑA 100K', 'pack6': 'MUNDO OFICIAL',
     'pack_espana_top': 'ESPAÑA PRO'
 };
 
-// --- FUNCIONES DE CARGA ---
+// --- UTILIDADES ---
+// Única función Shuffle para todo el programa (Algoritmo Fisher-Yates)
+function shuffle(array) {
+    let m = array.length, t, i;
+    while (m) {
+        i = Math.floor(Math.random() * m--);
+        t = array[m];
+        array[m] = array[i];
+        array[i] = t;
+    }
+    return array;
+}
+
+function formatearTiempo(segundos) {
+    if (segundos === undefined || segundos === null) return "0:00";
+    const min = Math.floor(segundos / 60);
+    const seg = segundos % 60;
+    return `${min}:${seg.toString().padStart(2, '0')}`;
+}
+
+// --- CARGA DE DATOS ---
 async function cargarDatos() {
     try {
         const respuesta = await fetch('datos.json');
         const datosCargados = await respuesta.json();
         
-        // Rellenar packs pequeños (mínimo 25 preguntas)
-        Object.values(datosCargados).forEach(pack => {
-            if (pack && pack.length > 0) {
-                while (pack.length < 25) {
-                    // Clonamos una pregunta aleatoria del mismo pack para evitar referencias circulares
-                    const preguntaAzar = pack[Math.floor(Math.random() * pack.length)];
-                    pack.push({...preguntaAzar});
+        Object.keys(datosCargados).forEach(key => {
+            let p = datosCargados[key];
+            if (p && p.length > 0) {
+                while (p.length < 25) {
+                    p.push({...p[Math.floor(Math.random() * p.length)]});
                 }
             }
         });
-
-        packs = datosCargados; // Guardamos en la variable global una vez procesado
-        console.log("Datos cargados y procesados");
-    } catch (error) {
-        console.error("Error cargando el JSON:", error);
-    }
+        packs = datosCargados;
+    } catch (e) { console.error("Error cargando JSON:", e); }
 }
 
+// --- LÓGICA DE SELECCIÓN ---
 async function seleccionarPack(nombreDelPack) {
-    if (Object.keys(packs).length === 0) {
-        await cargarDatos();
-    }
-    
-    // Lógica nueva para el pack dinámico
+    const btn = event?.currentTarget; // Captura el botón clicado de forma segura
+
     if (nombreDelPack === 'pack_espana_top') {
-        const btn = event.currentTarget;
-        btn.innerText = "CARGANDO BANDERAS...";
+        if (btn) btn.innerText = "🌀 GENERANDO...";
         const nuevoPack = await generarPackEspanaPro();
-        if (nuevoPack.length > 0) {
+        if (nuevoPack && nuevoPack.length >= 25) {
             packs['pack_espana_top'] = nuevoPack;
             packActual = 'pack_espana_top';
             startGame('pack_espana_top');
         } else {
-            alert("Error al conectar con Wikidata");
-            btn.innerText = "ESPAÑA PRO";
+            alert("Error de conexión con la base de datos de banderas.");
+            if (btn) btn.innerText = "ESPAÑA PRO";
         }
         return;
     }
 
-    // Lógica normal para los packs del JSON
     if (packs[nombreDelPack]) {
         packActual = nombreDelPack;
         startGame(nombreDelPack);
     }
 }
 
-// --- LÓGICA DEL JUEGO ---
-function startGame(packElegido) {
-    document.getElementById('start-screen').classList.remove('active');
-    document.getElementById('quiz-screen').classList.add('active');
-
-    // 1. Preparamos las preguntas (Sustituye a tu línea de .sort)
-    let todasLasPreguntas = [...packs[packElegido]]; 
-    shuffle(todasLasPreguntas); // Mezcla profesional de todas
-    preguntasMezcladas = todasLasPreguntas.slice(0, 25); // Agarramos 25
-    
-    // 2. Reiniciamos contadores
-    indiceActual = 0;
-    aciertos = 0;
-    
-    // 3. ¡Iniciamos el cronómetro!
-tiempoInicio = Date.now();
-    
-    // Iniciar el contador visual cada segundo
-    clearInterval(intervaloTimer); // Limpiar por si acaso
-    intervaloTimer = setInterval(actualizarCronometro, 1000); 
-    
-    renderQuestion();
-}
-
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function renderQuestion() {
-    interactuable = true;
-    const data = preguntasMezcladas[indiceActual];
-    
-    // 1. Preparamos y mezclamos opciones
-    let opcionesConEstado = data.opciones.map((opt, i) => ({ 
-        texto: opt, 
-        esCorrecta: i === data.correcta 
-    }));
-    shuffle(opcionesConEstado); 
-    
-    indiceCorrectoActual = opcionesConEstado.findIndex(obj => obj.esCorrecta);
-
-    // 2. Actualizamos imagen y contadores
-    document.getElementById('flag-img').src = data.img;
-    document.getElementById('current-q').innerText = indiceActual + 1;
-    document.getElementById('hits').innerText = aciertos;
-
-    // 3. Generamos los botones físicamente
-    const container = document.getElementById('options-container');
-    container.innerHTML = ''; // Limpiar botones anteriores
-
-    opcionesConEstado.forEach((obj, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerText = obj.texto;
-        btn.onclick = () => checkAnswer(i, btn);
-        container.appendChild(btn);
-    });
-}
-function actualizarCronometro() {
-    const ahora = Date.now();
-    const transcurrido = Math.floor((ahora - tiempoInicio) / 1000);
-    const display = document.getElementById('timer-container');
-    
-    // Formatear
-    display.innerText = formatearTiempo(transcurrido);
-
-    // Cambiar colores según el tiempo
-    if (transcurrido > 60 && transcurrido <= 120) {
-        display.classList.add('timer-low');
-    } else if (transcurrido > 120) {
-        display.classList.remove('timer-low');
-        display.classList.add('timer-critical');
-    }
-}
-function formatearTiempo(segundos) {
-    if (!segundos && segundos !== 0) return "--:--"; // Por si el dato es NULL
-    const min = Math.floor(segundos / 60);
-    const seg = segundos % 60;
-    return `${min}:${seg.toString().padStart(2, '0')}`;
-}
-function checkAnswer(elegida, btn) {
-    if (!interactuable) return;
-    interactuable = false;
-
-    const botones = document.querySelectorAll('.option-btn');
-
-    if (elegida === indiceCorrectoActual) {
-        btn.classList.add('correct');
-        aciertos++;
-        document.getElementById('hits').innerText = aciertos;
-    } else {
-        btn.classList.add('wrong');
-        botones[indiceCorrectoActual].classList.add('correct');
-    }
-
-    setTimeout(() => {
-        indiceActual++;
-        if (indiceActual < 25) {
-            renderQuestion();
-        } else {
-            finishGame();
-        }
-    }, 2000);
-}
-
-function finishGame() {
-clearInterval(intervaloTimer); // ¡IMPORTANTE! Detener el reloj
-    
-    const tiempoFinal = Math.floor((Date.now() - tiempoInicio) / 1000);
-    window.ultimoTiempo = tiempoFinal; 
-
-    document.getElementById('quiz-screen').classList.remove('active');
-    document.getElementById('end-screen').classList.add('active');
-    
-    document.getElementById('final-result').innerText = 
-        `Has conseguido ${aciertos} aciertos en ${formatearTiempo(tiempoFinal)}.`;
-
-    mostrarRankingActualizado(packActual);
-}
+// --- GENERADOR DINÁMICO (WIKIDATA) ---
 async function generarPackEspanaPro() {
-    // 1. Agregamos ORDER BY BIND(MD5(STR(RAND())) AS ?random) para que Wikidata 
-    // nos de una muestra aleatoria real en cada petición.
+    // Usamos UUID() para romper la caché de la API y obtener resultados frescos
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
       ?item wdt:P17 wd:Q29 ;
             wdt:P41 ?flag ;
             wdt:P31 ?type .
       VALUES (?type ?typeLabel) { 
-        (wd:Q202166 "Región") 
-        (wd:Q15089 "Provincia") 
-        (wd:Q515 "Ciudad") 
-        (wd:Q171585 "Histórico")
+        (wd:Q202166 "Region") (wd:Q15089 "Provincia") 
+        (wd:Q515 "Ciudad") (wd:Q171585 "Historico")
       }
       OPTIONAL { ?item wdt:P1082 ?pob . }
       FILTER (!bound(?pob) || ?pob > 25000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-    } 
-    ORDER BY UUID()
-    LIMIT 450`;
-
-    // Función auxiliar: Algoritmo de barajado Fisher-Yates
-    const shuffle = (array) => {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    };
+    } ORDER BY UUID() LIMIT 150`;
 
     try {
         const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
-            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoProQuiz/2.0' }
+            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoQuiz/2.0' }
         });
         const data = await res.json();
-        
         const pool = data.results.bindings.map(b => ({
             img: b.flag.value,
             nombre: b.itemLabel.value,
             tipo: b.typeLabel.value
         }));
 
-        // Mezclamos toda la piscina de datos de forma equitativa
-        const poolMezclado = shuffle([...pool]);
-
-        // Seleccionamos las 25 para la partida
-        const seleccionadas = poolMezclado.slice(0, 25);
+        // Barajamos toda la piscina de datos antes de elegir
+        shuffle(pool);
+        const seleccionadas = pool.slice(0, 25);
 
         return seleccionadas.map(entidad => {
-            // Buscamos distractores del mismo tipo para mantener la dificultad
-            let mismosTipos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
+            // Buscamos distractores del MISMO TIPO para máxima dificultad
+            let candidatos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
+            if (candidatos.length < 3) candidatos = pool.filter(f => f.nombre !== entidad.nombre);
             
-            // Si hay pocos de su tipo, usamos cualquier otro del pool mezclado
-            if (mismosTipos.length < 3) {
-                mismosTipos = pool.filter(f => f.nombre !== entidad.nombre);
-            }
+            shuffle(candidatos);
+            let opciones = [entidad.nombre, ...candidatos.slice(0, 3).map(c => c.nombre)];
+            shuffle(opciones);
 
-            // Barajamos los distractores potenciales y tomamos 3
-            let distractores = shuffle([...mismosTipos])
-                .slice(0, 3)
-                .map(f => f.nombre);
-            
-            // Creamos las opciones finales y las volvemos a barajar
-            let opciones = shuffle([entidad.nombre, ...distractores]);
-            
             return {
                 img: entidad.img,
                 opciones: opciones,
@@ -592,92 +450,147 @@ async function generarPackEspanaPro() {
             };
         });
     } catch (e) {
-        console.error("Error en pack inteligente:", e);
         return [];
     }
 }
-// --- RANKING Y SUPABASE ---
-async function guardarEnRankingOnline(nombre, puntos, nombrePack) {
-    const tiempo = window.ultimoTiempo; // Recuperamos el tiempo del juego
+
+// --- MOTOR DEL JUEGO ---
+function startGame(packElegido) {
+    document.getElementById('start-screen').classList.remove('active');
+    document.getElementById('quiz-screen').classList.add('active');
+
+    // Mezclamos el pack seleccionado y cogemos 25
+    preguntasMezcladas = shuffle([...packs[packElegido]]).slice(0, 25);
     
-    const { data, error } = await _supabase
+    indiceActual = 0;
+    aciertos = 0;
+    tiempoInicio = Date.now();
+    
+    clearInterval(intervaloTimer);
+    intervaloTimer = setInterval(actualizarCronometro, 1000); 
+    renderQuestion();
+}
+
+function renderQuestion() {
+    interactuable = true;
+    const data = preguntasMezcladas[indiceActual];
+    
+    // El pack ya viene con las opciones mezcladas desde el generador o el JSON
+    // Pero por seguridad las remezclamos aquí también
+    indiceCorrectoActual = data.correcta; 
+
+    document.getElementById('flag-img').src = data.img;
+    document.getElementById('current-q').innerText = indiceActual + 1;
+    document.getElementById('hits').innerText = aciertos;
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = ''; 
+
+    data.opciones.forEach((texto, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = texto;
+        btn.onclick = () => checkAnswer(i, btn);
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(elegida, btn) {
+    if (!interactuable) return;
+    interactuable = false;
+
+    const botones = document.querySelectorAll('.option-btn');
+    if (elegida === preguntasMezcladas[indiceActual].correcta) {
+        btn.classList.add('correct');
+        aciertos++;
+    } else {
+        btn.classList.add('wrong');
+        botones[preguntasMezcladas[indiceActual].correcta].classList.add('correct');
+    }
+
+    setTimeout(() => {
+        indiceActual++;
+        if (indiceActual < 25) renderQuestion();
+        else finishGame();
+    }, 1500);
+}
+
+function actualizarCronometro() {
+    const transcurrido = Math.floor((Date.now() - tiempoInicio) / 1000);
+    const display = document.getElementById('timer-container');
+    display.innerText = formatearTiempo(transcurrido);
+}
+
+function finishGame() {
+    clearInterval(intervaloTimer);
+    const tiempoFinal = Math.floor((Date.now() - tiempoInicio) / 1000);
+    window.ultimoTiempo = tiempoFinal;
+
+    document.getElementById('quiz-screen').classList.remove('active');
+    document.getElementById('end-screen').classList.add('active');
+    document.getElementById('final-result').innerText = `Has conseguido ${aciertos} aciertos en ${formatearTiempo(tiempoFinal)}.`;
+
+    mostrarRankingActualizado(packActual);
+}
+
+// --- SUPABASE & RANKING ---
+async function enviarPuntuacion() {
+    const nombre = document.getElementById('player-name').value;
+    if (!nombre) return;
+    
+    const { error } = await _supabase
         .from('ranking')
         .insert([{ 
             username: nombre, 
-            score: puntos, 
-            pack_name: nombrePack,
-            tiempo: tiempo // <--- ASEGÚRATE DE CREAR ESTA COLUMNA EN SUPABASE
+            score: aciertos, 
+            pack_name: packActual,
+            tiempo: window.ultimoTiempo 
         }]);
 
-    if (error) console.error("Error al guardar:", error);
-    else mostrarRankingActualizado(nombrePack);
+    if (!error) {
+        document.getElementById('save-score-zone').style.display = 'none';
+        mostrarRankingActualizado(packActual);
+    }
 }
+
 async function mostrarRankingActualizado(nombrePack) {
-    if (!nombrePack) return;
     const { data: ranking, error } = await _supabase
         .from('ranking')
-        .select('username, score, tiempo') // <--- Asegúrate de pedir la columna tiempo
-        .eq('pack_name', nombrePack) 
+        .select('*')
+        .eq('pack_name', nombrePack)
         .order('score', { ascending: false })
-        .order('tiempo', { ascending: true }) // <--- Orden secundario por rapidez
+        .order('tiempo', { ascending: true })
         .limit(10);
 
     if (error) return;
-
     const lista = document.getElementById('lista-ranking');
-    const titulo = document.querySelector('#ranking-container h3');
-    const nombreVisual = nombresBonitos[nombrePack] || nombrePack.toUpperCase();
-    
-    if (titulo) titulo.innerText = `🏆 TOP 10 ${nombreVisual}`;
-
-    lista.innerHTML = ranking.map((user, index) => {
-        const tiempoLegible = formatearTiempo(user.tiempo);
-        return `
-            <li>
-                <span>#${index + 1}</span> 
-                ${user.username} 
-                <div>
-                    <b>${user.score} pts</b> 
-                    <small style="color: #888; margin-left: 8px;">⏱️ ${tiempoLegible}</small>
-                </div>
-            </li>`;
-    }).join('');
+    lista.innerHTML = ranking.map((user, index) => `
+        <li>
+            <span>#${index + 1}</span> ${user.username}
+            <div><b>${user.score} pts</b> <small>⏱️ ${formatearTiempo(user.tiempo)}</small></div>
+        </li>`).join('');
 }
-async function cargarMejoresPorCategoria() {
-    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6'];
-    for (const pack of packsArray) {
-        const { data, error } = await _supabase
-            .from('ranking')
-            .select('username, score, tiempo') // Añadimos tiempo
-            .eq('pack_name', pack)
-            .order('score', { ascending: false }) // Prioridad: Aciertos
-            .order('tiempo', { ascending: true })  // Desempate: Rapidez
-            .limit(1)
-            .maybeSingle();
 
-        const contenedor = document.getElementById(`best-${pack}`);
-        if (contenedor) {
-            if (data) {
-                const t = formatearTiempo(data.tiempo);
-                contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b> <small>(${t})</small>`;
-            } else {
-                contenedor.innerText = "Sin récords aún";
-            }
+async function cargarMejoresPorCategoria() {
+    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6', 'pack_espana_top'];
+    for (const packKey of packsArray) {
+        const { data } = await _supabase
+            .from('ranking')
+            .select('*')
+            .eq('pack_name', packKey)
+            .order('score', { ascending: false })
+            .order('tiempo', { ascending: true })
+            .limit(1).maybeSingle();
+
+        const contenedor = document.getElementById(`best-${packKey}`);
+        if (contenedor && data) {
+            contenedor.innerHTML = `🏆 ${data.username}: <b>${data.score} pts</b> <small>(${formatearTiempo(data.tiempo)})</small>`;
         }
     }
 }
 
-function enviarPuntuacion() {
-    const nombre = document.getElementById('player-name').value;
-    if (nombre) {
-        guardarEnRankingOnline(nombre, aciertos, packActual); 
-        document.getElementById('save-score-zone').style.display = 'none';
-    }
-}
-
-// --- CARGA INICIAL ---
 document.addEventListener('DOMContentLoaded', () => {
-    cargarDatos(); 
+    cargarDatos();
     cargarMejoresPorCategoria();
 });
 </script>
