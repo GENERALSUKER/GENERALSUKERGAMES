@@ -268,7 +268,7 @@ body {
     <div class="card-inner">
         <div class="card-face card-front">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyfT36m8BfnIbUxmoO59Lp7df005G9MyCeZz-nhy-zCodZ7Qy9bRbhKxppbDA&s" alt="Pixel-Guess" loading="lazy">
-            <h3>GENGEOACIERTA/h3>
+            <h3>GENGEOACIERTA</h3>
         </div>
         <div class="card-face card-back">
             <h4>Geolocalización Low-Cost</h4>
@@ -276,7 +276,7 @@ body {
             <ul>
                 <li><strong>Aventura en el Píxel:</strong> Intenta distinguir si eso es un monumento histórico o una mancha de humedad en el objetivo de la cámara.</li>
                 <li><strong>Modo Detective:</strong> Analiza la forma de los cubos de basura y el color del asfalto para saber si estás en Albacete o en Arkotxa.</li>
-                <li><strong>Optimización "Casera":</strong> Sin servidores de la NASA ni gráficos 4K. Si carga en menos de un minuto, es un milagro.</li>
+                <li><strong>Optimización "Casera":</strong> Sin servidores de la NASA ni gráficos 4K.</li>
             </ul>
             <a href="./juego10/" class="btn-play">JUGAR</a>
         </div>
@@ -576,17 +576,34 @@ btnOpen.onclick = async () => {
     if (error) {
         content.innerHTML = "Error al conectar con el historial.";
         console.error(error);
+    } } else {
+    if (data.length === 0) {
+        content.innerHTML = "No hay novedades aún.";
     } else {
-        if (data.length === 0) {
-            content.innerHTML = "No hay novedades aún.";
-        } else {
-            content.innerHTML = data.map(item => `
-                <div style="margin-bottom: 20px; border-left: 3px solid var(--accent); padding-left: 15px;">
-                    <p style="margin: 0; color: white; font-size: 0.95rem;">${item.texto}</p>
-                    <small style="color: #666;">${new Date(item.fecha).toLocaleString()}</small>
-                </div>
-            `).join('');
-        }
+        // 1. Agrupar las noticias por fecha (Día/Mes/Año)
+        const grupos = data.reduce((acc, item) => {
+            const fechaObjeto = new Date(item.fecha);
+            const diaKey = fechaObjeto.toLocaleDateString(); // Ejemplo: "17/3/2026"
+            
+            if (!acc[diaKey]) acc[diaKey] = [];
+            acc[diaKey].push(item);
+            return acc;
+        }, {});
+
+        // 2. Renderizar el HTML agrupado
+        content.innerHTML = Object.keys(grupos).map(dia => `
+            <div class="fecha-grupo" style="margin-bottom: 25px;">
+                <h3 style="color: var(--accent); font-size: 1.1rem; border-bottom: 1px solid #444; margin-bottom: 15px; padding-bottom: 5px;">
+                    ${dia}
+                </h3>
+                ${grupos[dia].map(item => `
+                    <div style="margin-bottom: 15px; border-left: 3px solid var(--accent); padding-left: 15px;">
+                        <p style="margin: 0; color: white; font-size: 0.95rem;">${item.texto}</p>
+                        <small style="color: #666;">${new Date(item.fecha).toLocaleTimeString()}</small>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
     }
 }
 
