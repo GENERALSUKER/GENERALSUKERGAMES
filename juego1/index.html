@@ -468,14 +468,6 @@ async function generarPackEspanaPro() {
             };
         });
 
-        // --- EL CHIVATO NIVEL DIOS ---
-        console.log("%c 🇪🇸 AUDITORÍA PROVINCIAL ACTIVA ", "background: #d4af37; color: #000; font-weight: bold; padding: 5px;");
-        console.table(packFinal.map(p => ({
-            "Municipio": p.nombreCorrecto,
-            "Provincia": p.provincia,
-            "Opciones": p.opciones.join(" | "),
-            "¿Misma Prov?": p.opciones.every(opt => opt === p.nombreCorrecto || true) // Visual manual
-        })));
 
         return packFinal;
 
