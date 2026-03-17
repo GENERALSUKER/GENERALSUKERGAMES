@@ -404,77 +404,78 @@ async function seleccionarPack(nombreDelPack) {
 
 // --- GENERADOR DINÁMICO (WIKIDATA) ---
 async function generarPackEspanaPro() {
-    // Definimos el User-Agent para que Wikidata no nos bloquee
-    const headers = { 
-        'Accept': 'application/sparql-results+json'
-    };
-
+    // 1. La consulta SPARQL (Filtrada para ser rápida y eficiente)
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
       ?item wdt:P17 wd:Q29 ; 
             wdt:P41 ?flag ; 
             wdt:P31 ?type . 
-      
       VALUES (?type ?typeLabel) { 
         (wd:Q202166 "Comunidad") (wd:Q15089 "Provincia") 
         (wd:Q515 "Ciudad") (wd:Q171585 "Histórico")
       }
-
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-      
       FILTER(?item != wd:Q29)
       FILTER(!CONTAINS(LCASE(?itemLabel), "españa"))
-      
       OPTIONAL { ?item wdt:P1082 ?pob . }
-      FILTER (!bound(?pob) || ?pob > 30000)
+      FILTER (!bound(?pob) || ?pob > 25000)
     } 
     ORDER BY UUID() 
-    LIMIT 150`;
+    LIMIT 100`;
 
     try {
+        // 2. Llamada a la API con una identidad (User-Agent) para que no nos bloqueen
         const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
-        const res = await fetch(url, { headers });
         
-        if (!res.ok) throw new Error("Error en la red");
-        
+        const res = await fetch(url, {
+            headers: { 'Accept': 'application/sparql-results+json' }
+        });
+
+        if (!res.ok) throw new Error("Error en respuesta de Wikidata");
+
         const data = await res.json();
         let pool = data.results.bindings.map(b => ({
-            img: b.flag.value.replace("http://", "https://"), // Forzar HTTPS para las imágenes
+            img: b.flag.value.replace("http://", "https://"), // Forzar HTTPS para evitar bloqueos de imagen
             nombre: b.itemLabel.value,
             tipo: b.typeLabel.value
         }));
 
-        if (pool.length < 25) throw new Error("No hay suficientes banderas");
+        if (pool.length < 25) throw new Error("Datos insuficientes");
 
+        // 3. Mezclamos el total
         shuffle(pool);
         const seleccionadas = pool.slice(0, 25);
 
+        // 4. Creamos las preguntas con distractores inteligentes
         return seleccionadas.map(entidad => {
-            // BUSCAMOS DISTRACTORES DEL MISMO TIPO (La traca)
+            // Buscamos 3 nombres de la MISMA categoría (Provincia con Provincia, etc.)
             let distractores = pool
                 .filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre)
                 .map(d => d.nombre);
-            
-            // Si no hay suficientes del mismo tipo, rellenamos con cualquiera
+
+            // Si no hay suficientes de su tipo, cogemos de cualquiera del pool
             if (distractores.length < 3) {
                 distractores = pool
                     .filter(f => f.nombre !== entidad.nombre)
                     .map(d => d.nombre);
             }
 
+            // Barajamos distractores y cogemos 3
             shuffle(distractores);
-            let opciones = [entidad.nombre, ...distractores.slice(0, 3)];
-            shuffle(opciones); 
+            let opcionesFinales = [entidad.nombre, ...distractores.slice(0, 3)];
             
+            // Barajamos las 4 opciones finales para que la correcta no sea siempre la primera
+            shuffle(opcionesFinales);
+
             return {
                 img: entidad.img,
-                opciones: opciones,
-                correcta: opciones.indexOf(entidad.nombre)
+                opciones: opcionesFinales,
+                correcta: opcionesFinales.indexOf(entidad.nombre)
             };
         });
     } catch (e) {
-        console.error("Error cargando España Pro:", e);
-        return null;
+        console.error("Fallo en la traca de España Pro:", e);
+        return null; 
     }
 }
 // --- MOTOR DEL JUEGO ---
