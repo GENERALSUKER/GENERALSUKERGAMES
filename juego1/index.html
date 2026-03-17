@@ -522,48 +522,49 @@ clearInterval(intervaloTimer); // ¡IMPORTANTE! Detener el reloj
 }
 async function generarPackEspanaPro() {
     const sparql = `
-    SELECT DISTINCT ?itemLabel ?flag WHERE {
+    SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
       ?item wdt:P17 wd:Q29 ;
-            wdt:P41 ?flag .
-      {
-        ?item wdt:P1082 ?pob .
-        FILTER(?pob > 25000)
-      } UNION {
-        ?item wdt:P31/wdt:P279* wd:Q15089 .
-      } UNION {
-        ?item wdt:P31/wdt:P279* wd:Q202166 .
-      } UNION {
-        ?item wdt:P31/wdt:P279* wd:Q171585 .
+            wdt:P41 ?flag ;
+            wdt:P31 ?type .
+      VALUES (?type ?typeLabel) { 
+        (wd:Q202166 "Region") 
+        (wd:Q15089 "Provincia") 
+        (wd:Q515 "Ciudad") 
+        (wd:Q171585 "Historico")
       }
+      OPTIONAL { ?item wdt:P1082 ?pob . }
+      FILTER (!bound(?pob) || ?pob > 25000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-    } LIMIT 200`;
+    } LIMIT 450`;
 
     try {
         const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
-            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoPro/1.0' }
+            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoProQuiz/2.0' }
         });
         const data = await res.json();
-        let lista = data.results.bindings.map(b => ({
+        
+        // 1. Clasificamos las banderas por tipo
+        const pool = data.results.bindings.map(b => ({
             img: b.flag.value,
-            nombre: b.itemLabel.value
+            nombre: b.itemLabel.value,
+            tipo: b.typeLabel.value
         }));
 
-        // SEGURIDAD: Si el pool es insuficiente por error de red, duplicamos para no romper el juego
-        if (lista.length < 25) {
-            console.warn("Pool insuficiente, rellenando...");
-            const copia = [...lista];
-            while (lista.length < 25) {
-                lista.push(copia[Math.floor(Math.random() * copia.length)]);
-            }
-        }
+        // 2. Seleccionamos las 25 para la partida
+        const seleccionadas = [...pool].sort(() => Math.random() - 0.5).slice(0, 25);
 
-        return lista.sort(() => Math.random() - 0.5).slice(0, 25).map(entidad => {
-            let distractores = lista
-                .filter(f => f.nombre !== entidad.nombre)
-                .map(f => f.nombre);
+        // 3. Generamos preguntas con distractores del mismo tipo
+        return seleccionadas.map(entidad => {
+            // Buscamos distractores que compartan el MISMO TIPO (ej. solo ciudades si es ciudad)
+            let mismosTipos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
             
-            // Mezclamos distractores y pillamos 3 únicos
-            distractores = [...new Set(distractores)].sort(() => Math.random() - 0.5).slice(0, 3);
+            // Si hay pocos de su tipo (como en Históricos), rellenamos con cualquier otro
+            if (mismosTipos.length < 3) mismosTipos = pool.filter(f => f.nombre !== entidad.nombre);
+
+            let distractores = mismosTipos
+                .map(f => f.nombre)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
             
             let opciones = [entidad.nombre, ...distractores].sort(() => Math.random() - 0.5);
             
@@ -574,7 +575,7 @@ async function generarPackEspanaPro() {
             };
         });
     } catch (e) {
-        console.error("Error en pack dinámico:", e);
+        console.error("Error en pack inteligente:", e);
         return [];
     }
 }
