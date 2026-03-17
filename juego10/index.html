@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>GeoGuessr España Elite</title>
+    <script src="https://cdn.jsdelivr.net/npm/marzipano@0.10.2/dist/marzipano.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { margin: 0; background: #111; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        #pano { width: 100%; height: 100vh; }
+        
+        /* Bloqueo solo durante carga */
+        #loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s;
+        }
+
+        #map { 
+            position: absolute; bottom: 20px; right: 20px;
+            width: 320px; height: 260px;
+            border: 4px solid white; border-radius: 15px;
+            z-index: 1000; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        #map:hover { width: 500px; height: 400px; }
+        #map.hidden { opacity: 0; pointer-events: none; transform: scale(0.8); }
+
+        .ui-overlay {
+            position: absolute; top: 20px; left: 20px; z-index: 1001;
+            background: rgba(15, 15, 15, 0.9); padding: 25px; border-radius: 15px;
+            border-left: 6px solid #27ae60; width: 240px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .timer-box { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 15px; font-variant-numeric: tabular-nums; }
+        .stats-row { display: flex; justify-content: space-between; margin-bottom: 5px; color: #aaa; font-size: 0.9rem; }
+        .score-val { color: #f1c40f; font-weight: bold; font-size: 1.3rem; }
+        
+        button { 
+            padding: 14px; font-size: 16px; cursor: pointer; border: none; 
+            border-radius: 8px; color: white; font-weight: bold; background: #27ae60; 
+            width: 100%; margin-top: 15px; transition: 0.3s;
+        }
+        button:hover { background: #2ecc71; transform: translateY(-2px); }
+        button:disabled { background: #444 !important; cursor: not-allowed; transform: none; }
+        #btn-next { background: #3498db; display: none; }
+
+        #result { margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .spinner {
+            width: 60px; height: 60px; border: 6px solid #333;
+            border-top: 6px solid #27ae60; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="letter-spacing: 2px;">CALIBRANDO GPS...</div>
+</div>
+
+<div id="pano"></div>
+<div id="map"></div>
+
+<div class="ui-overlay">
+    <div id="timer" class="timer-box">60s</div>
+    <div class="stats-row"><span>RONDA</span><span id="ronda-val" style="color:white">1 / 5</span></div>
+    <div class="stats-row"><span>TOTAL</span><span id="total-val" class="score-val">0</span></div>
+    
+    <div id="result" style="display:none;">
+        <div style="font-size: 0.8rem; color:#888">DISTANCIA: <span id="dist-text" style="color:#eee"></span> km</div>
+        <div style="font-size: 1.1rem; font-weight:bold">PUNTOS: <span id="round-score-text"></span></div>
+    </div>
+
+    <button id="btn-guess" onclick="confirmarAdivinanza()" disabled>¡ADIVINAR!</button>
+    <button id="btn-next" onclick="nuevaRonda()">SIGUIENTE RONDA</button>
+</div>
+
+<script>
+    const ACCESS_TOKEN = 'MLY|26243035618719630|4825517e0da8c1244c170dc9effb6491';
+    
+    // Lista ampliada (38 ubicaciones)
+    const semillas = [
+        {n:"Madrid", lat:40.4167, lng:-3.7037}, {n:"Barcelona", lat:41.3851, lng:2.1734},
+        {n:"Valencia", lat:39.4699, lng:-0.3763}, {n:"Sevilla", lat:37.3891, lng:-5.9845},
+        {n:"Zaragoza", lat:41.6488, lng:-0.8891}, {n:"Málaga", lat:36.7213, lng:-4.4214},
+        {n:"Bilbao", lat:43.2630, lng:-2.9350}, {n:"Alicante", lat:38.3452, lng:-0.4810},
+        {n:"Granada", lat:37.1773, lng:-3.5985}, {n:"Valladolid", lat:41.6523, lng:-4.7245},
+        {n:"Murcia", lat:37.9922, lng:-1.1307}, {n:"Córdoba", lat:37.8882, lng:-4.7794},
+        {n:"Gijón", lat:43.5357, lng:-5.6615}, {n:"Vigo", lat:42.2328, lng:-8.7226},
+        {n:"A Coruña", lat:43.3623, lng:-8.4115}, {n:"San Sebastián", lat:43.3183, lng:-1.9812},
+        {n:"Santander", lat:43.4623, lng:-3.8099}, {n:"Oviedo", lat:43.3603, lng:-5.8448},
+        {n:"Pamplona", lat:42.8125, lng:-1.6458}, {n:"Almería", lat:36.8340, lng:-2.4637},
+        {n:"Burgos", lat:42.3440, lng:-3.6969}, {n:"Toledo", lat:39.8628, lng:-4.0273},
+        {n:"Salamanca", lat:40.9701, lng:-5.6635}, {n:"Huelva", lat:37.2614, lng:-6.9447},
+        {n:"Logroño", lat:42.4627, lng:-2.4450}, {n:"Cáceres", lat:39.4753, lng:-6.3722},
+        {n:"Badajoz", lat:38.8794, lng:-6.9706}, {n:"Lleida", lat:41.6176, lng:0.6200},
+        {n:"Tarragona", lat:41.1189, lng:1.2445}, {n:"Castellón", lat:39.9864, lng:-0.0513},
+        {n:"Albacete", lat:38.9943, lng:-1.8585}, {n:"Jaén", lat:37.7796, lng:-3.7849},
+        {n:"Ourense", lat:42.3358, lng:-7.8639}, {n:"Lugo", lat:43.0120, lng:-7.5581},
+        {n:"Girona", lat:41.9794, lng:2.8214}, {n:"Santiago", lat:42.8782, lng:-8.5448},
+        {n:"Las Palmas", lat:28.1235, lng:-15.4363}, {n:"Tenerife", lat:28.4636, lng:-16.2518}
+    ];
+
+    let viewer, miniMap, userMarker, realMarker, polyline;
+    let actualLat, actualLng, timerInterval;
+    let rondaActual = 0, puntosTotales = 0, timeLeft = 60;
+
+    window.onload = function() {
+        viewer = new Marzipano.Viewer(document.getElementById('pano'));
+        miniMap = L.map('map').setView([40, -3], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+
+        miniMap.on('click', (e) => {
+            if (document.getElementById('btn-guess').style.display !== 'none') {
+                if (userMarker) miniMap.removeLayer(userMarker);
+                userMarker = L.marker(e.latlng).addTo(miniMap);
+            }
+        });
+
+        nuevaRonda();
+    };
+
+    async function nuevaRonda() {
+        rondaActual++;
+        if (rondaActual > 5) { alert("Partida terminada. Puntos: " + puntosTotales); location.reload(); return; }
+
+        // Fase de carga: Ocultar y bloquear todo
+        document.getElementById('loading-overlay').style.opacity = '1';
+        document.getElementById('loading-overlay').style.display = 'flex';
+        document.getElementById('map').classList.add('hidden');
+        document.getElementById('btn-guess').disabled = true;
+        document.getElementById('btn-guess').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'none';
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('ronda-val').innerText = `${rondaActual} / 5`;
+        
+        if (userMarker) miniMap.removeLayer(userMarker);
+        if (realMarker) miniMap.removeLayer(realMarker);
+        if (polyline) miniMap.removeLayer(polyline);
+        userMarker = null;
+
+        let fotoUrl = null;
+        while (!fotoUrl) {
+            const ciudad = semillas[Math.floor(Math.random() * semillas.length)];
+            actualLat = ciudad.lat + (Math.random() * 0.05 - 0.025);
+            actualLng = ciudad.lng + (Math.random() * 0.05 - 0.025);
+            const bbox = `${actualLng-0.005},${actualLat-0.005},${actualLng+0.005},${actualLat+0.005}`;
+            const url = `https://graph.mapillary.com/images?access_token=${ACCESS_TOKEN}&fields=thumb_2048_url&bbox=${bbox}&is_panorama=true&limit=1`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.data && data.data.length > 0) fotoUrl = data.data[0].thumb_2048_url;
+            } catch (e) {}
+        }
+
+        const source = new Marzipano.ImageUrlSource(() => ({ url: fotoUrl }));
+        viewer.createScene({ source, geometry: new Marzipano.EquirectGeometry([{ width: 2048 }]), view: new Marzipano.RectilinearView(null, Marzipano.RectilinearView.limit.traditional(2048, 110*Math.PI/180)) }).switchTo();
+        
+        // Mostrar mapa solo cuando la imagen esté lista
+        setTimeout(() => {
+            document.getElementById('loading-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
+            document.getElementById('map').classList.remove('hidden');
+            document.getElementById('btn-guess').disabled = false;
+            startTimer();
+        }, 1200);
+    }
+
+    function startTimer() {
+        timeLeft = 60;
+        document.getElementById('timer').innerText = timeLeft + "s";
+        document.getElementById('timer').style.color = "white";
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft + "s";
+            if (timeLeft <= 10) document.getElementById('timer').style.color = "#ff4757";
+            if (timeLeft <= 0) confirmarAdivinanza();
+        }, 1000);
+    }
+
+    function confirmarAdivinanza() {
+        clearInterval(timerInterval);
+        document.getElementById('btn-guess').style.display = 'none';
+        
+        const realPos = L.latLng(actualLat, actualLng);
+        let puntosRonda = 0;
+        let distKm = "---";
+
+        if (userMarker) {
+            const userPos = userMarker.getLatLng();
+            const distMetros = userPos.distanceTo(realPos);
+            distKm = (distMetros / 1000).toFixed(2);
+            puntosRonda = Math.round(5000 * Math.pow(Math.E, -(distKm / 140)));
+            if (distKm < 0.2) puntosRonda = 5000;
+            
+            polyline = L.polyline([userPos, realPos], {color: '#ff4757', weight: 4, dashArray: '8, 12'}).addTo(miniMap);
+            miniMap.fitBounds(polyline.getBounds(), {padding: [50, 50]});
+        }
+
+        // Color de puntos según éxito
+        let color = "#ff4757";
+        if (puntosRonda > 4500) color = "#f1c40f";
+        else if (puntosRonda > 3000) color = "#2ecc71";
+
+        puntosTotales += puntosRonda;
+        realMarker = L.marker(realPos, {icon: L.icon({iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41]})}).addTo(miniMap);
+
+        document.getElementById('total-val').innerText = puntosTotales;
+        document.getElementById('dist-text').innerText = distKm;
+        document.getElementById('round-score-text').innerText = puntosRonda;
+        document.getElementById('round-score-text').style.color = color;
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'block';
+    }
+</script>
+</body>
+</html>
