@@ -524,32 +524,46 @@ async function generarPackEspanaPro() {
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag WHERE {
       ?item wdt:P17 wd:Q29 ;
-            wdt:P41 ?flag ;
-            wdt:P31 ?type .
-      VALUES ?type { wd:Q202166 wd:Q15089 wd:Q515 wd:Q171585 }
-      OPTIONAL { ?item wdt:P1082 ?poblacion . }
-      FILTER (!bound(?poblacion) || ?poblacion > 50000)
+            wdt:P41 ?flag .
+      {
+        ?item wdt:P1082 ?pob .
+        FILTER(?pob > 25000)
+      } UNION {
+        ?item wdt:P31/wdt:P279* wd:Q15089 .
+      } UNION {
+        ?item wdt:P31/wdt:P279* wd:Q202166 .
+      } UNION {
+        ?item wdt:P31/wdt:P279* wd:Q171585 .
+      }
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-    } LIMIT 100`;
+    } LIMIT 200`;
 
     try {
         const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
-            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoQuiz/1.0' }
+            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoPro/1.0' }
         });
         const data = await res.json();
-        const lista = data.results.bindings.map(b => ({
+        let lista = data.results.bindings.map(b => ({
             img: b.flag.value,
             nombre: b.itemLabel.value
         }));
 
-        // Transformar al formato de tu Quiz (4 opciones, 1 correcta)
+        // SEGURIDAD: Si el pool es insuficiente por error de red, duplicamos para no romper el juego
+        if (lista.length < 25) {
+            console.warn("Pool insuficiente, rellenando...");
+            const copia = [...lista];
+            while (lista.length < 25) {
+                lista.push(copia[Math.floor(Math.random() * copia.length)]);
+            }
+        }
+
         return lista.sort(() => Math.random() - 0.5).slice(0, 25).map(entidad => {
-            // Creamos 3 distractores aleatorios de la misma lista
             let distractores = lista
                 .filter(f => f.nombre !== entidad.nombre)
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 3)
                 .map(f => f.nombre);
+            
+            // Mezclamos distractores y pillamos 3 únicos
+            distractores = [...new Set(distractores)].sort(() => Math.random() - 0.5).slice(0, 3);
             
             let opciones = [entidad.nombre, ...distractores].sort(() => Math.random() - 0.5);
             
@@ -560,7 +574,7 @@ async function generarPackEspanaPro() {
             };
         });
     } catch (e) {
-        console.error("Error generando pack dinámico", e);
+        console.error("Error en pack dinámico:", e);
         return [];
     }
 }
