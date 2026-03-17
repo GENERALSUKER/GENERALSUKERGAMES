@@ -521,21 +521,34 @@ clearInterval(intervaloTimer); // ¡IMPORTANTE! Detener el reloj
     mostrarRankingActualizado(packActual);
 }
 async function generarPackEspanaPro() {
+    // 1. Agregamos ORDER BY BIND(MD5(STR(RAND())) AS ?random) para que Wikidata 
+    // nos de una muestra aleatoria real en cada petición.
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
       ?item wdt:P17 wd:Q29 ;
             wdt:P41 ?flag ;
             wdt:P31 ?type .
       VALUES (?type ?typeLabel) { 
-        (wd:Q202166 "Region") 
+        (wd:Q202166 "Región") 
         (wd:Q15089 "Provincia") 
         (wd:Q515 "Ciudad") 
-        (wd:Q171585 "Historico")
+        (wd:Q171585 "Histórico")
       }
       OPTIONAL { ?item wdt:P1082 ?pob . }
       FILTER (!bound(?pob) || ?pob > 25000)
       SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
-    } LIMIT 450`;
+    } 
+    ORDER BY UUID()
+    LIMIT 450`;
+
+    // Función auxiliar: Algoritmo de barajado Fisher-Yates
+    const shuffle = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    };
 
     try {
         const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
@@ -543,30 +556,34 @@ async function generarPackEspanaPro() {
         });
         const data = await res.json();
         
-        // 1. Clasificamos las banderas por tipo
         const pool = data.results.bindings.map(b => ({
             img: b.flag.value,
             nombre: b.itemLabel.value,
             tipo: b.typeLabel.value
         }));
 
-        // 2. Seleccionamos las 25 para la partida
-        const seleccionadas = [...pool].sort(() => Math.random() - 0.5).slice(0, 25);
+        // Mezclamos toda la piscina de datos de forma equitativa
+        const poolMezclado = shuffle([...pool]);
 
-        // 3. Generamos preguntas con distractores del mismo tipo
+        // Seleccionamos las 25 para la partida
+        const seleccionadas = poolMezclado.slice(0, 25);
+
         return seleccionadas.map(entidad => {
-            // Buscamos distractores que compartan el MISMO TIPO (ej. solo ciudades si es ciudad)
+            // Buscamos distractores del mismo tipo para mantener la dificultad
             let mismosTipos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
             
-            // Si hay pocos de su tipo (como en Históricos), rellenamos con cualquier otro
-            if (mismosTipos.length < 3) mismosTipos = pool.filter(f => f.nombre !== entidad.nombre);
+            // Si hay pocos de su tipo, usamos cualquier otro del pool mezclado
+            if (mismosTipos.length < 3) {
+                mismosTipos = pool.filter(f => f.nombre !== entidad.nombre);
+            }
 
-            let distractores = mismosTipos
-                .map(f => f.nombre)
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 3);
+            // Barajamos los distractores potenciales y tomamos 3
+            let distractores = shuffle([...mismosTipos])
+                .slice(0, 3)
+                .map(f => f.nombre);
             
-            let opciones = [entidad.nombre, ...distractores].sort(() => Math.random() - 0.5);
+            // Creamos las opciones finales y las volvemos a barajar
+            let opciones = shuffle([entidad.nombre, ...distractores]);
             
             return {
                 img: entidad.img,
