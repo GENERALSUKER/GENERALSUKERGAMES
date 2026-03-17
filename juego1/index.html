@@ -404,6 +404,11 @@ async function seleccionarPack(nombreDelPack) {
 
 // --- GENERADOR DINÁMICO (WIKIDATA) ---
 async function generarPackEspanaPro() {
+    // Definimos el User-Agent para que Wikidata no nos bloquee
+    const headers = { 
+        'Accept': 'application/sparql-results+json'
+    };
+
     const sparql = `
     SELECT DISTINCT ?itemLabel ?flag ?typeLabel WHERE {
       ?item wdt:P17 wd:Q29 ; 
@@ -411,7 +416,7 @@ async function generarPackEspanaPro() {
             wdt:P31 ?type . 
       
       VALUES (?type ?typeLabel) { 
-        (wd:Q202166 "Región") (wd:Q15089 "Provincia") 
+        (wd:Q202166 "Comunidad") (wd:Q15089 "Provincia") 
         (wd:Q515 "Ciudad") (wd:Q171585 "Histórico")
       }
 
@@ -421,54 +426,44 @@ async function generarPackEspanaPro() {
       FILTER(!CONTAINS(LCASE(?itemLabel), "españa"))
       
       OPTIONAL { ?item wdt:P1082 ?pob . }
-      FILTER (!bound(?pob) || ?pob > 25000)
+      FILTER (!bound(?pob) || ?pob > 30000)
     } 
     ORDER BY UUID() 
-    LIMIT 500`;
+    LIMIT 150`;
 
     try {
-        const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), {
-            headers: { 'Accept': 'application/sparql-results+json', 'User-Agent': 'GeoProQuiz/2.0' }
-        });
-        const data = await res.json();
+        const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
+        const res = await fetch(url, { headers });
         
-        // 1. Creamos el pool y lo limpiamos de nombres raros
-        let pool = data.results.bindings
-            .map(b => ({
-                img: b.flag.value,
-                nombre: b.itemLabel.value,
-                tipo: b.typeLabel.value
-            }))
-            .filter(entidad => !entidad.nombre.toLowerCase().includes("españa"));
+        if (!res.ok) throw new Error("Error en la red");
+        
+        const data = await res.json();
+        let pool = data.results.bindings.map(b => ({
+            img: b.flag.value.replace("http://", "https://"), // Forzar HTTPS para las imágenes
+            nombre: b.itemLabel.value,
+            tipo: b.typeLabel.value
+        }));
 
-        // 2. Barajamos TODO el pool para que el orden de tipos sea aleatorio
+        if (pool.length < 25) throw new Error("No hay suficientes banderas");
+
         shuffle(pool);
-
-        // 3. Seleccionamos las 25 para la partida
         const seleccionadas = pool.slice(0, 25);
 
         return seleccionadas.map(entidad => {
-            // --- LÓGICA DE COHERENCIA ESTRICTA ---
-            // Buscamos distractores que sean EXACTAMENTE del mismo tipo
-            // Si la bandera es CCAA, las opciones son CCAA. Si es Ciudad, son Ciudades.
-            let mismosTipos = pool.filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre);
+            // BUSCAMOS DISTRACTORES DEL MISMO TIPO (La traca)
+            let distractores = pool
+                .filter(f => f.tipo === entidad.tipo && f.nombre !== entidad.nombre)
+                .map(d => d.nombre);
             
-            let distractoresFinales;
-            
-            if (mismosTipos.length >= 3) {
-                // Hay suficientes del mismo tipo: barajamos y cogemos 3
-                distractoresFinales = shuffle([...mismosTipos]).slice(0, 3);
-            } else {
-                // Caso extremo (ej. Históricos con poca gente): 
-                // Buscamos lo más parecido (si es Provincia, buscamos Región o viceversa)
-                let parecidos = pool.filter(f => 
-                    f.nombre !== entidad.nombre && 
-                    (f.tipo === "Provincia" || f.tipo === "Región")
-                );
-                distractoresFinales = shuffle(parecidos).slice(0, 3);
+            // Si no hay suficientes del mismo tipo, rellenamos con cualquiera
+            if (distractores.length < 3) {
+                distractores = pool
+                    .filter(f => f.nombre !== entidad.nombre)
+                    .map(d => d.nombre);
             }
 
-            let opciones = [entidad.nombre, ...distractoresFinales.map(d => d.nombre)];
+            shuffle(distractores);
+            let opciones = [entidad.nombre, ...distractores.slice(0, 3)];
             shuffle(opciones); 
             
             return {
@@ -478,8 +473,8 @@ async function generarPackEspanaPro() {
             };
         });
     } catch (e) {
-        console.error("Error en pack:", e);
-        return [];
+        console.error("Error cargando España Pro:", e);
+        return null;
     }
 }
 // --- MOTOR DEL JUEGO ---
