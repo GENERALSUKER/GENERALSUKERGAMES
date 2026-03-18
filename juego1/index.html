@@ -619,9 +619,24 @@ function startGame(packElegido) {
     document.getElementById('start-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
 
-    // Mezclamos y limitamos a 25
-    preguntasMezcladas = shuffle([...packs[packElegido]]).slice(0, 25);
+    // 1. Clonamos el pack para no romper el original
+    let preguntasRaw = [...packs[packElegido]];
     
+    // 2. Mezclamos el orden de las preguntas
+    preguntasMezcladas = shuffle(preguntasRaw).slice(0, 25);
+
+    // 3. ¡IMPORTANTE! Mezclamos las opciones de cada pregunta
+    preguntasMezcladas.forEach(pregunta => {
+        // Guardamos el nombre de la respuesta que era correcta (la que estaba en la posición pregunta.correcta)
+        const nombreCorrecto = pregunta.opciones[pregunta.correcta];
+        
+        // Mezclamos el array de opciones
+        pregunta.opciones = shuffle([...pregunta.opciones]);
+        
+        // Actualizamos el índice 'correcta' a la nueva posición donde haya quedado el nombre
+        pregunta.correcta = pregunta.opciones.indexOf(nombreCorrecto);
+    });
+
     indiceActual = 0;
     aciertos = 0;
     tiempoInicio = Date.now();
