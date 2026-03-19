@@ -898,6 +898,16 @@ function endGame() {
     clearInterval(matchTimer);
     clearInterval(qTimer);
 
+    // --- CORRECCIÓN PARA EL IQ JUSTO ---
+    // Si el juego termina y había una pregunta en curso que no se respondió:
+    const botones = document.querySelectorAll('.opt-btn:not([disabled])');
+    if (botones.length > 0 && !isFrozen) {
+        // Obtenemos el nivel de la pregunta actual (puedes guardarlo en una variable global si quieres)
+        // O más fácil: restamos lo que sumamos al principio de nextQuestion
+        let nivelActual = parseInt(document.querySelector('.difficulty-meter').innerText.length);
+        puntosPrestigioMaximosPosibles -= (nivelActual * 10);
+        totalQuestions--; 
+    }
     // Ejecutamos el cálculo interno
     procesarFinDelPartido();
 
