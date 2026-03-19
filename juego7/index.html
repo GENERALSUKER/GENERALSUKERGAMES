@@ -619,12 +619,18 @@ function shuffleArray(array) {
     return array;
 }
 
+// 2. CACHE DE ELEMENTOS (Usamos nombres únicos para evitar errores de "already declared")
+const ballElement = document.getElementById('ball');
+const aimLineElement = document.getElementById('aim-line');
+
 function startGame() {
+    // Si usas un archivo externo para las preguntas, asegúrate de que 'questions' esté definido
     if (typeof questions === 'undefined' || questions.length === 0) {
         console.error("Error: No hay preguntas cargadas.");
         return;
     }
     document.getElementById('start-screen').style.display = 'none';
+    availableQuestions = shuffleArray([...questions]);
     nextQuestion();
     
     matchTimer = setInterval(() => {
@@ -639,7 +645,8 @@ function startGame() {
 function updateClock() {
     let m = Math.floor(totalGameSecs / 60).toString().padStart(2, '0');
     let s = (totalGameSecs % 60).toString().padStart(2, '0');
-    document.getElementById('match-clock').innerText = `${m}:${s}`;
+    const clockDisplay = document.getElementById('match-clock');
+    if (clockDisplay) clockDisplay.innerText = `${m}:${s}`;
 }
 
 function nextQuestion() {
@@ -686,7 +693,9 @@ function nextQuestion() {
         if (i < 2) rowTop.appendChild(btn); else rowBottom.appendChild(btn);
     });
 
-    updateVisualMap((internalPoints + 10) * 5, (internalPoints + 10) * 5 + (data.level * 6));
+    // Posición inicial de la barra y el balón
+    const inicialPos = (internalPoints + 10) * 5;
+    updateVisualMap(inicialPos, inicialPos + (data.level * 6));
     startQTimer(data.correct, data.level);
 }
 
@@ -761,21 +770,27 @@ function handleResult(status, correct, clickedBtn) {
     
     setTimeout(() => {
         if (totalGameSecs < 5400) nextQuestion();
+        else endGame();
     }, 1500);
 }
 
 function updateVisualMap(bPos, lPos) {
-    if (!ballElem || !aimLine) return; // Usamos ballElem
+    // IMPORTANTE: Aquí usamos los nombres que definimos arriba
+    if (!ballElement || !aimLineElement) return; 
+    
     let bPercent = Math.max(0, Math.min(100, bPos));
     let lPercent = Math.max(0, Math.min(100, lPos));
     
-    ballElem.style.top = (100 - bPercent) + "%";
-    aimLine.style.top = (100 - lPercent) + "%";
-    ballElem.style.left = (50 + (internalPoints * 2)) + "%"; 
+    ballElement.style.top = (100 - bPercent) + "%";
+    aimLineElement.style.top = (100 - lPercent) + "%";
+    
+    // Movimiento lateral suave basado en los puntos
+    ballElement.style.left = (50 + (internalPoints * 2)) + "%"; 
 }
 
 function actualizarMarcadorVisual() {
-    document.getElementById('score').innerText = `${goals}-${rivalGoals}`;
+    const scoreElem = document.getElementById('score');
+    if (scoreElem) scoreElem.innerText = `${goals}-${rivalGoals}`;
 }
 
 function removeIncorrectOption(correct) {
@@ -794,8 +809,9 @@ function endGame() {
     clearInterval(qTimer);
     document.body.innerHTML = `
         <div class='overlay'>
-            <h1 style="color:white; font-size:3rem; margin:0;">¡FINAL DEL PARTIDO!</h1>
-            <div class="final-score">${goals} - ${rivalGoals}</div>
+            <h1 style="color:var(--psp-orange); font-size:3rem; margin:0;">¡FINAL DEL PARTIDO!</h1>
+            <div class="final-score" style="font-size: 6rem; color: white;">${goals} - ${rivalGoals}</div>
+            <div style="margin-bottom: 20px; font-size: 1.5rem; color: #ccc;">Aciertos totales: ${totalAciertos}</div>
             <button class='opt-btn' onclick='location.reload()'><span>REINTENTAR</span></button>
         </div>`;
 }
