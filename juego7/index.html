@@ -825,7 +825,7 @@ function checkAnswer(selected, correct, btn, level) {
     }
 
     handleResult(isCorrect ? "win" : "fail", correct, btn);
-}
+    
 function handleResult(status, correct, clickedBtn) {
     isFrozen = true;
     clearInterval(qTimer);
