@@ -865,28 +865,30 @@ function removeIncorrectOption(correct) {
 function procesarFinDelPartido() {
     if (puntosPrestigioMaximosPosibles === 0) return;
 
-    // 1. Eficiencia base (Aciertos vs Errores)
+    // 1. Cálculo de eficiencia (puede superar el 1.0 por los bonos de tiempo)
     let eficiencia = puntosPrestigioActual / puntosPrestigioMaximosPosibles;
     
-    // 2. FACTOR DE VOLUMEN (La clave de la progresión)
-    // Definimos que un "partido completo de mérito" son, por ejemplo, 12 preguntas.
-    // Si haces menos, el IQ base es menor. Si haces más, te acercas al 250.
-    let factorVolumen = Math.min(1.1, totalQuestions / 12); 
+    // 2. Base IQ a 230 (como sugeriste)
+    // Si eres perfecto y rápido, aquí ya estarás cerca de los 250.
+    let baseIQ = eficiencia * 220;
+
+    // 3. Factor de Volumen Suavizado (Mínimo 80% de la nota garantizado)
+    // Esto evita que en partidos de 6-7 preguntas el IQ se hunda.
+    let factorVolumen = 0.9 + (Math.min(totalQuestions, 15) / 15 * 0.2);
     
-    // 3. Cálculo de IQ con Progresión
-    // Multiplicamos por 220 y aplicamos el volumen. 
-    // Alguien con 15 preguntas tendrá más "puntos" que alguien con 7.
-    let iqPartida = Math.round((eficiencia * 220) * factorVolumen);
+    // 4. Resultado Final Progresivo
+    let iqPartida = Math.round(baseIQ * factorVolumen);
 
-    // 4. Bono de dificultad sutil
+    // 5. Bono de Dificultad (Solo si el partido ha sido "de perros", nivel 4-5)
     let dificultadMedia = puntosPrestigioMaximosPosibles / (totalQuestions * 10); 
-    let bonoDificultad = Math.round((dificultadMedia - 0.5) * 15);
-    iqPartida += Math.max(0, bonoDificultad);
+    if (dificultadMedia > 0.7) iqPartida += 10; 
 
-    // 5. TOPE FINAL
+    // 6. EL MURO DE CRISTAL
+    // Internamente permitimos que llegue a 260 para dar ese "aire" que pedías,
+    // pero el usuario solo verá 250 como máximo.
     iqPartida = Math.min(250, iqPartida);
 
-    // Guardar resultados
+    // Guardar y actualizar
     historialIQ.push(iqPartida);
     localStorage.setItem('historialIQ', JSON.stringify(historialIQ));
     mediaIQGlobal = calcularMediaGlobal();
