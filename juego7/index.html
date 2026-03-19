@@ -865,24 +865,28 @@ function removeIncorrectOption(correct) {
 function procesarFinDelPartido() {
     if (puntosPrestigioMaximosPosibles === 0) return;
 
-    // 1. Eficiencia real (puntos ganados vs puntos perfectos)
+    // 1. Eficiencia base (Aciertos vs Errores)
     let eficiencia = puntosPrestigioActual / puntosPrestigioMaximosPosibles;
     
-    // 2. Multiplicador de "Gracia" (270)
-    // Esto permite que con un 93% de eficiencia ya alcances los 250 de IQ.
-    // Así, un fallo temprano no arruina la posibilidad de ser "Leyenda".
-    let iqPartida = Math.round(eficiencia * 270);
+    // 2. FACTOR DE VOLUMEN (La clave de la progresión)
+    // Definimos que un "partido completo de mérito" son, por ejemplo, 12 preguntas.
+    // Si haces menos, el IQ base es menor. Si haces más, te acercas al 250.
+    let factorVolumen = Math.min(1.1, totalQuestions / 12); 
+    
+    // 3. Cálculo de IQ con Progresión
+    // Multiplicamos por 220 y aplicamos el volumen. 
+    // Alguien con 15 preguntas tendrá más "puntos" que alguien con 7.
+    let iqPartida = Math.round((eficiencia * 220) * factorVolumen);
 
-    // 3. Bono por dificultad del partido
+    // 4. Bono de dificultad sutil
     let dificultadMedia = puntosPrestigioMaximosPosibles / (totalQuestions * 10); 
-    let bonoDificultad = Math.round((dificultadMedia - 0.5) * 15); 
+    let bonoDificultad = Math.round((dificultadMedia - 0.5) * 15);
     iqPartida += Math.max(0, bonoDificultad);
 
-    // 4. EL TOPE ABSOLUTO
-    // El usuario nunca verá más de 250, pero internamente le hemos dado margen.
+    // 5. TOPE FINAL
     iqPartida = Math.min(250, iqPartida);
 
-    // Guardar y actualizar
+    // Guardar resultados
     historialIQ.push(iqPartida);
     localStorage.setItem('historialIQ', JSON.stringify(historialIQ));
     mediaIQGlobal = calcularMediaGlobal();
