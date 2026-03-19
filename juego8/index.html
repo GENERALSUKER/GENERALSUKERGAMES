@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <title>Expedientes de Sangre</title>
     <style>
-:root {
+        :root {
             --rojo: #800000;
             --papel: #dccfb8;
             --tinta: #1a1a1a;
         }
-
         body { 
             background-color: #0a0a0a; 
             color: var(--tinta); 
@@ -21,52 +20,40 @@
             margin: 0;
         }
         #retrato { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: contain;
-    background-color: #000; /* Fondo negro por si la imagen tarda medio segundo */
-}
-
-     #contenedor { 
-    background: var(--papel); 
-    width: 90%; 
-    max-width: 480px; 
-    /* Cambiamos 100px por 60px para reducir el vacío */
-    padding: 30px 30px 60px 30px; 
-    box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(0,0,0,0.1);
-    border-radius: 2px;
-    position: relative;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-        /* Pantallas */
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain;
+            background-color: #000;
+        }
+        #contenedor { 
+            background: var(--papel); 
+            width: 90%; 
+            max-width: 480px; 
+            padding: 30px 30px 60px 30px; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(0,0,0,0.1);
+            border-radius: 2px;
+            position: relative;
+            text-align: center;
+            box-sizing: border-box;
+        }
         .pantalla { display: none; width: 100%; }
         .activa { 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
         }
-
         h1 { font-size: 1.3em; letter-spacing: 4px; border-bottom: 2px solid var(--tinta); margin-bottom: 20px; padding-bottom: 5px; }
-
-        /* MARCO DE FOTO CENTRADO */
         .foto-marco {
             width: 65%; 
             aspect-ratio: 3 / 4; 
             background: #000;
             border: 4px solid #222;
-            margin: 0 auto 20px auto; /* Centrado horizontal */
+            margin: 0 auto 20px auto; 
             overflow: hidden;
             display: block;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-
-        img { width: 100%; height: 100%; object-fit: contain; }
-
         #corazones { font-size: 1.5em; margin-bottom: 10px; }
-
-        /* Formulario */
         input { 
             background: transparent; 
             border: none;
@@ -79,7 +66,6 @@
             outline: none;
             margin-bottom: 15px;
         }
-
         button { 
             background: var(--tinta); 
             color: var(--papel); 
@@ -90,11 +76,9 @@
             letter-spacing: 2px;
             font-size: 0.8em;
             transition: 0.3s;
+            margin: 5px;
         }
-
         button:hover { background: var(--rojo); }
-
-        /* Sátira */
         .info-satira { 
             font-size: 0.75em; 
             line-height: 1.5; 
@@ -104,17 +88,15 @@
             border: 1px dashed rgba(0,0,0,0.2);
             text-align: justify;
         }
-
-      .progreso-footer { 
-    position: absolute;
-    /* Subimos un poco el texto si es necesario o lo dejamos cerca del borde */
-    bottom: 15px; 
-    left: 0;
-    width: 100%;
-    font-size: 0.75em;
-    letter-spacing: 3px;
-    color: rgba(0,0,0,0.5);
-}
+        .progreso-footer { 
+            position: absolute;
+            bottom: 15px; 
+            left: 0;
+            width: 100%;
+            font-size: 0.75em;
+            letter-spacing: 3px;
+            color: rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -122,27 +104,24 @@
 <div id="contenedor">
     <div id="pantalla-inicio" class="pantalla activa">
         <h1>EXPEDIENTES PROHIBIDOS</h1>
-        <p>Identifica a 30 verdugos de la historia.</p>
-        <p>Tienes 20 segundos por expediente y 5 vidas.</p>
-        <button onclick="comenzarJuego()">ABRIR ARCHIVOS</button><br>
-        <button onclick="alert('Próximamente')">MODO ESPAÑA</button>
+        <p>Identifica a 30 objetivos de la historia.</p>
+        <p>Tienes 20 segundos y 5 vidas.</p>
+        <button onclick="comenzarJuego(false)">ABRIR ARCHIVOS</button><br>
+        <button onclick="comenzarJuego(true)">MODO ESPAÑA</button>
     </div>
 
     <div id="pantalla-juego" class="pantalla">
         <div id="corazones"></div>
-        <div class="foto-marco"><img id="retrato" src=""></div>
-        
+        <div class="foto-marco"><img id="retrato" src=""></div>                
         <div id="zona-input">
             <input type="text" id="respuesta-user" placeholder="Escribe el nombre..." onkeypress="if(event.key === 'Enter') comprobar()">
             <button onclick="comprobar()">SENTENCIAR</button>
         </div>
-
         <div id="feedback-area" style="display:none;">
             <div id="mensaje" style="font-size: 1.4em; font-weight: bold; margin-bottom: 10px;"></div>
             <div id="historia" class="info-satira"></div>
             <button id="btn-siguiente" onclick="siguiente()" style="display:none;">CONTINUAR</button>
         </div>
-
         <div class="progreso-footer">CONFIRMADOS: <span id="num-aciertos">0</span>/30</div>
     </div>
 
@@ -154,8 +133,7 @@
 </div>
 
 <script>
-    // PEGA AQUÍ TU LISTA DE PERSONAJES
-    const pool = [
+    const poolOriginal = [
 {
 n: "Joaquin Guzmán",
 u: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Booking_photo_of_Joaquin_%E2%80%9CEl_Chapo%E2%80%9C_Guzman_%28front%29.jpg/250px-Booking_photo_of_Joaquin_%E2%80%9CEl_Chapo%E2%80%9C_Guzman_%28front%29.jpg",
@@ -219,131 +197,178 @@ d: "Soy el ingeniero civil más famoso de México; mis túneles conectaban nacio
 
     ];
 
-    let partida = [], indice = 0, aciertos = 0, vidas = 5;
-    let timer, tiempoRestante;
+let partida = [], indice = 0, aciertos = 0, vidas = 5;
+let timer, tiempoRestante;
 
-    function comenzarJuego() {
-        partida = pool.sort(() => 0.5 - Math.random());
-        document.getElementById('pantalla-inicio').classList.remove('activa');
-        document.getElementById('pantalla-juego').classList.add('activa');
+// Algoritmo Fisher-Yates (El estándar real para barajar)
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+async function comenzarJuego(esEspana) {
+    const btnInicio = event.currentTarget;
+    const textoOriginal = btnInicio.innerText;
+    
+    if (esEspana) {
+        btnInicio.disabled = true;
+        btnInicio.innerText = "LOCALIZANDO OBJETIVOS...";
+        
+        // SPARQL: Nacidos después de 1960, en España, con foto y ocupaciones populares
+        const sparql = `
+            SELECT DISTINCT ?name ?img ?desc WHERE {
+              ?item wdt:P31 wd:Q5; 
+                    wdt:P27 wd:Q29;          # Nacionalidad: España
+                    wdt:P19/wdt:P17 wd:Q29;   # Nacido en: España (evita a Jeb Bush y otros)
+                    wdt:P18 ?img; 
+                    wikibase:sitelinks ?links.
+              ?item wdt:P569 ?fecha.
+              FILTER(?fecha >= "1960-01-01T00:00:00Z"^^xsd:dateTime)
+              VALUES ?occ { wd:Q6197 wd:Q33999 wd:Q82955 wd:Q177220 wd:Q13590141 }
+              ?item wdt:P106 ?occ.
+              SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name. ?item schema:description ?desc. }
+            } ORDER BY DESC(?links) LIMIT 60`;
+
+        try {
+            const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql), { 
+                headers: { 'Accept': 'application/json' } 
+            });
+            const data = await res.json();
+            
+            let tempPartida = data.results.bindings.map(p => ({
+                n: p.name.value,
+                u: p.img.value.replace("http://", "https://"),
+                d: p.desc ? p.desc.value : "Figura pública de la España actual."
+            }));
+
+            // Barajamos los 60 obtenidos y nos quedamos con los 40 necesarios
+            partida = shuffle(tempPartida).slice(0, 40);
+
+        } catch (e) {
+            alert("Error de conexión. El servidor de inteligencia no responde.");
+            btnInicio.disabled = false;
+            btnInicio.innerText = textoOriginal;
+            return;
+        }
+    } else {
+        partida = shuffle([...poolOriginal]).slice(0, 30);
+    }
+
+    // Inicialización de pantalla
+    document.getElementById('pantalla-inicio').classList.remove('activa');
+    document.getElementById('pantalla-juego').classList.add('activa');
+    aciertos = 0; vidas = 5; indice = 0;
+    document.getElementById('num-aciertos').innerText = "0";
+    actualizarVidas();
+    mostrar();
+}
+
+function actualizarVidas() {
+    document.getElementById('corazones').innerHTML = "🩸".repeat(vidas);
+}
+
+function iniciarReloj() {
+    clearInterval(timer);
+    tiempoRestante = 20;
+    timer = setInterval(() => {
+        tiempoRestante--;
+        if (tiempoRestante <= 0) { clearInterval(timer); comprobar(); }
+    }, 1000);
+}
+
+function mostrar() {
+    if (aciertos < 30 && vidas > 0 && indice < partida.length) {
+        document.getElementById('retrato').src = partida[indice].u;
+        document.getElementById('zona-input').style.display = "block";
+        document.getElementById('feedback-area').style.display = "none";
+        document.getElementById('respuesta-user').value = "";
+        document.getElementById('respuesta-user').focus();
+        iniciarReloj();
+    } else {
+        finalizar();
+    }
+}
+
+function comprobar() {
+    clearInterval(timer);
+    const input = document.getElementById('respuesta-user');
+    let user = input.value.trim();
+    let target = partida[indice].n;
+    
+    document.getElementById('zona-input').style.display = "none";
+    document.getElementById('feedback-area').style.display = "block";
+
+    if (user !== "" && similitud(user, target) > 0.82) {
+        aciertos++;
+        document.getElementById('num-aciertos').innerText = aciertos;
+        document.getElementById('mensaje').innerText = "IDENTIFICADO: " + target;
+        document.getElementById('mensaje').style.color = "#006600";
+    } else {
+        vidas--;
         actualizarVidas();
-        mostrar();
+        document.getElementById('mensaje').innerText = (tiempoRestante <= 0) ? "TIEMPO AGOTADO: " + target : "ERROR: " + target;
+        document.getElementById('mensaje').style.color = "#990000";
     }
-
-    function actualizarVidas() {
-        document.getElementById('corazones').innerHTML = "🩸".repeat(vidas);
-    }
-
-    function iniciarReloj() {
-        clearInterval(timer);
-        tiempoRestante = 20;
-        timer = setInterval(() => {
-            tiempoRestante--;
-            if (tiempoRestante <= 0) {
-                clearInterval(timer);
-                comprobar(); 
-            }
-        }, 1000);
-    }
-
-    function mostrar() {
-        if (aciertos < 40 && vidas > 0 && indice < partida.length) {
-            document.getElementById('retrato').src = partida[indice].u;
-            document.getElementById('zona-input').style.display = "block";
-            document.getElementById('feedback-area').style.display = "none";
-            document.getElementById('btn-siguiente').style.display = "none"; 
-            document.getElementById('respuesta-user').value = "";
-            document.getElementById('respuesta-user').focus();
-            iniciarReloj();
+    
+    document.getElementById('historia').innerText = partida[indice].d;
+    
+    setTimeout(() => {
+        if (vidas > 0 && aciertos < 30) {
+            document.getElementById('btn-siguiente').style.display = "inline-block";
         } else {
             finalizar();
         }
-    }
-
-    function comprobar() {
-        clearInterval(timer);
-        let user = document.getElementById('respuesta-user').value.trim();
-        let target = partida[indice].n;
-        
-        document.getElementById('zona-input').style.display = "none";
-        document.getElementById('feedback-area').style.display = "block";
-
-        if (user !== "" && similitud(user, target) > 0.95) {
-            aciertos++;
-            document.getElementById('num-aciertos').innerText = aciertos;
-            document.getElementById('mensaje').innerText = "IDENTIFICADO";
-            document.getElementById('mensaje').style.color = "#006600";
-        } else {
-            vidas--;
-            actualizarVidas();
-            document.getElementById('mensaje').innerText = (tiempoRestante <= 0) ? "TIEMPO AGOTADO: " + target : "ERROR DE REGISTRO: " + target;
-            document.getElementById('mensaje').style.color = "#990000";
-        }
-        
-        document.getElementById('historia').innerText = partida[indice].d;
-        precargarSiguiente();
-
-        // Mostrar botón tras 5 segundos
-        setTimeout(() => {
-            if (vidas > 0) {
-                document.getElementById('btn-siguiente').style.display = "inline-block";
-            } else {
-                finalizar();
-            }
-        }, 5000);
-    }
-
-    function siguiente() {
-        indice++;
-        mostrar();
-    }
-
-    function finalizar() {
-        clearInterval(timer);
-        document.getElementById('pantalla-juego').classList.remove('activa');
-        document.getElementById('pantalla-final').classList.add('activa');
-        document.getElementById('final-titulo').innerText = aciertos >= 30 ? "LEYENDA DEL HORROR" : "EXPEDIENTE CERRADO";
-        document.getElementById('final-score').innerText = `Aciertos: ${aciertos}/30`;
-    }
-function precargarSiguiente() {
-    // Verificamos que no sea el último personaje
-    if (indice + 1 < partida.length) {
-        const imgPreload = new Image();
-        imgPreload.src = partida[indice + 1].u;
-        // Opcional: Consola para que veas que está trabajando
-        console.log("Precargando verdugo: " + partida[indice + 1].n);
-    }
+    }, 1200);
 }
-    // ALGORITMO DE SIMILITUD (Mínimo 85% para aceptar)
-    function similitud(s1, s2) {
-        let longer = s1.length > s2.length ? s1 : s2;
-        let shorter = s1.length > s2.length ? s2 : s1;
-        if (longer.length === 0) return 1.0;
-        return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
-    }
 
-    function editDistance(s1, s2) {
-        s1 = s1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        s2 = s2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        let costs = new Array();
-        for (let i = 0; i <= s1.length; i++) {
-            let lastValue = i;
-            for (let j = 0; j <= s2.length; j++) {
-                if (i == 0) costs[j] = j;
-                else {
-                    if (j > 0) {
-                        let newValue = costs[j - 1];
-                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
-                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                        costs[j - 1] = lastValue;
-                        lastValue = newValue;
-                    }
+function siguiente() {
+    indice++;
+    document.getElementById('btn-siguiente').style.display = "none";
+    mostrar();
+}
+
+function finalizar() {
+    clearInterval(timer);
+    document.getElementById('pantalla-juego').classList.remove('activa');
+    document.getElementById('pantalla-final').classList.add('activa');
+    document.getElementById('final-titulo').innerText = aciertos >= 30 ? "MISIÓN CUMPLIDA" : "SUJETO ELIMINADO";
+    document.getElementById('final-score').innerText = `Aciertos: ${aciertos}/30`;
+}
+
+function similitud(s1, s2) {
+    const normalize = (str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+    let n1 = normalize(s1);
+    let n2 = normalize(s2);
+    if (n1 === n2 || (n2.includes(n1) && n1.length > 4)) return 1.0;
+    let longer = n1.length > n2.length ? n1 : n2;
+    let shorter = n1.length > n2.length ? n2 : n1;
+    if (longer.length === 0) return 1.0;
+    return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
+}
+
+function editDistance(s1, s2) {
+    let costs = [];
+    for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+            if (i == 0) costs[j] = j;
+            else {
+                if (j > 0) {
+                    let newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
                 }
             }
-            if (i > 0) costs[s2.length] = lastValue;
         }
-        return costs[s2.length];
+        if (i > 0) costs[s2.length] = lastValue;
     }
+    return costs[s2.length];
+}
 </script>
 </body>
 </html>
