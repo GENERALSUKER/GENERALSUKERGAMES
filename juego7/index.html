@@ -418,6 +418,11 @@ body.modo-penalty #stadium-map {
         </div>
     </div>
 </div>
+<div id="start-screen" class="overlay">
+    <h1 style="color:var(--psp-orange); font-size: 3.5rem; margin-bottom: 10px;">MATCH READY</h1>
+    <div id="global-iq-display" style="font-family:'Orbitron'; font-size: 1.5rem; color: #fff; margin-bottom: 40px; border-bottom: 2px solid var(--psp-orange); padding-bottom: 10px;">
+        PERFIL DE SCOUTING: <span style="color:var(--psp-orange)">IQ ${mediaIQGlobal}</span>
+    </div>
 
 <div id="goal-overlay" class="overlay" style="display: none;">
     <h2 id="overlay-title" style="color: var(--psp-orange); font-size: 2.5rem;">¡OPORTUNIDAD!</h2>
@@ -598,19 +603,34 @@ const aimLine = document.getElementById('aim-line');
 
 let goals = 0;
 let rivalGoals = 0;
-let totalQuestions = 0;
 let totalGameSecs = 0;
 let internalPoints = 0;
-let totalAciertos = 0;
 let questionSecsLeft = 15;
 let matchTimer, qTimer;
 let isFrozen = false;
 let optionRemoved = false;
 let availableQuestions = [];
+let totalAciertos = 0;
+let fallosTiempo = 0;
+let totalQuestions = 0;
+let puntosPrestigioActual = 0;
+let puntosPrestigioMaximosPosibles = 0;
 
+// Cargar historial y calcular media antes de empezar
+let historialIQ = JSON.parse(localStorage.getItem('historialIQ')) || [];
+let mediaIQGlobal = calcularMediaGlobal();
+    
 // 2. CACHE CORREGIDO (Cambiamos 'ball' por 'ballElem')
 const ballElement = document.getElementById('ball');
-const aimLineElement = document.getElementById('aim-line');
+const aimLineElement = document.getElementById('aim-line')
+    
+function calcularMediaGlobal() {
+    if (historialIQ.length === 0) return 0;
+    const suma = historialIQ.reduce((a, b) => a + b, 0);
+    return Math.round(suma / historialIQ.length);
+}
+
+;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -656,7 +676,10 @@ function nextQuestion() {
     
     const data = availableQuestions.pop(); 
     totalQuestions++;
-
+    
+// El máximo posible aumenta según la dificultad de la pregunta que te ha tocado
+    puntosPrestigioMaximosPosibles += (data.level * 10);
+    
     let starColor = data.level >= 4 ? "#ff4d4d" : (data.level >= 3 ? "#ffa500" : "#d4ff00");
     const stars = "★".repeat(data.level) + "☆".repeat(5 - data.level);
     
@@ -697,6 +720,7 @@ function nextQuestion() {
 
 function startQTimer(correct, level) {
     clearInterval(qTimer);
+    fallosTiempo++;
     qTimer = setInterval(() => {
         if (!isFrozen) {
             questionSecsLeft -= 0.1;
@@ -705,6 +729,8 @@ function startQTimer(correct, level) {
 
             let ballVisualPos = (internalPoints + 10) * 5;
             let currentLinePos = ballVisualPos + (questionSecsLeft / 15 * (level * 6));
+            let currentLevel = parseInt(document.querySelector('.difficulty-meter').innerText.length); 
+    puntosPrestigioActual += (currentLevel * 2);
             updateVisualMap(ballVisualPos, currentLinePos);
 
             if (questionSecsLeft <= 2) removeIncorrectOption(correct);
@@ -737,7 +763,8 @@ function checkAnswer(selected, correct, btn, level) {
     } else {
         if (isCorrect) {
             totalAciertos++;
-            internalPoints += Math.max(0.1, level * (questionSecsLeft / 15));
+           puntosPrestigioActual += (level * 10);
+        internalPoints += Math.max(0.1, level * (questionSecsLeft / 15));
         } else {
             internalPoints -= (6 - level);
         }
@@ -799,16 +826,70 @@ function removeIncorrectOption(correct) {
     }
 }
 
+function procesarFinDelPartido() {
+    if (puntosPrestigioMaximosPosibles === 0) return;
+
+    // 1. Calcular IQ de esta partida
+    let eficiencia = puntosPrestigioActual / puntosPrestigioMaximosPosibles;
+    let iqPartida = Math.round(eficiencia * 200);
+
+    // 2. Bono por dificultad (para permitir llegar a 300)
+    let dificultadMedia = puntosPrestigioMaximosPosibles / (totalQuestions * 10); 
+    let bono = Math.round((dificultadMedia - 0.5) * 40);
+    iqPartida += Math.max(0, bono);
+
+    // 3. Guardar en historial
+    historialIQ.push(iqPartida);
+    localStorage.setItem('historialIQ', JSON.stringify(historialIQ));
+
+    // 4. Actualizar la media global para el informe
+    mediaIQGlobal = calcularMediaGlobal();
+}
 function endGame() {
     isFrozen = true;
     clearInterval(matchTimer);
     clearInterval(qTimer);
+
+    // Ejecutamos el cálculo interno
+    procesarFinDelPartido();
+
     document.body.innerHTML = `
         <div class='overlay'>
-            <h1 style="color:var(--psp-orange); font-size:3rem; margin:0;">¡FINAL DEL PARTIDO!</h1>
-            <div class="final-score" style="font-size: 6rem; color: white;">${goals} - ${rivalGoals}</div>
-            <button class='opt-btn' onclick='location.reload()'><span>REINTENTAR</span></button>
+            <h1 style="color:white; font-size:2rem; margin:0;">PARTIDO FINALIZADO</h1>
+            <div class="final-score" style="font-size: 6rem;">${goals} - ${rivalGoals}</div>
+            
+            <div style="background: rgba(255,157,0,0.1); padding: 20px; border: 1px solid var(--psp-orange); margin-bottom: 30px; width: 300px;">
+                <span style="display:block; font-size: 1rem; color: #a0aec0;">MEDIA IQ PONDERADA</span>
+                <span style="font-size: 3.5rem; font-family: 'Orbitron'; color: var(--psp-orange);">${mediaIQGlobal}</span>
+            </div>
+
+            <div class="stat-row"><span>PARTIDOS JUGADOS:</span> <span>${historialIQ.length}</span></div>
+            <div class="stat-row"><span>ACIERTOS TOTALES:</span> <span>${totalAciertos}</span></div>
+
+            <button class='opt-btn' style="margin-top:30px;" onclick='location.reload()'><span>VOLVER AL VESTUARIO</span></button>
         </div>`;
+}
+function calcularIQFinal() {
+    if (puntosPrestigioMaximosPosibles === 0) return 0;
+
+    // Calculamos la eficiencia base
+    let eficiencia = puntosPrestigioActual / puntosPrestigioMaximosPosibles;
+
+    // Escalamos a 200. 
+    // Si tienes 100% de eficiencia, tienes 200 IQ.
+    let iqPartida = Math.round(eficiencia * 200);
+
+    // Añadimos un "Bono de Scouting" por dificultad media:
+    // Si te han salido muchas preguntas difíciles, te damos un extra de hasta +50 o +100
+    // Esto permite que el techo real sea 300.
+    let dificultadMedia = puntosPrestigioMaximosPosibles / (totalQuestions * 10); 
+    let bonoDificultad = Math.round((dificultadMedia - 0.5) * 200); // Ajustable
+    
+    iqPartida += Math.max(0, bonoDificultad);
+
+    historialIQ.push(iqPartida);
+    localStorage.setItem('historialIQ', JSON.stringify(historialIQ));
+    return iqPartida;
 }
 </script>
 </body>
