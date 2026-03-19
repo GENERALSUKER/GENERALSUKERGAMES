@@ -609,8 +609,8 @@ let optionRemoved = false;
 let availableQuestions = [];
 
 // 2. CACHE CORREGIDO (Cambiamos 'ball' por 'ballElem')
-var ballElem = ballElem || document.getElementById('ball');
-var aimLine = aimLine || document.getElementById('aim-line');
+const ballElement = document.getElementById('ball');
+const aimLineElement = document.getElementById('aim-line');
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
