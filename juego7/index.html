@@ -816,15 +816,6 @@ function checkAnswer(selected, correct, btn, level) {
     handleResult(isCorrect ? "win" : "fail", correct, btn);
 }
 
-    actualizarMarcadorVisual();
-    const nuevaPos = (internalPoints + 10) * 5;
-    updateVisualMap(nuevaPos, nuevaPos); 
-
-    if (internalPoints >= 10 || internalPoints <= -10) {
-        document.body.classList.add('modo-penalty');
-    }
-
-    handleResult(isCorrect ? "win" : "fail", correct, btn);
     
 function handleResult(status, correct, clickedBtn) {
     isFrozen = true;
