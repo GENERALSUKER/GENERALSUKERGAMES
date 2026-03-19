@@ -737,7 +737,7 @@ function nextQuestion() {
 
 function startQTimer(correct, level) {
     clearInterval(qTimer);
-    fallosTiempo++;
+    // Quitamos la suma de fallosTiempo aquí si no la usas para nada más
     qTimer = setInterval(() => {
         if (!isFrozen) {
             questionSecsLeft -= 0.1;
@@ -746,8 +746,9 @@ function startQTimer(correct, level) {
 
             let ballVisualPos = (internalPoints + 10) * 5;
             let currentLinePos = ballVisualPos + (questionSecsLeft / 15 * (level * 6));
-            let currentLevel = parseInt(document.querySelector('.difficulty-meter').innerText.length); 
-    puntosPrestigioActual += (currentLevel * 2);
+            
+            // ELIMINADO: puntosPrestigioActual += (currentLevel * 2); <--- ESTO ERA EL ERROR
+
             updateVisualMap(ballVisualPos, currentLinePos);
 
             if (questionSecsLeft <= 2) removeIncorrectOption(correct);
@@ -771,17 +772,28 @@ function checkAnswer(selected, correct, btn, level) {
     if (document.body.classList.contains('modo-penalty')) {
         document.body.classList.remove('modo-penalty');
         if (internalPoints >= 10) { 
-            if (isCorrect) { goals++; internalPoints = 0; } 
+            if (isCorrect) { 
+                goals++; 
+                internalPoints = 0; 
+                // Bono por marcar gol en penalización
+                puntosPrestigioActual += (level * 15); 
+            } 
             else { internalPoints -= (6 - level); }
         } else { 
-            if (isCorrect) { internalPoints += level; } 
+            if (isCorrect) { 
+                internalPoints += level; 
+                puntosPrestigioActual += (level * 5);
+            } 
             else { rivalGoals++; internalPoints = 0; }
         }
     } else {
         if (isCorrect) {
             totalAciertos++;
-           puntosPrestigioActual += (level * 10);
-        internalPoints += Math.max(0.1, level * (questionSecsLeft / 15));
+            // CÁLCULO DE PRESTIGIO: Base (nivel * 10) + Bono por rapidez
+            let bonoRapidez = Math.round(level * (questionSecsLeft / 1.5)); 
+            puntosPrestigioActual += (level * 10) + bonoRapidez;
+            
+            internalPoints += Math.max(0.1, level * (questionSecsLeft / 15));
         } else {
             internalPoints -= (6 - level);
         }
@@ -797,7 +809,6 @@ function checkAnswer(selected, correct, btn, level) {
 
     handleResult(isCorrect ? "win" : "fail", correct, btn);
 }
-
 function handleResult(status, correct, clickedBtn) {
     isFrozen = true;
     clearInterval(qTimer);
