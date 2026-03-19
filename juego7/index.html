@@ -379,7 +379,7 @@ body.modo-penalty #stadium-map {
     </style>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <div id="stadium-map">
     <div class="pitch-overlay"></div>
     <div class="pitch-lines">
@@ -434,7 +434,7 @@ body.modo-penalty #stadium-map {
 <div id="chart-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 700px; background: rgba(10, 10, 10, 0.98); border: 2px solid var(--psp-orange); padding: 30px; z-index: 1000; box-shadow: 0 0 50px rgba(0,0,0,1);">
     <h3 style="color: white; font-family: 'Orbitron'; text-align: center; margin-bottom: 20px;">ANÁLISIS DE RENDIMIENTO HISTÓRICO</h3>
     <canvas id="iqChart"></canvas>
-    <button class="opt-btn" style="width: 100%; margin-top: 25px;" onclick="toggleGrafico()"><span>VOLVAR AL MENÚ</span></button>
+    <button class="opt-btn" style="width: 100%; margin-top: 25px;" onclick="toggleGrafico()"><span>VOLVER AL MENÚ</span></button>
 </div>
 
 <div id="goal-overlay" class="overlay" style="display: none;">
@@ -953,25 +953,29 @@ function renderizarGrafico() {
                 }
             ]
         },
-        options: {
-            responsive: true,
-            scales: {
-                y: { 
-                    beginAtZero: false, 
-                    min: 0, 
-                    max: 320, // Un poco más de 300 para que se vea la línea
-                    ticks: { color: '#aaa', font: { family: 'Orbitron' } },
-                    grid: { color: '#222' } 
-                },
-                x: { 
-                    ticks: { color: '#aaa' },
-                    grid: { display: false } 
-                }
+options: {
+    responsive: true,
+    scales: {
+        y: { 
+            beginAtZero: true, 
+            min: 0, 
+            max: 300, // Ahora el tope es 300 exacto
+            ticks: { 
+                color: '#aaa', 
+                font: { family: 'Orbitron' },
+                stepSize: 50 // Esto fuerza: 0, 50, 100, 150, 200, 250, 300
             },
-            plugins: {
-                legend: { labels: { color: '#fff', font: { family: 'Barlow Condensed' } } }
-            }
+            grid: { color: '#222' } 
+        },
+        x: { 
+            ticks: { color: '#aaa' },
+            grid: { display: false } 
         }
+    },
+    plugins: {
+        legend: { labels: { color: '#fff', font: { family: 'Barlow Condensed' } } }
+    }
+}
     });
 }
 
