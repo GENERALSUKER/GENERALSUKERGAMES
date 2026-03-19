@@ -379,6 +379,7 @@ body.modo-penalty #stadium-map {
     </style>
 </head>
 <body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div id="stadium-map">
     <div class="pitch-overlay"></div>
     <div class="pitch-lines">
@@ -393,7 +394,20 @@ body.modo-penalty #stadium-map {
     </div>
 </div>
 <div id="match-clock">00:00</div>
+<div id="scouting-panel" style="position: absolute; top: 80px; left: 30px; z-index: 100; display: flex; gap: 10px;">
+    <button class="opt-btn" style="width: 150px; padding: 10px; font-size: 1rem;" onclick="toggleGrafico()">
+        <span>EVOLUCIÓN IQ</span>
+    </button>
+    <button class="opt-btn" style="width: 150px; padding: 10px; font-size: 1rem; border-color: #e74c3c;" onclick="borrarHistorial()">
+        <span>RESET CARREERA</span>
+    </button>
+</div>
 
+<div id="chart-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; background: rgba(0,0,0,0.95); border: 2px solid var(--psp-orange); padding: 20px; z-index: 1000;">
+    <h3 style="color: white; font-family: 'Orbitron'; text-align: center; margin-top: 0;">HISTORIAL DE SCOUTING</h3>
+    <canvas id="iqChart"></canvas>
+    <button class="opt-btn" style="width: 100%; margin-top: 20px;" onclick="toggleGrafico()"><span>CERRAR</span></button>
+</div>
 <div id="timer-container">
     <div id="timer-fill"></div>
 </div>
@@ -886,6 +900,62 @@ function calcularIQFinal() {
     historialIQ.push(iqPartida);
     localStorage.setItem('historialIQ', JSON.stringify(historialIQ));
     return iqPartida;
+}
+let myChart = null;
+
+function toggleGrafico() {
+    const container = document.getElementById('chart-container');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        renderizarGrafico();
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+function renderizarGrafico() {
+    const ctx = document.getElementById('iqChart').getContext('2d');
+    
+    // Calculamos la media acumulada paso a paso para la gráfica
+    let sumaTemporal = 0;
+    const datosMediaProgresiva = historialIQ.map((valor, index) => {
+        sumaTemporal += valor;
+        return Math.round(sumaTemporal / (index + 1));
+    });
+
+    if (myChart) myChart.destroy(); // Limpiar gráfico anterior
+
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: historialIQ.map((_, i) => `Partida ${i + 1}`),
+            datasets: [{
+                label: 'IQ Ponderado Global',
+                data: datosMediaProgresiva, // Aquí mostramos la evolución de la media
+                borderColor: '#ff9d00',
+                backgroundColor: 'rgba(255, 157, 0, 0.2)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: false, min: 0, max: 300, grid: { color: '#333' } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function borrarHistorial() {
+    if (confirm("¿Seguro que quieres borrar toda tu carrera de Scouting? Esto no se puede deshacer.")) {
+        localStorage.removeItem('historialIQ');
+        historialIQ = [];
+        location.reload(); // Recargamos para que el IQ vuelva a "No definido"
+    }
 }
 </script>
 </body>
