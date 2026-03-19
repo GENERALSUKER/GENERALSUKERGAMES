@@ -619,10 +619,6 @@ function shuffleArray(array) {
     return array;
 }
 
-// 2. CACHE DE ELEMENTOS (Usamos nombres únicos para evitar errores de "already declared")
-const ballElement = document.getElementById('ball');
-const aimLineElement = document.getElementById('aim-line');
-
 function startGame() {
     // Si usas un archivo externo para las preguntas, asegúrate de que 'questions' esté definido
     if (typeof questions === 'undefined' || questions.length === 0) {
@@ -811,7 +807,6 @@ function endGame() {
         <div class='overlay'>
             <h1 style="color:var(--psp-orange); font-size:3rem; margin:0;">¡FINAL DEL PARTIDO!</h1>
             <div class="final-score" style="font-size: 6rem; color: white;">${goals} - ${rivalGoals}</div>
-            <div style="margin-bottom: 20px; font-size: 1.5rem; color: #ccc;">Aciertos totales: ${totalAciertos}</div>
             <button class='opt-btn' onclick='location.reload()'><span>REINTENTAR</span></button>
         </div>`;
 }
