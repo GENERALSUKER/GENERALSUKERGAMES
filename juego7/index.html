@@ -769,35 +769,52 @@ function checkAnswer(selected, correct, btn, level) {
     if (isFrozen) return;
     const isCorrect = (selected === correct);
 
+    // Contar siempre el acierto
+    if (isCorrect) totalAciertos++;
+
     if (document.body.classList.contains('modo-penalty')) {
         document.body.classList.remove('modo-penalty');
         if (internalPoints >= 10) { 
             if (isCorrect) { 
                 goals++; 
-                internalPoints = 0; 
-                // Bono por marcar gol en penalización
-                puntosPrestigioActual += (level * 15); 
-            } 
-            else { internalPoints -= (6 - level); }
+                internalPoints = 0;
+                puntosPrestigioActual += (level * 12); // Recompensa por gol
+            } else { 
+                internalPoints -= (6 - level); 
+            }
         } else { 
             if (isCorrect) { 
-                internalPoints += level; 
-                puntosPrestigioActual += (level * 5);
-            } 
-            else { rivalGoals++; internalPoints = 0; }
+                internalPoints += level;
+                puntosPrestigioActual += (level * 5); 
+            } else { 
+                rivalGoals++; 
+                internalPoints = 0; 
+            }
         }
     } else {
         if (isCorrect) {
-            totalAciertos++;
-            // CÁLCULO DE PRESTIGIO: Base (nivel * 10) + Bono por rapidez
-            let bonoRapidez = Math.round(level * (questionSecsLeft / 1.5)); 
+            // TIEMPO AL 10%: El divisor 10 hace que el tiempo influya muy poco
+            let bonoRapidez = Math.round(level * (questionSecsLeft / 10)); 
             puntosPrestigioActual += (level * 10) + bonoRapidez;
             
             internalPoints += Math.max(0.1, level * (questionSecsLeft / 15));
         } else {
             internalPoints -= (6 - level);
+            // Al fallar no sumas prestigio, pero el 'puntosPrestigioMaximosPosibles' 
+            // ya subió en nextQuestion, creando el reto.
         }
     }
+
+    actualizarMarcadorVisual();
+    const nuevaPos = (internalPoints + 10) * 5;
+    updateVisualMap(nuevaPos, nuevaPos); 
+
+    if (internalPoints >= 10 || internalPoints <= -10) {
+        document.body.classList.add('modo-penalty');
+    }
+
+    handleResult(isCorrect ? "win" : "fail", correct, btn);
+}
 
     actualizarMarcadorVisual();
     const nuevaPos = (internalPoints + 10) * 5;
@@ -857,20 +874,26 @@ function removeIncorrectOption(correct) {
 function procesarFinDelPartido() {
     if (puntosPrestigioMaximosPosibles === 0) return;
 
-    // 1. Calcular IQ de esta partida
+    // 1. Eficiencia real (puntos ganados vs puntos perfectos)
     let eficiencia = puntosPrestigioActual / puntosPrestigioMaximosPosibles;
-    let iqPartida = Math.round(eficiencia * 200);
+    
+    // 2. Multiplicador de "Gracia" (270)
+    // Esto permite que con un 93% de eficiencia ya alcances los 250 de IQ.
+    // Así, un fallo temprano no arruina la posibilidad de ser "Leyenda".
+    let iqPartida = Math.round(eficiencia * 270);
 
-    // 2. Bono por dificultad (para permitir llegar a 300)
+    // 3. Bono por dificultad del partido
     let dificultadMedia = puntosPrestigioMaximosPosibles / (totalQuestions * 10); 
-    let bono = Math.round((dificultadMedia - 0.5) * 40);
-    iqPartida += Math.max(0, bono);
+    let bonoDificultad = Math.round((dificultadMedia - 0.5) * 15); 
+    iqPartida += Math.max(0, bonoDificultad);
 
-    // 3. Guardar en historial
+    // 4. EL TOPE ABSOLUTO
+    // El usuario nunca verá más de 250, pero internamente le hemos dado margen.
+    iqPartida = Math.min(250, iqPartida);
+
+    // Guardar y actualizar
     historialIQ.push(iqPartida);
     localStorage.setItem('historialIQ', JSON.stringify(historialIQ));
-
-    // 4. Actualizar la media global para el informe
     mediaIQGlobal = calcularMediaGlobal();
 }
 function endGame() {
@@ -959,8 +982,8 @@ function renderizarGrafico() {
                     fill: true
                 },
                 {
-                    label: 'Límite Leyenda (300)',
-                    data: Array(historialIQ.length).fill(300), // Línea en los 300
+                    label: 'Límite Leyenda (250)',
+                    data: Array(historialIQ.length).fill(250), // Línea en los 300
                     borderColor: 'rgba(231, 76, 60, 0.5)', 
                     borderDash: [10, 5], // Línea punteada
                     borderWidth: 2,
@@ -974,7 +997,7 @@ options: {
         y: { 
             beginAtZero: true, 
             min: 0, 
-            max: 300, // Ahora el tope es 300 exacto
+            max: 250, // Ahora el tope es 300 exacto
             ticks: { 
                 color: '#aaa', 
                 font: { family: 'Orbitron' },
