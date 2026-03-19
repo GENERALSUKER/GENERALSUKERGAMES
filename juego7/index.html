@@ -606,14 +606,12 @@ let questionSecsLeft = 15;
 let matchTimer, qTimer;
 let isFrozen = false;
 let optionRemoved = false;
-let availableQuestions = []; // Inicializado como array vacío
-// Cache de elementos DOM para rendimiento
-const ball = document.getElementById('ball');
+let availableQuestions = [];
+
+// 2. CACHE CORREGIDO (Cambiamos 'ball' por 'ballElem')
+const ballElem = document.getElementById('ball');
 const aimLine = document.getElementById('aim-line');
 
-// ==========================================
-// ALGORITMO FISHER-YATES (SHUFFLE REAL)
-// ==========================================
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -622,7 +620,6 @@ function shuffleArray(array) {
     return array;
 }
 
-// 2. INICIO DEL JUEGO
 function startGame() {
     if (typeof questions === 'undefined' || questions.length === 0) {
         console.error("Error: No hay preguntas cargadas.");
@@ -633,9 +630,9 @@ function startGame() {
     
     matchTimer = setInterval(() => {
         if (!isFrozen) {
-            totalGameSecs += 5; // Simulación de tiempo acelerado
+            totalGameSecs += 5; 
             updateClock();
-            if (totalGameSecs >= 5400) endGame(); // 90 min = 5400 seg
+            if (totalGameSecs >= 5400) endGame(); 
         }
     }, 100);
 }
@@ -646,13 +643,11 @@ function updateClock() {
     document.getElementById('match-clock').innerText = `${m}:${s}`;
 }
 
-// 3. LÓGICA DE PREGUNTAS
 function nextQuestion() {
     isFrozen = false;
     optionRemoved = false;
     questionSecsLeft = 15;
 
-    // Si nos quedamos sin preguntas o es la primera vez, barajamos con Fisher-Yates
     if (availableQuestions.length === 0) {
         availableQuestions = shuffleArray([...questions]);
     }
@@ -660,7 +655,6 @@ function nextQuestion() {
     const data = availableQuestions.pop(); 
     totalQuestions++;
 
-    // UI de Dificultad
     let starColor = data.level >= 4 ? "#ff4d4d" : (data.level >= 3 ? "#ffa500" : "#d4ff00");
     const stars = "★".repeat(data.level) + "☆".repeat(5 - data.level);
     
@@ -682,7 +676,6 @@ function nextQuestion() {
     rowTop.innerHTML = ''; 
     rowBottom.innerHTML = '';
 
-    // Barajamos las opciones con Fisher-Yates
     const shuffledOptions = shuffleArray([...data.options]);
     
     shuffledOptions.forEach((opt, i) => {
@@ -697,7 +690,7 @@ function nextQuestion() {
     updateVisualMap((internalPoints + 10) * 5, (internalPoints + 10) * 5 + (data.level * 6));
     startQTimer(data.correct, data.level);
 }
-// 4. Temporizador de pregunta
+
 function startQTimer(correct, level) {
     clearInterval(qTimer);
     qTimer = setInterval(() => {
@@ -724,7 +717,6 @@ function startQTimer(correct, level) {
     }, 100);
 }
 
-// 5. Validación y Marcador
 function checkAnswer(selected, correct, btn, level) {
     if (isFrozen) return;
     const isCorrect = (selected === correct);
@@ -773,15 +765,14 @@ function handleResult(status, correct, clickedBtn) {
     }, 1500);
 }
 
-// 6. Visuales del Mapa
 function updateVisualMap(bPos, lPos) {
-    if (!ball || !aimLine) return;
+    if (!ballElem || !aimLine) return; // Usamos ballElem
     let bPercent = Math.max(0, Math.min(100, bPos));
     let lPercent = Math.max(0, Math.min(100, lPos));
     
-    ball.style.top = (100 - bPercent) + "%";
+    ballElem.style.top = (100 - bPercent) + "%";
     aimLine.style.top = (100 - lPercent) + "%";
-    ball.style.left = (50 + (internalPoints * 2)) + "%"; 
+    ballElem.style.left = (50 + (internalPoints * 2)) + "%"; 
 }
 
 function actualizarMarcadorVisual() {
