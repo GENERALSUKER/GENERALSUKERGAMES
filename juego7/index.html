@@ -638,9 +638,13 @@ const ballElement = document.getElementById('ball');
 const aimLineElement = document.getElementById('aim-line')
     
 function calcularMediaGlobal() {
-    if (historialIQ.length === 0) return 0;
-    const suma = historialIQ.reduce((a, b) => a + b, 0);
-    return Math.round(suma / historialIQ.length);
+    // IMPORTANTE: Volver a leer el historial del storage por si acaso
+    const historialActualizado = JSON.parse(localStorage.getItem('historialIQ')) || [];
+    
+    if (historialActualizado.length === 0) return "No definido"; // O 0, como prefieras
+    
+    const suma = historialActualizado.reduce((a, b) => a + b, 0);
+    return Math.round(suma / historialActualizado.length);
 }
 
 ;
@@ -986,6 +990,14 @@ function borrarHistorial() {
         location.reload(); // Recargamos para que el IQ vuelva a "No definido"
     }
 }
+    // Esto se ejecuta SOLITO cada vez que se abre el juego o se recarga
+window.onload = function() {
+    const media = calcularMediaGlobal();
+    const display = document.getElementById('iq-valor-inicio');
+    if (display) {
+        display.innerText = media;
+    }
+};
 </script>
 </body>
 </html>
