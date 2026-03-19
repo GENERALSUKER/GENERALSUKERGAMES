@@ -607,16 +607,35 @@ let matchTimer, qTimer;
 let isFrozen = false;
 let optionRemoved = false;
 let availableQuestions = []; // Inicializado como array vacío
+// Cache de elementos DOM para rendimiento
+const ball = document.getElementById('ball');
+const aimLine = document.getElementById('aim-line');
 
-// 2. Funciones de inicio y reloj
+// ==========================================
+// ALGORITMO FISHER-YATES (SHUFFLE REAL)
+// ==========================================
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// 2. INICIO DEL JUEGO
 function startGame() {
+    if (typeof questions === 'undefined' || questions.length === 0) {
+        console.error("Error: No hay preguntas cargadas.");
+        return;
+    }
     document.getElementById('start-screen').style.display = 'none';
     nextQuestion();
+    
     matchTimer = setInterval(() => {
         if (!isFrozen) {
-            totalGameSecs += 5;
+            totalGameSecs += 5; // Simulación de tiempo acelerado
             updateClock();
-            if (totalGameSecs >= 5400) endGame();
+            if (totalGameSecs >= 5400) endGame(); // 90 min = 5400 seg
         }
     }, 100);
 }
@@ -627,20 +646,21 @@ function updateClock() {
     document.getElementById('match-clock').innerText = `${m}:${s}`;
 }
 
-// 3. Lógica de preguntas
+// 3. LÓGICA DE PREGUNTAS
 function nextQuestion() {
     isFrozen = false;
     optionRemoved = false;
     questionSecsLeft = 15;
 
+    // Si nos quedamos sin preguntas o es la primera vez, barajamos con Fisher-Yates
     if (availableQuestions.length === 0) {
-        availableQuestions = [...questions];
-        availableQuestions.sort(() => Math.random() - 0.5);
+        availableQuestions = shuffleArray([...questions]);
     }
     
     const data = availableQuestions.pop(); 
     totalQuestions++;
 
+    // UI de Dificultad
     let starColor = data.level >= 4 ? "#ff4d4d" : (data.level >= 3 ? "#ffa500" : "#d4ff00");
     const stars = "★".repeat(data.level) + "☆".repeat(5 - data.level);
     
@@ -650,7 +670,6 @@ function nextQuestion() {
         avisoHtml = `<span class="status-badge">${textoAviso}</span>`;
     }
 
-    // Inyectamos el header con estrellas a la izquierda y el prefijo P:
     document.getElementById('q-text').innerHTML = `
         <div class="difficulty-header">
             <div class="difficulty-meter" style="color:${starColor}; border-color:${starColor}">${stars}</div>
@@ -663,8 +682,10 @@ function nextQuestion() {
     rowTop.innerHTML = ''; 
     rowBottom.innerHTML = '';
 
-    const shuffled = [...data.options].sort(() => Math.random() - 0.5);
-    shuffled.forEach((opt, i) => {
+    // Barajamos las opciones con Fisher-Yates
+    const shuffledOptions = shuffleArray([...data.options]);
+    
+    shuffledOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'opt-btn';
         btn.dataset.answer = opt;
@@ -676,7 +697,6 @@ function nextQuestion() {
     updateVisualMap((internalPoints + 10) * 5, (internalPoints + 10) * 5 + (data.level * 6));
     startQTimer(data.correct, data.level);
 }
-
 // 4. Temporizador de pregunta
 function startQTimer(correct, level) {
     clearInterval(qTimer);
