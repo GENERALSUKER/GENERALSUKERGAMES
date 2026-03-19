@@ -394,20 +394,6 @@ body.modo-penalty #stadium-map {
     </div>
 </div>
 <div id="match-clock">00:00</div>
-<div id="scouting-panel" style="position: absolute; top: 80px; left: 30px; z-index: 100; display: flex; gap: 10px;">
-    <button class="opt-btn" style="width: 150px; padding: 10px; font-size: 1rem;" onclick="toggleGrafico()">
-        <span>EVOLUCIÓN IQ</span>
-    </button>
-    <button class="opt-btn" style="width: 150px; padding: 10px; font-size: 1rem; border-color: #e74c3c;" onclick="borrarHistorial()">
-        <span>RESET CARREERA</span>
-    </button>
-</div>
-
-<div id="chart-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; background: rgba(0,0,0,0.95); border: 2px solid var(--psp-orange); padding: 20px; z-index: 1000;">
-    <h3 style="color: white; font-family: 'Orbitron'; text-align: center; margin-top: 0;">HISTORIAL DE SCOUTING</h3>
-    <canvas id="iqChart"></canvas>
-    <button class="opt-btn" style="width: 100%; margin-top: 20px;" onclick="toggleGrafico()"><span>CERRAR</span></button>
-</div>
 <div id="timer-container">
     <div id="timer-fill"></div>
 </div>
@@ -428,10 +414,27 @@ body.modo-penalty #stadium-map {
 </div>
 <div id="start-screen" class="overlay">
     <h1 style="color:var(--psp-orange); font-size: 3.5rem; margin-bottom: 10px;">MATCH READY</h1>
-    <div id="global-iq-display" style="font-family:'Orbitron'; font-size: 1.5rem; color: #fff; margin-bottom: 40px; border-bottom: 2px solid var(--psp-orange); padding-bottom: 10px;">
-        PERFIL DE SCOUTING: <span style="color:var(--psp-orange)">IQ ${mediaIQGlobal}</span>
-        </div>
-    <button class="opt-btn" onclick="startGame()"><span>KICK OFF</span></button>
+    
+    <div id="global-iq-display" style="font-family:'Orbitron'; font-size: 1.5rem; color: #fff; margin-bottom: 20px; border-bottom: 2px solid var(--psp-orange); padding-bottom: 10px;">
+        PERFIL DE SCOUTING: <span id="iq-valor-inicio" style="color:var(--psp-orange)">No definido</span>
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+        <button class="opt-btn" style="width: 160px; padding: 10px; font-size: 0.9rem;" onclick="toggleGrafico()">
+            <span>EVOLUCIÓN IQ</span>
+        </button>
+        <button class="opt-btn" style="width: 160px; padding: 10px; font-size: 0.9rem; border-color: #e74c3c;" onclick="borrarHistorial()">
+            <span>RESET CARRERA</span>
+        </button>
+    </div>
+    
+    <button class="opt-btn" style="width: 350px;" onclick="startGame()"><span>KICK OFF</span></button>
+</div>
+
+<div id="chart-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 700px; background: rgba(10, 10, 10, 0.98); border: 2px solid var(--psp-orange); padding: 30px; z-index: 1000; box-shadow: 0 0 50px rgba(0,0,0,1);">
+    <h3 style="color: white; font-family: 'Orbitron'; text-align: center; margin-bottom: 20px;">ANÁLISIS DE RENDIMIENTO HISTÓRICO</h3>
+    <canvas id="iqChart"></canvas>
+    <button class="opt-btn" style="width: 100%; margin-top: 25px;" onclick="toggleGrafico()"><span>VOLVAR AL MENÚ</span></button>
 </div>
 
 <div id="goal-overlay" class="overlay" style="display: none;">
@@ -917,35 +920,57 @@ function toggleGrafico() {
 function renderizarGrafico() {
     const ctx = document.getElementById('iqChart').getContext('2d');
     
-    // Calculamos la media acumulada paso a paso para la gráfica
+    // Calcular media acumulada progresiva
     let sumaTemporal = 0;
     const datosMediaProgresiva = historialIQ.map((valor, index) => {
         sumaTemporal += valor;
         return Math.round(sumaTemporal / (index + 1));
     });
 
-    if (myChart) myChart.destroy(); // Limpiar gráfico anterior
+    if (window.myChart) window.myChart.destroy();
 
-    myChart = new Chart(ctx, {
+    window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: historialIQ.map((_, i) => `Partida ${i + 1}`),
-            datasets: [{
-                label: 'IQ Ponderado Global',
-                data: datosMediaProgresiva, // Aquí mostramos la evolución de la media
-                borderColor: '#ff9d00',
-                backgroundColor: 'rgba(255, 157, 0, 0.2)',
-                borderWidth: 3,
-                tension: 0.3,
-                fill: true
-            }]
+            labels: historialIQ.map((_, i) => `P${i + 1}`),
+            datasets: [
+                {
+                    label: 'Tu Media IQ',
+                    data: datosMediaProgresiva,
+                    borderColor: '#ff9d00',
+                    backgroundColor: 'rgba(255, 157, 0, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.2,
+                    fill: true
+                },
+                {
+                    label: 'Límite Leyenda (300)',
+                    data: Array(historialIQ.length).fill(300), // Línea en los 300
+                    borderColor: 'rgba(231, 76, 60, 0.5)', 
+                    borderDash: [10, 5], // Línea punteada
+                    borderWidth: 2,
+                    pointRadius: 0, // No queremos puntos en esta línea
+                }
+            ]
         },
         options: {
+            responsive: true,
             scales: {
-                y: { beginAtZero: false, min: 0, max: 300, grid: { color: '#333' } },
-                x: { grid: { display: false } }
+                y: { 
+                    beginAtZero: false, 
+                    min: 0, 
+                    max: 320, // Un poco más de 300 para que se vea la línea
+                    ticks: { color: '#aaa', font: { family: 'Orbitron' } },
+                    grid: { color: '#222' } 
+                },
+                x: { 
+                    ticks: { color: '#aaa' },
+                    grid: { display: false } 
+                }
             },
-            plugins: { legend: { display: false } }
+            plugins: {
+                legend: { labels: { color: '#fff', font: { family: 'Barlow Condensed' } } }
+            }
         }
     });
 }
