@@ -221,53 +221,278 @@
 </div>
 
 <script>
-    const allRefranes = [
-        {   id: 1, autor: "Socrates", 
-            citaCompleta: "Bakarkik dakit ezer ez dakidala.", 
-            citaInicio: "Bakarrik dakit...", citaFin: "ezer ez dakidala",
-            disertacion: "**Epistemologia** gaietan erabili. Jarrera: Humiltasun intelektuala benetako ikaskuntzarako eta egia objektiboa bilatzeko ezinbesteko baldintza gisa." 
-        },
-        {   id: 2, autor: "Descartes", 
-            citaCompleta: "Pentsatzen dut, beraz banaiz.", 
-            citaInicio: "Pentsatzen dut, beraz...", citaFin: "banaiz",
-            disertacion: "**Racionalismoa edo Identitatea** gaietan erabili. Jarrera: Autokontzientzia da gizakion ezagutzaren oinarri ukaezin bakarra eszeptizismoaren aurrean." 
-        },
-        {   id: 3, autor: "Nietzsche", 
-            citaCompleta: "Jainkoa hil da.", 
-            citaInicio: "Jainkoa...", citaFin: "hil da",
-            disertacion: "**Existentzialismoa edo Balioak** gaietan erabili. Jarrera: Balio absolutu tradizionalen amaierak gizakia bere zentzua eta moralitatea hartzera behartzen du." 
-        },
-        {   id: 4, autor: "Aristoteles", 
-            citaCompleta: "Gizakia animalia politikoa da.", 
-            citaInicio: "Gizakia animalia...", citaFin: "politikoa da",
-            disertacion: "**Soziologia edo Etika** gaietan erabili. Jarrera: Gizakia komunitatean (polisean) bakarrik gara daiteke; isolamendua ez da naturala." 
-        },
-        {   id: 5, autor: "Hobbes", 
-            citaCompleta: "Homo homini lupus.", 
-            citaInicio: "Homo homini...", citaFin: "lupus",
-            disertacion: "**Filosofia Politikoa** gaietan erabili. Jarrera: Kontratu sozialaren defentsa eta botere indartsu baten beharra giza izaera egoistak sor dezakeen kaosa ekiditeko." 
-        },
-        {   id: 6, autor: "Rousseau", 
-            citaCompleta: "Gizakia libre jaiotzen da, baina leku guztietan kateatuta dago.", 
-            citaInicio: "Gizakia libre jaiotzen da, baina...", citaFin: "leku guztietan kateatuta dago",
-            disertacion: "**Askatasuna edo Hezkuntza** gaietan erabili. Jarrera: Gizarte-egiturek eta jabetza pribatuak jatorrizko askatasun naturala nola usteltzen duten kritikatzeko." 
-        },
-        {   id: 8, autor: "Marx", 
-            citaCompleta: "Erlijioa herriaren opioa da.", 
-            citaInicio: "Erlijioa herriaren...", citaFin: "opioa da",
-            disertacion: "**Materialismoa edo Kritika Soziala** gaietan erabili. Jarrera: Erlijioak klase zapalduei aldaketa errealen alde borrokatzea eragozten dien ilusiozko arintasun gisa funtzionatzen du." 
-        },
-        {   id: 9, autor: "Heraclito", 
-            citaCompleta: "Inor ez da birritan bainatzen ibai berean.", 
-            citaInicio: "Inor ez da birritan bainatzen...", citaFin: "ibai berean",
-            disertacion: "**Metafisika** gaietan erabili. Jarrera: Aldaketa da unibertsoaren konstante bakarra; errealitatea jario betea da, ez zerbait estatikoa." 
-        },
-        {   id: 10, autor: "Beauvoir", 
-            citaCompleta: "Emakume ez da jaiotzen, egin egiten da.", 
-            citaInicio: "Emakume ez da jaiotzen, egin...", citaFin: "egiten da",
-            disertacion: "**Generoa edo Existentzialismoa** gaietan erabili. Jarrera: Generoa kulturalki eta sozialki inposatutako eraikuntza da, ez halabeharrezko destino biologikoa." 
-        }
-    ];
+const allRefranes = [
+    // --- Zure lehenengo zerrenda (Hobetua) ---
+    {   id: 1, autor: "Sokrates", 
+        citaCompleta: "Bakarrik dakit ezer ez dakidala.", 
+        citaInicio: "Bakarrik dakit...", citaFin: "ezer ez dakidala",
+        disertacion: "**Epistemologia**. Humiltasun intelektuala defendatzeko erabili. Adibidez: Zientzian, hipotesi bat dogmatzat hartu beharrean, galdera berriei bidea irekitzeko jarrera gisa." 
+    },
+    {   id: 2, autor: "Descartes", 
+        citaCompleta: "Pentsatzen dut, beraz banaiz.", 
+        citaInicio: "Pentsatzen dut, beraz...", citaFin: "banaiz",
+        disertacion: "**Racionalismoa edo Identitatea**. Subjektibotasunaren sorreran erabili. Adibidez: Adimen artifizialaren garaian, gizakiak bere buruaz duen kontzientzia bereizgarri gisa kokatzeko." 
+    },
+    {   id: 3, autor: "Nietzsche", 
+        citaCompleta: "Jainkoa hil da.", 
+        citaInicio: "Jainkoa...", citaFin: "hil da",
+        disertacion: "**Existentzialismoa edo Balioak**. Nihilismoaren arriskua azaltzeko. Adibidez: Erlijioaren gainbeherak utzitako hutsunea kontsumismoak edo ideologia politikoek nola betetzen duten aztertzeko." 
+    },
+    {   id: 4, autor: "Aristoteles", 
+        citaCompleta: "Gizakia animalia politikoa da.", 
+        citaInicio: "Gizakia animalia...", citaFin: "politikoa da",
+        disertacion: "**Soziologia edo Etika**. Komunitatearen garrantzia azpimarratzeko. Adibidez: Bakartze sozialak sortzen dituen osasun mentaleko arazoak azaltzeko, elkarrekiko beharra aldarrikatuz." 
+    },
+    {   id: 5, autor: "Hobbes", 
+        citaCompleta: "Homo homini lupus.", 
+        citaInicio: "Homo homini...", citaFin: "lupus",
+        disertacion: "**Filosofia Politikoa**. Gatazka eta autoritatearen beharra azaltzeko. Adibidez: Gerra zibiletan edo estaturik gabeko gizarteetan sortzen den indarkeria kaotikoa deskribatzeko." 
+    },
+    {   id: 6, autor: "Rousseau", 
+        citaCompleta: "Gizakia libre jaiotzen da, baina leku guztietan kateatuta dago.", 
+        citaInicio: "Gizakia libre jaiotzen da, baina...", citaFin: "leku guztietan kateatuta dago",
+        disertacion: "**Askatasuna**. Gizarte-egituren kritikarako. Adibidez: Lan-merkatuaren zurruntasunak edo arau sozialek gizabanakoaren berezko sormena nola mugatzen duten salatzeko." 
+    },
+    {   id: 7, autor: "Marx", 
+        citaCompleta: "Erlijioa herriaren opioa da.", 
+        citaInicio: "Erlijioa herriaren...", citaFin: "opioa da",
+        disertacion: "**Kritika Soziala**. Alienazioa azaltzeko. Adibidez: Gaur egungo entretenimendu masiboa (sare sozialak, etab.) injustizia sozialak ahazteko tresna gisa erabili daitekeela argudiatzeko." 
+    },
+    {   id: 8, autor: "Heraklito", 
+        citaCompleta: "Inor ez da birritan bainatzen ibai berean.", 
+        citaInicio: "Inor ez da birritan bainatzen...", citaFin: "ibai berean",
+        disertacion: "**Metafisika**. Aldaketaren ontologia. Adibidez: Identitate pertsonala denboran zehar nola aldatzen den azaltzeko; gaur ez gara atzo ginen pertsona bera." 
+    },
+    {   id: 9, autor: "Beauvoir", 
+        citaCompleta: "Emakume ez da jaiotzen, egin egiten da.", 
+        citaInicio: "Emakume ez da jaiotzen, egin...", citaFin: "egiten da",
+        disertacion: "**Generoa**. Eraikuntza soziala aztertzeko. Adibidez: Genero-rolak (jostailuak, janzkera) hezkuntzaren bidez nola barneratzen diren kritikatzeko." 
+    },
+
+    // --- Zuk eskatutako berriak (Zuzenduta eta osatuta) ---
+    {   id: 10, autor: "Marx", 
+        citaCompleta: "Bakoitzari bere gaitasunaren arabera eskatu, eta bakoitzari bere beharren arabera eman.", 
+        citaInicio: "Bakoitzari bere gaitasunaren arabera eskatu, eta bakoitzari bere beharren...", citaFin: "arabera eman",
+        disertacion: "**Justizia Banatzailea**. Sistema komunista idealerako. Adibidez: Osasun sistema publikoaren defentsan; denok ordaintzen dugu ahal dugunaren arabera, eta jasotzen dugu behar dugunaren arabera." 
+    },
+    {   id: 11, autor: "Marx", 
+        citaCompleta: "Bakoitzari bere gaitasunaren arabera eskatu, eta bakoitzari bere ekarpenaren arabera eman.", 
+        citaInicio: "Bakoitzari bere gaitasunaren arabera eskatu, eta bakoitzari bere ekarpenaren...", citaFin: "arabera eman",
+        disertacion: "**Lanaren Balioa**. Trantsiziozko fase sozialista. Adibidez: Meritokraziaren kritikan edo lanaldiak eta soldatak parekatzeko eztabaidetan erabilia." 
+    },
+    {   id: 12, autor: "Kant", 
+        citaCompleta: "Ezagutza guztia esperientziarekin hasten da, baina ez dator guztia esperientziatik.", 
+        citaInicio: "Ezagutza guztia esperientziarekin hasten da, baina...", citaFin: "ez dator guztia esperientziatik",
+        disertacion: "**Kritizismoa**. Enpirismoa eta arrazionalismoa uztartzeko. Adibidez: Hizkuntzaren ikaskuntzan; kanpoko estimuluak behar ditugu, baina gure burmuinak baditu berezko egitura logikoak." 
+    },
+    {   id: 13, autor: "San Agustin", 
+        citaCompleta: "Sinisten dut ulertzeko, ulertzen dut sinisteko.", 
+        citaInicio: "Sinisten dut ulertzeko...", citaFin: "ulertzen dut sinisteko",
+        disertacion: "**Fedea eta Arrazoia**. Erlijioaren eta logikaren arteko elkarrizketa. Adibidez: Munduaren jatorria azaltzeko orduan, barne-konbikzioa eta analisi arrazionala osagarri bezala aurkezteko." 
+    },
+
+    // --- 50 Gehigarri berri ---
+    {   id: 14, autor: "Platon", 
+        citaCompleta: "Behartutako ikaskuntzak ez du sustrai sakonik egiten adimenean.", 
+        citaInicio: "Behartutako ikaskuntzak ez du...", citaFin: "sustrai sakonik egiten",
+        disertacion: "**Hezkuntza**. Motibazioaren garrantzia. Adibidez: Eskola sistemetan ikasleen interesa sustatzearen garrantzia, memorizazio hutsaren aurrean." 
+    },
+    {   id: 15, autor: "Makiavelo", 
+        citaCompleta: "Helburuak bitartekoak justifikatzen ditu.", 
+        citaInicio: "Helburuak bitartekoak...", citaFin: "justifikatzen ditu",
+        disertacion: "**Pragmatismo Politikoa**. Etika eta boterea. Adibidez: Krisi egoeratan gobernu batek hartzen dituen neurri gogorrak defendatzeko edo kritikatzeko." 
+    },
+    {   id: 16, autor: "Kant", 
+        citaCompleta: "Sapere Aude! Izan zaitez zeure kabuz pentsatzeko adorea.", 
+        citaInicio: "Sapere Aude! Izan zaitez...", citaFin: "pentsatzeko adorea",
+        disertacion: "**Ilustrazioa**. Autonomia intelektuala. Adibidez: Fake news-en aurrean pentsamendu kritikoa garatzearen beharra aldarrikatzeko." 
+    },
+    {   id: 17, autor: "Wittgenstein", 
+        citaCompleta: "Nire hizkuntzaren mugak nire munduaren mugak dira.", 
+        citaInicio: "Nire hizkuntzaren mugak...", citaFin: "nire munduaren mugak dira",
+        disertacion: "**Hizkuntzaren Filosofia**. Munduaren pertzepzioa. Adibidez: Hizkuntza bat hiltzen denean, mundua ikusteko modu bat ere desagertzen dela azaltzeko." 
+    },
+    {   id: 18, autor: "Arendt", 
+        citaCompleta: "Gaizkiaren hutsaltasuna.", 
+        citaInicio: "Gaizkiaren...", citaFin: "hutsaltasuna",
+        disertacion: "**Etika Politikoa**. Erantzukizun pertsonala. Adibidez: Bulekari batek ekintza ikaragarriak aginduak betetzeagatik soilik egiten dituenean, pentsamendu kritikorik gabe." 
+    },
+    {   id: 19, autor: "Sartre", 
+        citaCompleta: "Gizakia aske izatera kondenatua dago.", 
+        citaInicio: "Gizakia aske izatera...", citaFin: "kondenatua dago",
+        disertacion: "**Existentzialismoa**. Erabateko ardura. Adibidez: Gure bizitzako hautuen errua ziriari edo patuari bota ezin diogula azaltzeko." 
+    },
+    {   id: 20, autor: "Hume", 
+        citaCompleta: "Arrazoia pasioen esklabo da.", 
+        citaInicio: "Arrazoia pasioen...", citaFin: "esklabo da",
+        disertacion: "**Emotibismoa**. Erabakiak hartzeko prozesua. Adibidez: Erosketa bultzadak nola justifikatzen ditugun logikarekin, nahiz eta emozioak agindu." 
+    },
+    {   id: 21, autor: "Pascale", 
+        citaCompleta: "Bihotzak baditu arrazoiak, arrazoiak ezagutzen ez dituenak.", 
+        citaInicio: "Bihotzak baditu arrazoiak...", citaFin: "ezagutzen ez dituenak",
+        disertacion: "**Sentimenduak**. Intuizioaren balioa. Adibidez: Maitasuna edo dolu prozesuak logikaren bidez ezin direla osotasunean azaldu argudiatzeko." 
+    },
+    {   id: 22, autor: "Foucault", 
+        citaCompleta: "Ezagutza boterea da.", 
+        citaInicio: "Ezagutza...", citaFin: "boterea da",
+        disertacion: "**Soziologia**. Informazioaren kontrola. Adibidez: Algoritmoek gure datuak dituztenean, gure portaerak kontrolatzeko duten gaitasuna azaltzeko." 
+    },
+    {   id: 23, autor: "Spinoza", 
+        citaCompleta: "Ez barre egin, ez negar egin, ulertu baizik.", 
+        citaInicio: "Ez barre egin, ez negar egin...", citaFin: "ulertu baizik",
+        disertacion: "**Objektibotasuna**. Analisi hotza. Adibidez: Gatazka politiko baten aurrean alderdirik ez hartzea, bere kausa sakonak aztertu arte." 
+    },
+    {   id: 24, autor: "Epikuro", 
+        citaCompleta: "Heriotza ez da ezer guretzat: gu gaudenean bera ez dagoelako, eta bera datorrenean gu ez gaudelako.", 
+        citaInicio: "Heriotza ez da ezer...", citaFin: "gu ez gaudelako",
+        disertacion: "**Etika**. Beldurraren gainditzea. Adibidez: Heriotzari diogun antsietatea lasaitzeko eta bizitzaz gozatzean zentratzeko." 
+    },
+    {   id: 25, autor: "Kierkegaard", 
+        citaCompleta: "Bizitza atzera begira ulertzen da, baina aurrera begira bizi behar da.", 
+        citaInicio: "Bizitza atzera begira...", citaFin: "aurrera begira bizi behar da",
+        disertacion: "**Existentzialismoa**. Denbora eta ekintza. Adibidez: Erabakiak hartzearen ziurgabetasuna onartzea, ondorioak geroago ikusiko ditugula jakinez." 
+    },
+    {   id: 26, autor: "Schopenhauer", 
+        citaCompleta: "Bizitza pendulua bezalakoa da, oinazearen eta aspertasunaren artean dabilena.", 
+        citaInicio: "Bizitza pendulua...", citaFin: "aspertasunaren artean dabilena",
+        disertacion: "**Ezkorra**. Nahiaren frustrazioa. Adibidez: Behin nahi dugun hori lortuta, berehala beste zerbaitekin aspertzen garela azaltzeko." 
+    },
+    {   id: 27, autor: "Sartre", 
+        citaCompleta: "Infernua besteak dira.", 
+        citaInicio: "Infernua...", citaFin: "besteak dira",
+        disertacion: "**Gizarte Harremanak**. Besteen begirada. Adibidez: Besteek guri buruz duten iritziak gure askatasuna eta identitatea nola baldintzatzen dituen azaltzeko." 
+    },
+    {   id: 29, autor: "Tales", 
+        citaCompleta: "Guztiaren hasiera ura da.", 
+        citaInicio: "Guztiaren hasiera...", citaFin: "ura da",
+        disertacion: "**Presokratikoak**. Monismoa. Adibidez: Munduko elementu konplexu guztiak oinarrizko substantzia bakarrera murrizteko lehen saiakera zientifiko gisa." 
+    },
+    {   id: 30, autor: "Kant", 
+        citaCompleta: "Zure ekintzen maxima lege unibertsal bihur dadila nahi izateko moduan jokatu.", 
+        citaInicio: "Zure ekintzen maxima...", citaFin: "biur dadila nahi izateko moduan jokatu",
+        disertacion: "**Inperatibo Kategorikoa**. Morala. Adibidez: Zerbait egin aurretik (adibidez, gezurra esan), pentsatzea: 'Nahi nuke mundu guztiak beti gezurra esatea?'" 
+    },
+    {   id: 31, autor: "Camus", 
+        citaCompleta: "Arazo filosofiko benetan serio bakarra dago: suizidioa.", 
+        citaInicio: "Arazo filosofiko...", citaFin: "suizidioa",
+        disertacion: "**Absurdoa**. Bizitzaren zentzua. Adibidez: Munduak zentzurik ez duela onartu ondoren, bizitzeak merezi duen ala ez erabakitzea." 
+    },
+    {   id: 32, autor: "Ortega y Gasset", 
+        citaCompleta: "Ni nire ni-a naiz eta nire zirkunstantzia.", 
+        citaInicio: "Ni nire ni-a naiz...", citaFin: "nire zirkunstantzia",
+        disertacion: "**Perspektibismoa**. Testuingurua. Adibidez: Pertsona bat ezin dela bere garaitik, familiatik eta ingurunetik kanpo ulertu defendatzeko." 
+    },
+    {   id: 33, autor: "Seneca", 
+        citaCompleta: "Ez dugu bizitza laburra, denbora asko galtzen dugu baizik.", 
+        citaInicio: "Ez dugu bizitza laburra...", citaFin: "denbora asko galtzen dugu baizik",
+        disertacion: "**Estoizismoa**. Denboraren kudeaketa. Adibidez: Produktibitate hutsalaren aurrean, gure bizitzari benetako zentzua ematen dioten gauzei lehentasuna emateko." 
+    },
+    {   id: 34, autor: "Bacon", 
+        citaCompleta: "Natura menderatzeko, obeditu egin behar zaio.", 
+        citaInicio: "Natura menderatzeko...", citaFin: "obeditu egin behar zaio",
+        disertacion: "**Enpirismoa**. Zientziaren metodoa. Adibidez: Ingeniaritzan; grabitatearen legeak errespetatu behar dira hegazkin bat hegan jartzeko." 
+    },
+    {   id: 35, autor: "Adorno", 
+        citaCompleta: "Auschwitz ondoren poesia idaztea barbaria da.", 
+        citaInicio: "Auschwitz ondoren...", citaFin: "barbaria da",
+        disertacion: "**Kritika**. Artea eta trauma. Adibidez: Ikaragarrizko sufrimendu baten ondoren, estetika hutsak bere zentzua nola galtzen duen azaltzeko." 
+    },
+    {   id: 36, autor: "Heidegger", 
+        citaCompleta: "Hizkuntza izatearen etxea da.", 
+        citaInicio: "Hizkuntza...", citaFin: "izatearen etxea da",
+        disertacion: "**Ontologia**. Gizakia eta hitza. Adibidez: Gure pentsamenduak eta gure 'izatea' soilik hizkuntzak eskaintzen dizkigun tresnen bidez existitzen direla azaltzeko." 
+    },
+    {   id: 37, autor: "Unamuno", 
+        citaCompleta: "Sentitzea da pentsatzea.", 
+        citaInicio: "Sentitzea da...", citaFin: "pentsatzea",
+        disertacion: "**Existentzialismoa**. Emozioen garrantzia. Adibidez: Ideia intelektual hotzen aurrean, barruko grinak eta kezkak direla bizitzaren motorra aldarrikatzeko." 
+    },
+    {   id: 38, autor: "Locke", 
+        citaCompleta: "Gogoa jaiotzean tabula rasa bat da.", 
+        citaInicio: "Gogoa jaiotzean...", citaFin: "tabula rasa bat da",
+        disertacion: "**Enpirismoa**. Hezkuntza. Adibidez: Ez garela ideia jaiotzetikoekin jaiotzen, esperientziak eta inguruneak formatzen gaituztela esateko." 
+    },
+    {   id: 39, autor: "Hegel", 
+        citaCompleta: "Egiazkoa dena osoa da.", 
+        citaInicio: "Egiazkoa dena...", citaFin: "osoa da",
+        disertacion: "**Dialektika**. Holismoa. Adibidez: Gertaera bat isolatuta aztertu beharrean, bere historia eta harreman guztiak kontuan hartu behar direla azaltzeko." 
+    },
+    {   id: 41, autor: "Butler", 
+        citaCompleta: "Generoa performatiboa da.", 
+        citaInicio: "Generoa...", citaFin: "performatiboa da",
+        disertacion: "**Feminismoa**. Identitatea. Adibidez: Emakume edo gizon izatea eguneroko ekintzen eta keinuen bidez 'antzezten' dugula azaltzeko." 
+    },
+    {   id: 43, autor: "Averroes", 
+        citaCompleta: "Inolako doktrinak ez du egiaren monopolioa.", 
+        citaInicio: "Inolako doktrinak ez du...", citaFin: "egiaren monopolioa",
+        disertacion: "**Tolerantzia**. Pluralismoa. Adibidez: Erlijio edo ideologia desberdinen arteko elkarrizketa sustatzeko." 
+    },
+    {   id: 44, autor: "Hipatia", 
+        citaCompleta: "Zure pentsatzeko eskubidea gorde ezazu, oker pentsatzea ere ez pentsatzea baino hobea baita.", 
+        citaInicio: "Zure pentsatzeko eskubidea...", citaFin: "ez pentsatzea baino hobea baita",
+        disertacion: "**Askatasun Intelektuala**. Autonomia. Adibidez: Zentsuraren aurka eta akatsak egitearen beldurraren aurka borrokatzeko." 
+    },
+    {   id: 45, autor: "Montaigne", 
+        citaCompleta: "Zer dakit nik?", 
+        citaInicio: "Zer dakit...", citaFin: "nik?",
+        disertacion: "**Eszeptizismoa**. Dogmatismoaren kontra. Adibidez: Edozein ziurtasun absoluturen aurrean zalantza osasuntsu bat mantentzeko." 
+    },
+    {   id: 46, autor: "Voltaire", 
+        citaCompleta: "Idazten duzunaren aurka nago, baina nire bizitza emango nuke idazteko duzun eskubidea defendatzeko.", 
+        citaInicio: "Idazten duzunaren aurka nago...", citaFin: "eskubidea defendatzeko",
+        disertacion: "**Adierazpen Askatasuna**. Demokrazia. Adibidez: Iritzi desberdinak entzuteko beharra, ados egon ez arren." 
+    },
+    {   id: 49, autor: "Popper", 
+        citaCompleta: "Falsagarria ez den teoria bat ez da zientifikoa.", 
+        citaInicio: "Falsagarria ez den teoria bat...", citaFin: "ez da zientifikoa",
+        disertacion: "**Zientziaren Filosofia**. Metodoa. Adibidez: Astrologiaren kritikarako; ezin denez frogatu oker dagoela, ez da zientzia." 
+    },
+    {   id: 50, autor: "Bauman", 
+        citaCompleta: "Mundu likido batean bizi gara.", 
+        citaInicio: "Mundu likido...", citaFin: "batean bizi gara",
+        disertacion: "**Soziologia**. Modernitate berantiarra. Adibidez: Harremanak, lana eta identitatea gaur egun nola diren hauskorrak eta ez-egonkorrak azaltzeko." 
+    },
+    {   id: 53, autor: "Mill", 
+        citaCompleta: "Hobe da Sokrates asegabe bat izatea, txerri ase bat baino.", 
+        citaInicio: "Hobe da Sokrates...", citaFin: "txerri ase bat baino",
+        disertacion: "**Utilitarismoa**. Kalitatea vs Kantitatea. Adibidez: Plazer fisiko hutsak baino, intelektualak eta moralak hobestea, nahiz eta sakrifizioa eskatu." 
+    },
+    {   id: 57, autor: "Arendt", 
+        citaCompleta: "Eskubideak izateko eskubidea.", 
+        citaInicio: "Eskubideak izateko...", citaFin: "eskubidea",
+        disertacion: "**Politika**. Herritartasuna. Adibidez: Errefuxiatuen egoera azaltzeko; estatu bateko kide ez zarenean, oinarrizko giza eskubideak ere arriskuan daude." 
+    },
+    {   id: 58, autor: "Sampedro", 
+        citaCompleta: "Beharrezkoa da gure kabuz pentsatzea, ez digutela pentsarazi.", 
+        citaInicio: "Beharrezkoa da...", citaFin: "ez digutela pentsarazi",
+        disertacion: "**Kritika**. Publizitatea eta propaganda. Adibidez: Masen manipulazioaren aurrean gizabanakoaren independentzia defendatzeko." 
+    },
+    {   id: 59, autor: "Anaximandro", 
+        citaCompleta: "Guztiaren hasiera Apeiron (mugagabea) da.", 
+        citaInicio: "Guztiaren hasiera...", citaFin: "Apeiron da",
+        disertacion: "**Metafisika**. Abstrakzioa. Adibidez: Materiaren jatorria elementu fisiko bat (ura, airea) baino zerbait abstraktuagoa dela dioen lehen teoria." 
+    },
+    {   id: 60, autor: "Diogenes", 
+        citaCompleta: "Kendu zaitez paretik, eguzkia estaltzen didazu eta.", 
+        citaInicio: "Kendu zaitez...", citaFin: "eguzkia estaltzen didazu eta",
+        disertacion: "**Zinismoa**. Boterearekiko mespretxua. Adibidez: Botere politikoak edo diruak ematen ez dituen benetako ondasun naturalen balioa aldarrikatzeko." 
+    },
+    {   id: 61, autor: "García Calvo", 
+        citaCompleta: "Herria diotenean, Estatua esan nahi dute.", 
+        citaInicio: "Herria diotenean...", citaFin: "Estatua esan nahi dute",
+        disertacion: "**Hizkuntza eta Politika**. Manipulazioa. Adibidez: Termino politikoen erabilera interesatua salatzeko." 
+    },
+    {   id: 62, autor: "Leibniz", 
+        citaCompleta: "Hau da mundu posible guztien artean onena.", 
+        citaInicio: "Hau da mundu posible...", citaFin: "artean onena",
+        disertacion: "**Teodizea**. Baikortasun metafisikoa. Adibidez: Gaitzaren existentzia munduaren oreka orokor baten barruan nola uler daitekeen azaltzeko." 
+    },
+    {   id: 63, autor: "Nozick", 
+        citaCompleta: "Zerga ordaintzea behartutako lana da.", 
+        citaInicio: "Zerga ordaintzea...", citaFin: "behartutako lana da",
+        disertacion: "**Libertarismoa**. Jabetza. Adibidez: Estatuaren esku-hartzearen aurkako eta jabetza pribatuaren defentsa muturrekoaren aldeko argumentuetan." 
+    }
+];
 
     let gameMode = "autor"; 
     let currentGameList = [];
