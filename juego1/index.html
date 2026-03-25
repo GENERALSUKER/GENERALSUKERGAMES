@@ -271,7 +271,6 @@
         margin: 20px auto;
         max-height: 400px;
     }
-}
 /* Añade esto a tu bloque <style> */
 #lista-ranking li div {
     display: flex;
@@ -340,6 +339,10 @@
             🏛️ ESCUDOS PRO
             <div id="best-pack_escudos" class="best-player">Cargando...</div>
         </button>
+        <button class="btn-start" onclick="seleccionarPack('pack_mundo')">
+    🌍 WORLD REGIONS
+    <div id="best-pack_mundo" class="best-player">Cargando...</div>
+</button>
     </div>
 </div>
 
@@ -452,6 +455,21 @@ async function seleccionarPack(nombreDelPack) {
     if (packs[nombreDelPack]) {
         packActual = nombreDelPack;
         startGame(nombreDelPack);
+    }
+    // NUEVO CASO: MUNDO REGIONES
+    if (nombreDelPack === 'pack_mundo') {
+        if (btn) btn.innerHTML = "🌀 EXPLORANDO EL MUNDO... <div class='best-player'>Buscando regiones > 500K</div>";
+        const nuevoPack = await generarPackBanderasMundoPro(); 
+        
+        if (nuevoPack && nuevoPack.length >= 10) {
+            packs['pack_mundo'] = nuevoPack;
+            packActual = 'pack_mundo';
+            startGame('pack_mundo');
+        } else {
+            alert("Error al conectar con Wikidata. Reintenta.");
+            if (btn) btn.innerHTML = "🌍 WORLD REGIONS <div class='best-player'>Error de conexión</div>";
+        }
+        return;
     }
 }
 
@@ -614,6 +632,88 @@ async function generarPackEscudosPro() {
         return [];
     }
 }
+async function generarPackBanderasMundoPro() {
+    // Consulta para regiones del mundo (segundo nivel administrativo) con población > 500k
+    // P41 es bandera, Q10864048 es entidad administrativa de segundo nivel
+    const sparql = `SELECT DISTINCT ?itemLabel ?bandera ?paisLabel WHERE {
+      ?item wdt:P31/wdt:P279* wd:Q10864048 ; 
+            wdt:P1082 ?pob ;
+            wdt:P17 ?pais ;
+            wdt:P41 ?bandera . 
+      FILTER(?pob > 500000) 
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "es". }
+    } LIMIT 1000`; 
+
+    const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
+
+    try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+        if (!res.ok) throw new Error("Error en Wikidata");
+        
+        const data = await res.json();
+        let poolCompleto = [];
+        const nombresVistos = new Set();
+
+        for (let b of data.results.bindings) {
+            let nombre = b.itemLabel.value;
+            let pais = b.paisLabel.value;
+            let img = b.bandera ? b.bandera.value.replace("http://", "https://") : null;
+
+            // Evitamos códigos Q y duplicados
+            if (!nombre.startsWith("Q") && !nombresVistos.has(nombre) && img) {
+                nombresVistos.add(nombre);
+                poolCompleto.push({ nombre, img, pais });
+            }
+        }
+
+        // Mezclamos el pool global
+        poolCompleto.sort(() => Math.random() - 0.5);
+
+        // Tomamos una base para las 25 preguntas
+        const candidatos = poolCompleto.slice(0, 100); // Cogemos un margen amplio para filtrar calidad
+        let preguntasReales = [];
+        
+        for (let municipio of candidatos) {
+            if (preguntasReales.length >= 25) break;
+
+            // Intentamos buscar distractores del mismo PAÍS
+            let delMismoPais = poolCompleto
+                .filter(m => m.pais === municipio.pais && m.nombre !== municipio.nombre)
+                .map(m => m.nombre);
+            
+            let opcionesFalsas = [];
+            if (delMismoPais.length >= 3) {
+                // Caso ideal: Mismo país
+                delMismoPais.sort(() => Math.random() - 0.5);
+                opcionesFalsas = delMismoPais.slice(0, 3);
+            } else {
+                // Caso fallback: Si no hay 3 del mismo país, rellenamos con el resto del mundo
+                let relleno = poolCompleto
+                    .filter(m => m.pais !== municipio.pais && m.nombre !== municipio.nombre)
+                    .map(m => m.nombre);
+                relleno.sort(() => Math.random() - 0.5);
+                opcionesFalsas = [...delMismoPais, ...relleno].slice(0, 3);
+            }
+            
+            let opciones = [municipio.nombre, ...opcionesFalsas];
+            opciones.sort(() => Math.random() - 0.5);
+
+            preguntasReales.push({
+                img: municipio.img + "?width=500",
+                nombreCorrecto: municipio.nombre,
+                pista: `Región de ${municipio.pais}`, // Por si quieres mostrar de dónde es
+                opciones: opciones,
+                correcta: opciones.indexOf(municipio.nombre)
+            });
+        }
+
+        return preguntasReales;
+
+    } catch (e) {
+        console.error("Fallo:", e);
+        return [];
+    }
+}
 // --- MOTOR DEL JUEGO ---
 function startGame(packElegido) {
     document.getElementById('start-screen').classList.remove('active');
@@ -743,7 +843,7 @@ async function mostrarRankingActualizado(nombrePack) {
 }
 
 async function cargarMejoresPorCategoria() {
-    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6', 'pack_espana_top','pack_escudos'];
+    const packsArray = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5', 'pack6', 'pack_espana_top','pack_escudos','pack_mundo'];
     for (const packKey of packsArray) {
         const { data } = await _supabase
             .from('ranking')
