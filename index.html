@@ -258,32 +258,47 @@ body {
         </div>
     </div>
 </div>
-    <h1>Selecciona un Juego</h1>
+<h1>Selecciona un Juego</h1>
 
     <div class="carousel-view">
         <button class="nav-btn prev" onclick="moveCarousel(-1)">&#10094;</button>
         <button class="nav-btn next" onclick="moveCarousel(1)">&#10095;</button>
-        
+
         <div class="cards-container" id="carousel">
-            <div class="card-item cat-edu">
+            
+            <div class="card-item cat-politica">
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=500&auto=format&fit=crop" alt="Feedback">
+                        <h3>¿QUÉ FALTA AQUÍ?</h3>
+                    </div>
+                    <div class="card-face card-back" style="display: flex; flex-direction: column; justify-content: center; padding: 20px;">
+                        <h4>TU IDEA</h4>
+                        <p>Escribe qué juego o temática te gustaría que añadiera al portal.</p>
+                        <textarea id="userSuggestion" placeholder="Ej: Un juego sobre..." 
+                            style="width: 95%; height: 80px; background: rgba(0,0,0,0.3); border: 1px solid var(--accent); border-radius: 10px; color: white; padding: 10px; margin-bottom: 10px; font-family: inherit; resize: none;"></textarea>
+                        <button onclick="enviarSugerencia()" id="btnEnviar" class="btn-play" style="cursor: pointer; border: 2px solid var(--accent);">ENVIAR</button>
+                        <div id="statusSugerencia" style="margin-top: 10px; font-size: 0.8rem; text-align: center;"></div>
+                    </div>
+                </div>
+            </div> <div class="card-item cat-edu">
                 <div class="card-inner">
                     <div class="card-face card-front">
                         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB3m00ddORfLFecgdm0fmoHaMgbKB04-AJdrNB2cgBM0-P9Kz0fRhJMKFpNw&s" alt="Geo" loading="lazy">
                         <h3>GEOGRAFÍA</h3>
                     </div>
                     <div class="card-face card-back">
-<h4>Geografía Visual</h4>
-<p>Pon a prueba tus reflejos y tu memoria visual identificando emblemas en tiempo récord.</p>
-    <ul>
-        <li><strong>Vuelta al mundo:</strong> Las banderas de diversos países, desde las más icónicas hasta las más remotas.</li>
-        <li><strong>Heráldica avanzada:</strong> Escudos históricos, blasones reales y simbología de estado.</li>
-        <li><strong>Especial Euskadi:</strong> Un recorrido detallado por la identidad de nuestras provincias y municipios.</li>
-        <li><strong>Modo Competición:</strong> Supera tus propios límites y escala en el ranking global.</li>
-    </ul>
+                        <h4>Geografía Visual</h4>
+                        <p>Pon a prueba tus reflejos e identificando emblemas.</p>
+                        <ul>
+                            <li><strong>Vuelta al mundo:</strong> Banderas de diversos países.</li>
+                            <li><strong>Modo Competición:</strong> Escala en el ranking.</li>
+                        </ul>
                         <a href="./juego1/" class="btn-play">JUGAR</a>
                     </div>
                 </div>
             </div>
+
 <div class="card-item cat-edu">
     <div class="card-inner">
         <div class="card-face card-front">
@@ -524,7 +539,6 @@ body {
         </div>
     </div>
 </div>
-
 <div class="card-item cat-politica">
     <div class="card-inner">
         <div class="card-face card-front">
@@ -544,7 +558,8 @@ body {
     </div>
 </div>
 
-</div> </div> <script>
+
+ </div><script>
     const carousel = document.getElementById('carousel');
     
     function moveCarousel(direction) {
@@ -632,7 +647,45 @@ body {
             }
         }
     }
+async function enviarSugerencia() {
+    const textarea = document.getElementById('userSuggestion');
+    const btn = document.getElementById('btnEnviar');
+    const status = document.getElementById('statusSugerencia');
+    const idea = textarea.value.trim();
 
+    if (idea === "") {
+        status.innerText = "¡Escribe algo primero! ✍️";
+        status.style.color = "var(--color-historia)";
+        return;
+    }
+
+    btn.innerText = "ENVIANDO...";
+    btn.disabled = true;
+
+    const { error } = await _supabase
+        .from('sugerencias')
+        .insert([{ texto: idea }]);
+
+    if (error) {
+        status.innerText = "Error al enviar ❌";
+        status.style.color = "var(--color-historia)";
+        btn.disabled = false;
+        btn.innerText = "REINTENTAR";
+    } else {
+        status.innerText = "¡Idea enviada con éxito! 🚀";
+        status.style.color = "var(--color-edu)";
+        textarea.value = "";
+        btn.style.display = "none"; // Ocultamos el botón tras el éxito
+        
+        // Opcional: Volver a mostrar el botón tras unos segundos
+        setTimeout(() => {
+            status.innerText = "";
+            btn.style.display = "block";
+            btn.innerText = "ENVIAR OTRA";
+            btn.disabled = false;
+        }, 5000);
+    }
+}
     btnClose.onclick = () => modal.style.display = 'none';
     window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; }
 </script>
