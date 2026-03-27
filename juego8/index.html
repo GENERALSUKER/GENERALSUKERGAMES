@@ -106,8 +106,8 @@
         <h1>EXPEDIENTES PROHIBIDOS</h1>
         <p>Identifica a 30 objetivos de la historia.</p>
         <p>Tienes 20 segundos y 5 vidas.</p>
-        <button onclick="comenzarJuego(false)">ABRIR ARCHIVOS</button><br>
-        <button onclick="comenzarJuego(true)">MODO ESPAÑA</button>
+<button onclick="comenzarJuego(false, event)">ABRIR ARCHIVOS</button><br>
+<button onclick="comenzarJuego(true, event)">MODO ESPAÑA</button>
     </div>
 
     <div id="pantalla-juego" class="pantalla">
@@ -210,71 +210,46 @@ function shuffle(array) {
 
 async function comenzarJuego(esEspana, event) {
     if (event) {
-        event.currentTarget.innerText = "ACCEDIENDO A ARCHIVOS...";
-        event.currentTarget.disabled = true;
+        event.preventDefault();
+        const btn = event.currentTarget;
+        btn.innerText = "CARGANDO EXPEDIENTES...";
+        btn.disabled = true;
     }
 
-    if (esEspana) {
-        // Consulta optimizada: Nacionalidad Española, Nacidos > 1850, ordenados por relevancia
-        const sparql = `
-            SELECT DISTINCT ?name ?img ?desc ?sitelinks WHERE {
-              ?item wdt:P31 wd:Q5;         # Es humano
-                    wdt:P27 wd:Q29;        # Nacionalidad España
-                    wdt:P18 ?img;          # Tiene imagen
-                    wdt:P569 ?fecha;       # Tiene fecha de nacimiento
-                    wikibase:sitelinks ?sitelinks. # Contador de Wikipedia links
-              
-              FILTER(?fecha >= "1850-01-01T00:00:00Z"^^xsd:dateTime)
-              
-              # Filtro de ocupaciones relevantes (Políticos, Actores, Futbolistas, Escritores, etc.)
-              ?item wdt:P106 ?occ.
-              VALUES ?occ { 
-                wd:Q6197 wd:Q33999 wd:Q82955 wd:Q177220 wd:Q1028181 
-                wd:Q36180 wd:Q483501 wd:Q21447329 wd:Q13590141 
-              }
+    // Limpiar estados previos por si acaso
+    indice = 0;
+    aciertos = 0;
+    vidas = 5;
 
-              SERVICE wikibase:label { 
-                bd:serviceParam wikibase:language "es". 
-                ?item rdfs:label ?name. 
-                ?item schema:description ?desc. 
-              }
-            } 
-            ORDER BY DESC(?sitelinks) 
-            LIMIT 100`; // Traemos los 100 más famosos para luego barajar
+    if (esEspana) {
+        const sparql = `SELECT DISTINCT ?name ?img ?desc ?sitelinks WHERE {
+            ?item wdt:P31 wd:Q5; wdt:P27 wd:Q29; wdt:P18 ?img; wdt:P569 ?fecha; wikibase:sitelinks ?sitelinks.
+            FILTER(?fecha >= "1850-01-01T00:00:00Z"^^xsd:dateTime)
+            ?item wdt:P106 ?occ.
+            VALUES ?occ { wd:Q6197 wd:Q33999 wd:Q82955 wd:Q177220 wd:Q1028181 wd:Q36180 wd:Q483501 wd:Q21447329 wd:Q13590141 }
+            SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name. ?item schema:description ?desc. }
+        } ORDER BY DESC(?sitelinks) LIMIT 100`;
         
         try {
             const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
-            
             let temp = data.results.bindings.map(p => ({
                 n: p.name.value,
                 u: p.img.value.replace("http://", "https://"),
-                d: p.desc ? p.desc.value : "Figura histórica o pública de España."
+                d: p.desc ? p.desc.value : "Figura pública de España."
             }));
-
-            if (temp.length === 0) throw new Error("Sin resultados");
-            
-            // Barajamos los 100 más famosos y tomamos 30 para la partida
             partida = shuffle(temp).slice(0, 30);
-            
         } catch (e) {
-            console.error("Error en Wikidata:", e);
             partida = shuffle([...poolOriginal]).slice(0, 30);
         }
     } else {
         partida = shuffle([...poolOriginal]).slice(0, 30);
     }
 
-    // Transición de pantalla
+    // Reset visual y cambio de pantalla
     document.getElementById('pantalla-inicio').classList.remove('activa');
     document.getElementById('pantalla-juego').classList.add('activa');
-    
-    // Reset de estado
-    aciertos = 0; 
-    vidas = 5; 
-    indice = 0;
-    
     document.getElementById('num-aciertos').innerText = "0";
     actualizarVidas();
     mostrar();
@@ -312,27 +287,37 @@ function comprobar() {
     let user = input.value.trim();
     let target = partida[indice].n;
     
-    document.getElementById('zona-input').style.display = "none";
-    document.getElementById('feedback-area').style.display = "block";
+    const feedbackArea = document.getElementById('feedback-area');
+    const zonaInput = document.getElementById('zona-input');
+    const mensaje = document.getElementById('mensaje');
+    const historia = document.getElementById('historia');
+    const btnSiguiente = document.getElementById('btn-siguiente');
 
+    zonaInput.style.display = "none";
+    feedbackArea.style.display = "block";
+
+    // Lógica de acierto/error
     if (user !== "" && similitud(user, target) > 0.82) {
         aciertos++;
         document.getElementById('num-aciertos').innerText = aciertos;
-        document.getElementById('mensaje').innerText = "IDENTIFICADO: " + target;
-        document.getElementById('mensaje').style.color = "#006600";
+        mensaje.innerText = "IDENTIFICADO: " + target;
+        mensaje.style.color = "#006600";
     } else {
         vidas--;
         actualizarVidas();
-        document.getElementById('mensaje').innerText = (tiempoRestante <= 0) ? "TIEMPO AGOTADO: " + target : "ERROR: " + target;
-        document.getElementById('mensaje').style.color = "#990000";
+        mensaje.innerText = (tiempoRestante <= 0) ? "TIEMPO AGOTADO: " + target : "ERROR: " + target;
+        mensaje.style.color = "#990000";
     }
     
-    document.getElementById('historia').innerText = partida[indice].d;
+    historia.innerText = partida[indice].d;
     
-    if (vidas > 0 && aciertos < 30) {
-        document.getElementById('btn-siguiente').style.display = "inline-block";
+    // CONTROL DE FLUJO: Aquí evitamos que se solapen
+    if (vidas > 0 && aciertos < 30 && (indice + 1) < partida.length) {
+        btnSiguiente.style.display = "inline-block";
     } else {
-        setTimeout(finalizar, 2000);
+        btnSiguiente.style.display = "none";
+        // Esperamos un poco para que el usuario vea el último error/acierto antes de morir
+        setTimeout(finalizar, 2500);
     }
 }
 
