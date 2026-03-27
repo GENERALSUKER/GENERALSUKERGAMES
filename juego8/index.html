@@ -97,18 +97,34 @@
             letter-spacing: 3px;
             color: rgba(0,0,0,0.5);
         }
+    /* Spinner de carga estilo terminal */
+.loader {
+    border: 4px solid rgba(0,0,0,0.1);
+    border-left-color: var(--rojo);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none;
+    margin: 20px auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
 
 <div id="contenedor">
-    <div id="pantalla-inicio" class="pantalla activa">
-        <h1>EXPEDIENTES PROHIBIDOS</h1>
-        <p>Identifica a 30 objetivos de la historia.</p>
-        <p>Tienes 20 segundos y 5 vidas.</p>
-<button onclick="comenzarJuego(false, event)">ABRIR ARCHIVOS</button><br>
-<button onclick="comenzarJuego(true, event)">MODO ESPAÑA</button>
+<div id="pantalla-inicio" class="pantalla activa">
+    <h1>EXPEDIENTES PROHIBIDOS</h1>
+    <p>Identifica a 30 objetivos de la historia.</p>
+    <div id="loader-inicio" class="loader"></div> <div id="controles-inicio">
+        <button onclick="comenzarJuego(false, event)">ABRIR ARCHIVOS</button><br>
+        <button onclick="comenzarJuego(true, event)">MODO ESPAÑA</button>
     </div>
+</div>
 
     <div id="pantalla-juego" class="pantalla">
         <div id="corazones"></div>
@@ -209,17 +225,19 @@ function shuffle(array) {
 }
 
 async function comenzarJuego(esEspana, event) {
-    if (event) {
-        event.preventDefault();
-        const btn = event.currentTarget;
-        btn.innerText = "CARGANDO EXPEDIENTES...";
-        btn.disabled = true;
-    }
+    // 1. Bloquear UI y mostrar carga
+    const btnContainer = document.getElementById('controles-inicio');
+    const loader = document.getElementById('loader-inicio');
+    
+    btnContainer.style.display = 'none';
+    loader.style.display = 'block';
 
-    // Limpiar estados previos por si acaso
+    // 2. Limpiar variables globales para evitar solapamientos
     indice = 0;
     aciertos = 0;
     vidas = 5;
+    partida = [];
+    clearInterval(timer);
 
     if (esEspana) {
         const sparql = `SELECT DISTINCT ?name ?img ?desc ?sitelinks WHERE {
@@ -228,7 +246,7 @@ async function comenzarJuego(esEspana, event) {
             ?item wdt:P106 ?occ.
             VALUES ?occ { wd:Q6197 wd:Q33999 wd:Q82955 wd:Q177220 wd:Q1028181 wd:Q36180 wd:Q483501 wd:Q21447329 wd:Q13590141 }
             SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name. ?item schema:description ?desc. }
-        } ORDER BY DESC(?sitelinks) LIMIT 100`;
+        } ORDER BY DESC(?sitelinks) LIMIT 80`;
         
         try {
             const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
@@ -241,20 +259,43 @@ async function comenzarJuego(esEspana, event) {
             }));
             partida = shuffle(temp).slice(0, 30);
         } catch (e) {
+            console.error("Fallo de red, usando pool local");
             partida = shuffle([...poolOriginal]).slice(0, 30);
         }
     } else {
         partida = shuffle([...poolOriginal]).slice(0, 30);
     }
 
-    // Reset visual y cambio de pantalla
+    // 3. Resetear la interfaz del juego ANTES de mostrarlo
+    document.getElementById('feedback-area').style.display = "none";
+    document.getElementById('zona-input').style.display = "block";
+    document.getElementById('num-aciertos').innerText = "0";
+    
+    // 4. Cambiar de pantalla
+    loader.style.display = 'none';
+    btnContainer.style.display = 'block'; // Lo dejamos listo para la próxima vez
     document.getElementById('pantalla-inicio').classList.remove('activa');
     document.getElementById('pantalla-juego').classList.add('activa');
-    document.getElementById('num-aciertos').innerText = "0";
+    
     actualizarVidas();
     mostrar();
 }
 
+function mostrar() {
+    // Limpieza total antes de pintar el nuevo personaje
+    document.getElementById('zona-input').style.display = "block";
+    document.getElementById('feedback-area').style.display = "none";
+    document.getElementById('btn-siguiente').style.display = "none";
+    document.getElementById('respuesta-user').value = "";
+    
+    if (vidas > 0 && indice < partida.length && aciertos < 30) {
+        document.getElementById('retrato').src = partida[indice].u;
+        document.getElementById('respuesta-user').focus();
+        iniciarReloj();
+    } else {
+        finalizar();
+    }
+}
 function actualizarVidas() {
     document.getElementById('corazones').innerHTML = "🩸".repeat(vidas);
 }
@@ -266,19 +307,6 @@ function iniciarReloj() {
         tiempoRestante--;
         if (tiempoRestante <= 0) { clearInterval(timer); comprobar(); }
     }, 1000);
-}
-
-function mostrar() {
-    if (aciertos < 30 && vidas > 0 && indice < partida.length) {
-        document.getElementById('retrato').src = partida[indice].u;
-        document.getElementById('zona-input').style.display = "block";
-        document.getElementById('feedback-area').style.display = "none";
-        document.getElementById('respuesta-user').value = "";
-        document.getElementById('respuesta-user').focus();
-        iniciarReloj();
-    } else {
-        finalizar();
-    }
 }
 
 function comprobar() {
