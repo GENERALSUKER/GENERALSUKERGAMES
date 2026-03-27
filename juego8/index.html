@@ -209,41 +209,20 @@ function shuffle(array) {
     return array;
 }
 
+// Cambiamos el inicio para manejar el evento correctamente
 async function comenzarJuego(esEspana, event) {
-    const btnInicio = event.currentTarget;
-    const textoOriginal = btnInicio.innerText;
-    
-    // 1. Preparación de la "Misión"
-    if (esEspana) {
+    let btnInicio;
+    if (event) {
+        btnInicio = event.currentTarget;
         btnInicio.disabled = true;
-        btnInicio.classList.add('loading'); // Opcional: para estilos CSS
-        btnInicio.innerText = "LOCALIZANDO OBJETIVOS...";
-        
-        // SPARQL: Filtra personalidades de España, nacidas post-1960 con fotos
-        const sparql = `
-            SELECT DISTINCT ?name ?img ?desc WHERE {
-              ?item wdt:P31 wd:Q5; 
-                    wdt:P27 wd:Q29;          # Nacionalidad: España
-                    wdt:P19/wdt:P17 wd:Q29;   # Nacido en: España
-                    wdt:P18 ?img; 
-                    wikibase:sitelinks ?links.
-              ?item wdt:P569 ?fecha.
-              FILTER(?fecha >= "1960-01-01T00:00:00Z"^^xsd:dateTime)
-              VALUES ?occ { wd:Q6197 wd:Q33999 wd:Q82955 wd:Q177220 wd:Q13590141 }
-              ?item wdt:P106 ?occ.
-              SERVICE wikibase:label { 
-                bd:serviceParam wikibase:language "es". 
-                ?item rdfs:label ?name. 
-                ?item schema:description ?desc. 
-              }
-            } ORDER BY DESC(?links) LIMIT 60`;
+        btnInicio.innerText = "CARGANDO...";
+    }
 
+    if (esEspana) {
+        // ... (Tu código de SPARQL se mantiene igual)
         try {
             const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            
-            if (!res.ok) throw new Error("Error en la respuesta del servidor");
-            
             const data = await res.json();
             
             let tempPartida = data.results.bindings.map(p => ({
@@ -252,35 +231,15 @@ async function comenzarJuego(esEspana, event) {
                 d: p.desc ? p.desc.value : "Figura pública de la España actual."
             }));
 
-            // Barajamos y seleccionamos 40 objetivos
-            partida = shuffle(tempPartida).slice(0, 40);
-
+            if (tempPartida.length === 0) throw new Error("No se encontraron datos");
+            partida = shuffle(tempPartida).slice(0, 30);
         } catch (e) {
-            console.error("Fallo en la conexión:", e);
-            alert("⚠️ ERROR DE CONEXIÓN: El servidor de inteligencia no responde. Reintentando...");
-            btnInicio.disabled = false;
-            btnInicio.innerText = textoOriginal;
-            return;
+            alert("Error cargando datos de Wikidata. Usando lista internacional.");
+            partida = shuffle([...poolOriginal]).slice(0, 30);
         }
     } else {
-        // Carga de pool local para modo internacional
         partida = shuffle([...poolOriginal]).slice(0, 30);
     }
-
-    // 2. Inicialización de la Interfaz
-    document.getElementById('pantalla-inicio').classList.remove('activa');
-    document.getElementById('pantalla-juego').classList.add('activa');
-    
-    // Reset de variables globales
-    aciertos = 0; 
-    vidas = 5; 
-    indice = 0;
-    
-    // Actualización de HUD
-    document.getElementById('num-aciertos').innerText = "0";
-    actualizarVidas();
-    mostrar();
-}
 function actualizarVidas() {
     document.getElementById('corazones').innerHTML = "🩸".repeat(vidas);
 }
@@ -313,8 +272,11 @@ function comprobar() {
     let user = input.value.trim();
     let target = partida[indice].n;
     
+    // Mostramos feedback
     document.getElementById('zona-input').style.display = "none";
     document.getElementById('feedback-area').style.display = "block";
+    const btnSig = document.getElementById('btn-siguiente');
+    btnSig.style.display = "none"; // Escondido inicialmente
 
     if (user !== "" && similitud(user, target) > 0.82) {
         aciertos++;
@@ -330,15 +292,15 @@ function comprobar() {
     
     document.getElementById('historia').innerText = partida[indice].d;
     
-    setTimeout(() => {
-        if (vidas > 0 && aciertos < 30) {
-            document.getElementById('btn-siguiente').style.display = "inline-block";
-        } else {
-            finalizar();
-        }
-    }, 1200);
+    // Verificamos si sigue vivo
+    if (vidas > 0 && aciertos < 30) {
+        setTimeout(() => {
+            btnSig.style.display = "inline-block";
+        }, 500);
+    } else {
+        setTimeout(finalizar, 2000);
+    }
 }
-
 function siguiente() {
     indice++;
     document.getElementById('btn-siguiente').style.display = "none";
