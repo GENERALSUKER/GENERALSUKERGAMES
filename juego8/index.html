@@ -200,7 +200,6 @@ d: "Soy el ingeniero civil más famoso de México; mis túneles conectaban nacio
 let partida = [], indice = 0, aciertos = 0, vidas = 5;
 let timer, tiempoRestante;
 
-// Algoritmo Fisher-Yates (El estándar real para barajar)
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -209,37 +208,44 @@ function shuffle(array) {
     return array;
 }
 
-// Cambiamos el inicio para manejar el evento correctamente
 async function comenzarJuego(esEspana, event) {
-    let btnInicio;
     if (event) {
-        btnInicio = event.currentTarget;
-        btnInicio.disabled = true;
-        btnInicio.innerText = "CARGANDO...";
+        event.currentTarget.innerText = "LOCALIZANDO...";
+        event.currentTarget.disabled = true;
     }
 
     if (esEspana) {
-        // ... (Tu código de SPARQL se mantiene igual)
+        const sparql = `SELECT DISTINCT ?name ?img ?desc WHERE {
+              ?item wdt:P31 wd:Q5; wdt:P27 wd:Q29; wdt:P18 ?img.
+              ?item wdt:P106 ?occ.
+              VALUES ?occ { wd:Q6197 wd:Q82955 wd:Q13590141 }
+              SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name. ?item schema:description ?desc. }
+            } LIMIT 50`;
+        
         try {
             const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
-            
-            let tempPartida = data.results.bindings.map(p => ({
+            let temp = data.results.bindings.map(p => ({
                 n: p.name.value,
                 u: p.img.value.replace("http://", "https://"),
-                d: p.desc ? p.desc.value : "Figura pública de la España actual."
+                d: p.desc ? p.desc.value : "Figura pública de España."
             }));
-
-            if (tempPartida.length === 0) throw new Error("No se encontraron datos");
-            partida = shuffle(tempPartida).slice(0, 30);
+            partida = shuffle(temp).slice(0, 30);
         } catch (e) {
-            alert("Error cargando datos de Wikidata. Usando lista internacional.");
             partida = shuffle([...poolOriginal]).slice(0, 30);
         }
     } else {
         partida = shuffle([...poolOriginal]).slice(0, 30);
     }
+
+    document.getElementById('pantalla-inicio').classList.remove('activa');
+    document.getElementById('pantalla-juego').classList.add('activa');
+    aciertos = 0; vidas = 5; indice = 0;
+    actualizarVidas();
+    mostrar();
+}
+
 function actualizarVidas() {
     document.getElementById('corazones').innerHTML = "🩸".repeat(vidas);
 }
@@ -272,11 +278,8 @@ function comprobar() {
     let user = input.value.trim();
     let target = partida[indice].n;
     
-    // Mostramos feedback
     document.getElementById('zona-input').style.display = "none";
     document.getElementById('feedback-area').style.display = "block";
-    const btnSig = document.getElementById('btn-siguiente');
-    btnSig.style.display = "none"; // Escondido inicialmente
 
     if (user !== "" && similitud(user, target) > 0.82) {
         aciertos++;
@@ -292,18 +295,15 @@ function comprobar() {
     
     document.getElementById('historia').innerText = partida[indice].d;
     
-    // Verificamos si sigue vivo
     if (vidas > 0 && aciertos < 30) {
-        setTimeout(() => {
-            btnSig.style.display = "inline-block";
-        }, 500);
+        document.getElementById('btn-siguiente').style.display = "inline-block";
     } else {
         setTimeout(finalizar, 2000);
     }
 }
+
 function siguiente() {
     indice++;
-    document.getElementById('btn-siguiente').style.display = "none";
     mostrar();
 }
 
