@@ -210,38 +210,72 @@ function shuffle(array) {
 
 async function comenzarJuego(esEspana, event) {
     if (event) {
-        event.currentTarget.innerText = "LOCALIZANDO...";
+        event.currentTarget.innerText = "ACCEDIENDO A ARCHIVOS...";
         event.currentTarget.disabled = true;
     }
 
     if (esEspana) {
-        const sparql = `SELECT DISTINCT ?name ?img ?desc WHERE {
-              ?item wdt:P31 wd:Q5; wdt:P27 wd:Q29; wdt:P18 ?img.
+        // Consulta optimizada: Nacionalidad Española, Nacidos > 1850, ordenados por relevancia
+        const sparql = `
+            SELECT DISTINCT ?name ?img ?desc ?sitelinks WHERE {
+              ?item wdt:P31 wd:Q5;         # Es humano
+                    wdt:P27 wd:Q29;        # Nacionalidad España
+                    wdt:P18 ?img;          # Tiene imagen
+                    wdt:P569 ?fecha;       # Tiene fecha de nacimiento
+                    wikibase:sitelinks ?sitelinks. # Contador de Wikipedia links
+              
+              FILTER(?fecha >= "1850-01-01T00:00:00Z"^^xsd:dateTime)
+              
+              # Filtro de ocupaciones relevantes (Políticos, Actores, Futbolistas, Escritores, etc.)
               ?item wdt:P106 ?occ.
-              VALUES ?occ { wd:Q6197 wd:Q82955 wd:Q13590141 }
-              SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name. ?item schema:description ?desc. }
-            } LIMIT 50`;
+              VALUES ?occ { 
+                wd:Q6197 wd:Q33999 wd:Q82955 wd:Q177220 wd:Q1028181 
+                wd:Q36180 wd:Q483501 wd:Q21447329 wd:Q13590141 
+              }
+
+              SERVICE wikibase:label { 
+                bd:serviceParam wikibase:language "es". 
+                ?item rdfs:label ?name. 
+                ?item schema:description ?desc. 
+              }
+            } 
+            ORDER BY DESC(?sitelinks) 
+            LIMIT 100`; // Traemos los 100 más famosos para luego barajar
         
         try {
             const url = "https://query.wikidata.org/sparql?query=" + encodeURIComponent(sparql);
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
+            
             let temp = data.results.bindings.map(p => ({
                 n: p.name.value,
                 u: p.img.value.replace("http://", "https://"),
-                d: p.desc ? p.desc.value : "Figura pública de España."
+                d: p.desc ? p.desc.value : "Figura histórica o pública de España."
             }));
+
+            if (temp.length === 0) throw new Error("Sin resultados");
+            
+            // Barajamos los 100 más famosos y tomamos 30 para la partida
             partida = shuffle(temp).slice(0, 30);
+            
         } catch (e) {
+            console.error("Error en Wikidata:", e);
             partida = shuffle([...poolOriginal]).slice(0, 30);
         }
     } else {
         partida = shuffle([...poolOriginal]).slice(0, 30);
     }
 
+    // Transición de pantalla
     document.getElementById('pantalla-inicio').classList.remove('activa');
     document.getElementById('pantalla-juego').classList.add('activa');
-    aciertos = 0; vidas = 5; indice = 0;
+    
+    // Reset de estado
+    aciertos = 0; 
+    vidas = 5; 
+    indice = 0;
+    
+    document.getElementById('num-aciertos').innerText = "0";
     actualizarVidas();
     mostrar();
 }
