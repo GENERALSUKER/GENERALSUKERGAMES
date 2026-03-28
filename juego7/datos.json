@@ -257,7 +257,6 @@
   { "q": "¿Qué club sueco es el principal rival futbolístico del Elfsborg?", "options": ["Göteborg", "Kalmar FF", "Hammarby"], "correct": "Hammarby", "level": 2 },
   { "q": "¿Cómo se llama el estadio del Orebro?", "options": ["Örjans Vall", "Behrn Arena", "Vångavallen"], "correct": "Behrn Arena", "level": 1 },
   { "q": "¿Cuántos clubes han ganado la Barclays Premier League?", "options": ["4", "3", "8"], "correct": "4", "level": 3 },
-  { "q": "¿Cuándo se construyó Stamford Bridge?", "options": ["1882", "1873", "1877"], "correct": "1873", "level": 3 },
   { "q": "¿Quién fue el primer jugador en ser traspasado por un millón y medio de euros?", "options": ["Gary Lineker", "Trevor Francis", "Chris Woods"], "correct": "Trevor Francis", "level": 4 },
   { "q": "El Lask Linz derrotó al Inter en 1985. ¿Cuál fue el marcador?", "options": ["2-0", "2-1", "1-0"], "correct": "1-0", "level": 3 },
   { "q": "¿Qué equipo juega en el estadio Tivoli Neu?", "options": ["FC Tyrol Innsbruck", "SK Rapid Wien", "SC Unterstiebenbrunn"], "correct": "FC Tyrol Innsbruck", "level": 3 },
