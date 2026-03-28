@@ -449,6 +449,7 @@ body.modo-penalty #stadium-map {
 <script>
     const ball = document.getElementById('ball');
 const aimLine = document.getElementById('aim-line');
+let questions = [];
 let goals = 0;
 let rivalGoals = 0;
 let totalGameSecs = 0;
@@ -473,17 +474,19 @@ const ballElement = document.getElementById('ball');
 const aimLineElement = document.getElementById('aim-line')
 
 async function cargarPreguntasDeArchivo() {
-    try {
-        const respuesta = await fetch('preguntas.json'); // Ruta a tu archivo
-        if (!respuesta.ok) throw new Error("No se pudo encontrar el archivo de preguntas");
-        
-        questions = await respuesta.json();
-        console.log("Base de datos de Scouting cargada con éxito.");
-    } catch (error) {
-        console.error("Error al cargar el pool de preguntas:", error);
-        document.getElementById('q-text').innerText = "ERROR: No se pudo cargar el archivo JSON.";
+        try {
+            // Sugerencia: Usa './preguntas.json' para asegurar la ruta en GitHub
+            const respuesta = await fetch('./datos.json'); 
+            if (!respuesta.ok) throw new Error("No se pudo encontrar el archivo de preguntas");
+            
+            questions = await respuesta.json();
+            console.log("✅ Base de datos cargada:", questions.length, "preguntas.");
+        } catch (error) {
+            console.error("❌ Error al cargar el pool:", error);
+            const qTextElem = document.getElementById('q-text');
+            if(qTextElem) qTextElem.innerText = "ERROR: No se pudo cargar el archivo JSON.";
+        }
     }
-}
     
 function calcularMediaGlobal() {
     // IMPORTANTE: Volver a leer el historial del storage por si acaso
