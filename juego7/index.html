@@ -449,340 +449,6 @@ body.modo-penalty #stadium-map {
 <script>
     const ball = document.getElementById('ball');
 const aimLine = document.getElementById('aim-line');
-    const questions = [
-        { q: "¿En qué temporada ganó el Modena la Supercopa de la Serie C?", options: ["2000-01", "1996-97", "1998-99"], correct: "2000-01",level:5 },
-{ q: "¿Cómo se llama el arquitecto responsable del diseño del nuevo estadio del Sporting de Braga?", options: ["Siza Vieira", "Eduardo Souto Moura", "Tomás Taveira"], correct: "Eduardo Souto Moura", level: 4 },
-{ q: "¿Qué jugador de campo del SL Benfica tuvo que acabar el partido como portero porque su equipo no disponía de más cambios tras la expulsión del portero?", options: ["Rui Costa", "Abel Xavier", "Paulo Sousa"], correct: "Paulo Sousa", level: 2 },
-{ q: "¿Dónde está el 'Estadio de la Amistad'?", options: ["Rostock", "Cottbus", "Leipzig"], correct: "Cottbus", level: 3 },
-{ q: "¿Qué sucede si el árbitro asistente ve que el balón entra en la portería pero el árbitro principal está convencido de que no ha sido gol?", options: ["El árbitro asistente tiene la última decisión", "El árbitro principal tiene la última decisión", "Se decide lanzando una moneda al aire"], correct: "El árbitro principal tiene la última decisión", level: 2 },
-{ q: "El Blackburn Rovers tuvo una famosa pareja de delanteros en los noventa. ¿Cómo se les apodaba?", options: ["SOS", "SAS", "Ro-Ro"], correct: "SAS", level: 2 },
-{ q: "¿Quién marcó el primer gol de la historia de Jamaica en la fase final de la Copa Mundial de la FIFA™ en 1998?", options: ["Fitzroy Simpson", "Onandi Lowe", "Robbie Earle"], correct: "Robbie Earle", level: 3 },
-{ q: "¿Quién marcó el gol de la victoria 1-0 contra Inglaterra en el partido de clasificación para la Copa Mundial de la FIFA™ de 2005 en Windsor Park?", options: ["David Healy", "James Quinn", "Keith Gillespie"], correct: "David Healy", level: 4 },
-{ q: "¿Por qué sobrenombre se conoce a Jorge Costa, el central del Oporto?", options: ["El bicho", "El capitán", "El animal"], correct: "El bicho", level: 3 },
-{ q: "¿Dónde está el estadio Playmobil?", options: ["Fürth", "Bielefeld", "Kiel"], correct: "Fürth", level: 3 },
-{ q: "¿En qué año se fundó el AS Monaco?", options: ["1920", "1900", "1924"], correct: "1924", level: 4 },
-{ q: "¿Qué año fue el del 'Horror del Triplete' del Leverkusen?", options: ["2000", "2001", "2002"], correct: "2002", level: 3 },
-{ q: "¿De qué selección eran los jugadores que se tiñeron el pelo de rubio tras clasificarse para la segunda fase de la Copa Mundial de la FIFA™ en 1998?", options: ["Rumanía", "Alemania", "Noruega"], correct: "Rumanía", level: 4 },
-{ q: "¿Qué gigante del fútbol ha inspirado sus colores en los del Nott's County?", options: ["Juventus", "AC Milán", "FC Barcelona"], correct: "Juventus", level: 4 },
-{ q: "En la temp. 1990-91 Abel Resino batió el récord europeo de minutos sin encajar goles. ¿Cuánto estuvo imbatido?", options: ["1.275 minutos", "1.316 minutos", "2.081 minutos"], correct: "1.275 minutos", level: 4 },
-{ q: "Sir Stanley Matthews fue el jugador más viejo que llegó a representar a Inglaterra. Tenía...", options: ["42 años", "38 años", "43 años"], correct: "42 años", level: 5 },
-{ q: "¿Cuál es el apodo habitual de los Tottenham Hotspurs de la Barclays PL?", options: ["The Black Cats", "The Blades", "Lilywhites"], correct: "Lilywhites", level: 2 },
-{ q: "¿Cuántos partidos de la Copa Mundial de la FIFA™ ha arbitrado Joel Quiniou?", options: ["7", "9", "8"], correct: "8", level: 4 },
-{ q: "¿En qué temporada ganó el Bologna su último campeonato de la Serie A?", options: ["1978-79", "1980-81", "1963-64"], correct: "1963-64", level: 5 },
-{ q: "El Eint. Frankfurt tiene el récord de partidos perdidos como visitante entre 1985 y 1987. ¿Cuántos perdió?", options: ["30", "35", "32"], correct: "32", level: 4 },
-{ q: "¿En cuántos Campeonatos de la Serie A ha participado el Pescara?", options: ["4", "5", "12"], correct: "5", level: 5 },
-{ q: "¿Qué jugador marcó el gol número 3.000 del Bayern München en la Bundesliga?", options: ["Michael Ballack", "Lucio", "Roy Makaay"], correct: "Roy Makaay", level: 4 },
-{ q: "Jaime Pacheco es un entrenador conocido por ser el autor de varias frases. ¿Cuál de las siguientes no es suya?", options: ["'Quieren usar al Boavista como chivo expiatorio.'", "'Las cosas difíciles no son fáciles.'", "'Jugar a la defensiva puede ser un arma de doble filo.'"], correct: "'Las cosas difíciles no son fáciles.'", level: 3 },
-{ q: "¿En qué año el FC Nürnberg descendió directamente de categoría tras ganar la Bundesliga?", options: ["1968", "1969", "1970"], correct: "1969", level: 4 },
-{ q: "¿Cómo se llamaba el viejo estadio del Manchester City?", options: ["Highfield Road", "Maine Road", "Burnden Park"], correct: "Maine Road", level: 1 },
-{ q: "¿Quién marcó el primer gol de la Barclays Premier League en 1992?", options: ["Brian Deane", "Teddy Sheringham", "Eric Cantona"], correct: "Brian Deane", level: 3 },
-{ q: "¿Cuál es el apodo habitual del Sunderland de la Barclays PL?", options: ["The Black Cats", "The Baggies", "The Toffees"], correct: "The Black Cats", level: 2 },
-{ q: "¿En qué año se fundó el C.F Getafe?", options: ["1883", "1983", "1960"], correct: "1983", level: 4 },
-{ q: "¿Qué equipo español lideró la liga tras el primer partido de la temporada 2000-01?", options: ["R. Zaragoza", "Real Madrid", "Rayo Vallecano"], correct: "Rayo Vallecano", level: 5 },
-{ q: "¿En qué temporada ganó el Crotone el campeonato de la Serie C?", options: ["1989-90", "1999-00", "2000-01"], correct: "1999-00", level: 5 },
-{ q: "¿Cuándo se construyó Anfield?", options: ["1889", "1895", "1884"], correct: "1884", level: 5 },
-{ q: "¿Cuántas temporadas ganó Protti el título de máximo goleador jugando con el Livorno?", options: ["4", "2", "3"], correct: "2", level: 4 },
-{ q: "¿En qué Copa Mundial de la FIFA se decidieron ambas semifinales en los penaltis?", options: ["1930", "1990", "1962"], correct: "1990", level: 5 },
-{ q: "¿En qué año se fundó el Bologna?", options: ["1921", "1909", "1919"], correct: "1909", level: 5 },
-{ q: "¿Cuál fue el resultado de la final de la Copa Mundial de la FIFA de 1986?", options: ["Argentina 3 - Alemania Occidental 1", "Argentina 4 - Alemania Occidental 2", "Argentina 3 - Alemania Occidental 2"], correct: "Argentina 3 - Alemania Occidental 2", level: 5 },
-{ q: "¿Quién jugó en la denominada 'casa de la liga del placer'?", options: ["Eintrach Frankfurt", "Wacker Burghausen", "FC Saint Pauli"], correct: "FC Saint Pauli", level: 3 },
-{ q: "¿En qué temporada consiguió la Juventus su 'stella' (décimo) campeonato?", options: ["1996-97", "1985-86", "1957-58"], correct: "1957-58", level: 2 },
-{ q: "¿Que árbitro ha participado en más partidos en la Liga BBVA?", options: ["López Nieto", "Guruceta", "Izco"], correct: "Izco", level: 3 },
-{ q: "¿Qué equipo ganó 1-0 al FC Bayern Munich marcando de saque de banda en 1982?", options: ["FC Bayern", "VfL Wolfsburg", "SV Werder Bremen"], correct: "SV Werder Bremen", level: 3 },
-{ q: "¿Quién fue el máximo goleador de la temporada 2002-2003 de la Liga BBVA?", options: ["Salva Ballesta", "Rivaldo", "Roy Makaay"], correct: "Roy Makaay", level: 4 },
-{ q: "¿En qué año se fundó el Hansa Rostock?", options: ["1965", "1955", "1960"], correct: "1965", level: 1 },
-{ q: "¿En qué puesto acabó el Wigan Athletic en su primera temporada en la Barclays Premier League?", options: ["8°", "16°", "10°"], correct: "10°", level: 2 },
-{ q: "¿Qué país recibió el premio al equipo más entretenido de la Copa Mundial de la FIFA™ de 2002?", options: ["Corea del Sur", "Inglaterra", "Francia"], correct: "Corea del Sur", level: 3 },
-{ q: "¿Quiénes marcaron los dos goles de Alemania en la final de la Copa Mundial de la FIFA™ de 1986?", options: ["Matthhaus y Voller", "Rummenigge y Matthhaus", "Rummenigge y Voller"], correct: "Rummenigge y Voller", level: 4 },
-{ q: "¿En qué Copa Mundial de la FIFA™ ganó Bélgica el premio al juego limpio?", options: ["2006", "1994", "2002"], correct: "2002", level: 4 },
-{ q: "¿En qué año se introdujeron los números en las camisetas de los jugadores?", options: ["1923", "1939", "1902"], correct: "1939", level: 5 },
-{ q: "¿Contra quién jugó Grecia su primer partido de la Copa Mundial de la FIFA™ de 1994?", options: ["Argentina", "Bulgaria", "Nigeria"], correct: "Argentina", level: 5 },
-{ q: "¿Contra quién perdió China su primer partido de la Copa Mundial de la FIFA™ de 2002?", options: ["Turquía", "Costa Rica", "Brasil"], correct: "Costa Rica", level: 5 },
-{ q: "¿Qué edad tenía Nwankwo Kanu cuando fue capitán de Nigeria en la Copa Mundial de la FIFA™ de 1998?", options: ["21 años y 364 días", "22 años y 32 días", "21 años y 327 días"], correct: "21 años y 327 días", level: 5 },
-{ q: "¿A cuántas selecciones diferentes ha entrenado Bora Milutinovic en Copas Mundiales de la FIFA?", options: ["6", "5", "4"], correct: "5", level: 4 },
-{ q: "¿Cuál es el apodo habitual del Wigan Athletic de la Barclays PL?", options: ["The Blades", "The Latics", "The Cottagers"], correct: "The Latics", level: 3 },
-  { q: "¿Quién marcó el gol más rápido de una final de la F.A. Cup en Wembley para el Chelsea en 1997?", options: ["Gianfranco Zola", "Dan Petrescu", "Roberto Di Matteo"], correct: "Roberto Di Matteo", level: 2 },
-  { q: "¿Qué dorsal llevaba Gabi Milito en el Real Zaragoza?", options: ["7", "6", "5"], correct: "6", level: 3 },
-  { q: "¿Cuántos puntos consiguió Japón en su primera fase de grupo de la Copa Mundial de la FIFA de 1998?", options: ["Uno", "Dos", "Cero"], correct: "Cero", level: 4 },
-  { q: "En el año 2000, ¿gracias a qué entrenador el Clube Desportivo das Aves ascendió a la máxima categoría de Portugal por segunda vez?", options: ["Profesor Neca", "Ulisses Morais", "Mário Reis"], correct: "Profesor Neca", level: 4 },
-  { q: "¿Contra quién jugó España su primer partido de la Copa Mundial de la FIFA de 1994?", options: ["Bolivia", "Alemania", "Corea del Sur"], correct: "Corea del Sur", level: 5 },
-  { q: "¿En qué año se fundó el AT. Osasuna?", options: ["1890", "1920", "1900"], correct: "1920", level: 4 },
-  { q: "¿De qué selección fue capitán Masami Ihara en la Copa Mundial de la FIFA?", options: ["Japón", "Corea del Sur", "Irán"], correct: "Japón", level: 3 },
-  { q: "¿Cuándo se construyó el Emirates Stadium?", options: ["2003", "2006", "1980"], correct: "2006", level: 5 },
-  { q: "¿Cuál es el pie bueno de Christopher Samba?", options: ["Cualquiera", "Izquierdo", "Derecho"], correct: "Derecho", level: 3 },
-  { q: "¿Cuántas veces ha ganado Fabio Cannavaro la Copa de Italia?", options: ["1", "2", "3"], correct: "2", level: 5 },
-  { q: "¿Cuál fue el último partido (año de desaparición original) del Accrington Stanley antes de unirse a la Liga de fútbol de nuevo?", options: ["1966", "1976", "1962"], correct: "1962", level: 5 },
-  { q: "¿Dónde comenzó su carrera en la Bundesliga Hans Sturm?", options: ["Tasmania Berlin", "1. FC Köln", "1860 Munich"], correct: "1. FC Köln", level: 4 },
-  { q: "¿A quién ganó Australia en su primer partido de la Copa Mundial de la FIFA de 2006?", options: ["Croacia", "Japón", "Italia"], correct: "Japón", level: 4 },
-  { q: "¿En qué año alcanzó Canadá la fase final de la Copa Mundial de la FIFA?", options: ["1900", "1986", "1974"], correct: "1986", level: 4 },
-  { q: "¿Contra qué equipo ganó el Venecia la Copa de Italia?", options: ["Roma", "Genoa", "Lazio"], correct: "Roma", level: 4 },
-     { q: "¿Quién fue el máximo goleador de la temporada 1995-96 de la Liga?", options: ["Romário", "Pizzi", "Zamorano"], correct: "Pizzi", level: 5 },
-  { q: "¿Quién fue el entrenador del Real Zaragoza durante la temporada 1998-99?", options: ["Carlos Aimar", "Chechu Rojo", "Víctor Fernández"], correct: "Chechu Rojo", level: 4 },
-  { q: "¿Desde qué temporada valen 3 puntos y no 2 las victorias en la liga portuguesa?", options: ["1992-93", "1995-96", "1994-95"], correct: "1995-96", level: 4 },
-  { q: "¿Contra quién perdió la Reggina la eliminatoria que le hizo descender a la Serie B en la temporada 2000-01?", options: ["Atalanta", "Bologna", "Chievo Verona"], correct: "Chievo Verona", level: 4 },
-  { q: "¿En el verano de qué año se amplió la liga española a 22 equipos?", options: ["1995", "1992", "1994"], correct: "1995", level: 4 },
-  { q: "¿En cuántos equipos ingleses jugó Peter Schmeichel?", options: ["2", "1", "3"], correct: "3", level: 4 },
-  { q: "¿Qué equipo español ha ganado más partidos en la Liga?", options: ["FC Barcelona", "Real Madrid", "Club Atlético de Madrid SAD"], correct: "Real Madrid", level: 3 },
-  { q: "La lista de los 100 mejores jugadores de la FIFA fue redactada por:", options: ["Johan Cruyff", "Franz Beckenbauer", "Pelé"], correct: "Pelé", level: 3 },
-  { q: "¿Quién fue el entrenador del Atlético de Madrid durante la temporada 1999-00?", options: ["Claudio Ranieri", "Radomir Antic", "Luis Aragonés"], correct: "Claudio Ranieri", level: 4 },
-  { q: "¿En qué año ganó el Sevilla FC su primer trofeo de La Liga?", options: ["1947", "1950", "1946"], correct: "1946", level: 3 },
-  { q: "¿Qué equipo ganó a la Roma en la tanda de penaltis de la final de la Copa de Campeones de 1984?", options: ["Manchester United", "Real Madrid", "Liverpool"], correct: "Liverpool", level: 4 },
-  { q: "¿Cuál fue el primer equipo alemán en cotizar en bolsa?", options: ["FC Bayern", "Borussia Mönchengladbach", "Borussia Dortmund"], correct: "Borussia Dortmund", level: 3 },
-  { q: "¿El traspaso de qué jugador a un club extranjero fue el más caro del fútbol francés antes de la temporada 2005-06?", options: ["Michael Essien", "Didier Drogba", "Nicolas Anelka"], correct: "Michael Essien", level: 4 },
-  { q: "¿En qué año se fundó la Roma?", options: ["1926", "1924", "1927"], correct: "1927", level: 4 },
-  { q: "¿Cuántas finales de la copa alemana ha disputado el Eintracht Frankfurt hasta la fecha de la pregunta?", options: ["4", "6", "5"], correct: "6", level: 4 },
-  { q: "¿Qué equipo que no pertenece a la capital de una región ha conseguido muchos títulos de la Serie A?", options: ["Atalanta", "Brescia", "Udinese"], correct: "Atalanta", level: 3 },
-  { q: "¿Quién marcó el gol del empate de Inglaterra en la semifinal ante Alemania Occidental de la Copa Mundial de la FIFA de 1990?", options: ["David Platt", "Paul Gascoigne", "Gary Lineker"], correct: "Gary Lineker", level: 4 },
-  { q: "¿En qué jornada Van Gaal perdió su cargo como entrenador del Barcelona en su segunda etapa?", options: ["25", "12", "19"], correct: "19", level: 3 },
-  { q: "¿Cuántos títulos de la Liga ganó el Real Madrid hasta el año 2007?", options: ["31", "29", "30"], correct: "30", level: 3 },
-  { q: "¿Qué entrenador ha participado en más partidos en la Liga?", options: ["Arsenio Iglesias", "Luis Aragonés", "Miguel Muñoz"], correct: "Luis Aragonés", level: 3 },
-  { q: "¿Cuántas veces ha ganado Roberto Baggio el prestigioso Balón de Oro?", options: ["1", "2", "3"], correct: "1", level: 3 },
-  { q: "¿En qué año se fundó el C.D. Numancia?", options: ["1940", "1945", "1950"], correct: "1945", level: 3 },
-  { q: "¿Contra qué selección perdió España su primer partido de la Copa Mundial de la FIFA de 1998 por 3-2?", options: ["Bulgaria", "Nigeria", "Paraguay"], correct: "Nigeria", level: 4 },
-  { q: "¿Qué equipo ganó la única Liga con playoff (86-87)?", options: ["Real Madrid", "FC Barcelona", "Athletic Club"], correct: "Real Madrid", level: 3 },
-  { q: "¿Qué número lleva Manuel Pablo en su camiseta del Deportivo de la Coruña?", options: ["2", "3", "4"], correct: "2", level: 3 },
-  { q: "¿En qué año ganó el Athletic de Bilbao su primera Supercopa Española?", options: ["1983", "1984", "1985"], correct: "1984", level: 4 },
-  { q: "¿Qué jugador es conocido como 'el muro'?", options: ["Fabio Cannavaro", "Marco Materazzi", "Alessandro Nesta"], correct: "Alessandro Nesta", level: 3 },
-  { q: "¿Desde qué año Jürgen Klopp es el entrenador del FSV Mainz 05?", options: ["2000", "2001", "2002"], correct: "2001", level: 4 },
-{ q: "¿Qué país africano quiso organizar la Copa Mundial de la FIFA de 2006?", options: ["Nigeria", "Sudáfrica", "Túnez"], correct: "Sudáfrica", level: 3 },
-{ q: "¿En qué año se fundó el 1. FC Köln?", options: ["1945", "1950", "1948"], correct: "1948", level: 4 },
-{ q: "¿Quién fue el primer jugador portugués en ser elegido para una selección europea?", options: ["Pedroto", "José Travassos", "Eusébio"], correct: "José Travassos", level: 3 },
-{ q: "¿En qué año ganó el Stuttgart su última Bundesliga?", options: ["2007", "2006", "2005"], correct: "2007", level: 4 },
-{ q: "¿Quién marcó el gol de la victoria de la final de la F.A. Cup de 1995?", options: ["Paul Rideout", "Robbie Keane", "Chris Sutton"], correct: "Paul Rideout", level: 3 },
-{ q: "¿Contra qué selección se enfrentó Inglaterra en el gran partido de cuartos de final de la Copa Mundial de la FIFA de 1966?", options: ["Argentina", "Brasil", "Italia"], correct: "Argentina", level: 4 },
-{ q: "¿Qué equipo ganó la copa española de la temporada 2000-01?", options: ["R. Zaragoza", "Real Madrid", "Celta de Vigo"], correct: "R. Zaragoza", level: 4 },
-{ q: "¿Quién fue el máximo goleador de la Liga BBVA?", options: ["Zarra", "Di Stéfano", "Hugo Sánchez"], correct: "Zarra", level: 2 },
-{ q: "¿Cuándo se construyó Estadio Mestalla?", options: ["1895", "1916", "1923"], correct: "1923", level: 4 },
-{ q: "¿De qué año era la Copa Mundial de la FIFA cuyo himno era 'Nessun Dorma'?", options: ["1990", "1962", "1930"], correct: "1990", level: 5 },
-{ q: "¿En qué año se fundó el Recreativo?", options: ["1910", "1900", "1889"], correct: "1889", level: 4 },
-{ q: "¿En qué año se fundó la Liga BBVA?", options: ["1932", "1929", "1920"], correct: "1929", level: 4 },
-{ q: "¿En qué temporada ganó Brasil su primera Copa Mundial de la FIFA?", options: ["1954", "1958", "1962"], correct: "1958", level: 5 },
-{ q: "¿Cómo se llamaba al trofeo original de la Copa Mundial de la FIFA?", options: ["Trofeo Rimet de la Copa Mundial de la FIFA", "Trofeo Jules Rimet", "Trofeo Jiles Rimet"], correct: "Trofeo Jules Rimet", level: 4 },
-{ q: "¿Quién marcó los 2 goles de Chile en el empate a 2 contra Italia en la primera ronda de la Copa Mundial de la FIFA de 1998?", options: ["Marcelo Salas", "Iván Zamorano", "Luis Sierra"], correct: "Marcelo Salas", level: 5 },
-  { q: "¿Cuándo se construyó Mercedes Benz Arena?", options: ["1953", "1971", "1933"], correct: "1933", level: 5 },
-  { q: "¿En qué año se fundó la F.A. Cup inglesa?", options: ["1871", "1881", "1891"], correct: "1871", level: 4 },
-  { q: "¿Qué dos selecciones se enfrentaron en la final de la Copa Mundial de la FIFA en 1970?", options: ["Italia y Suecia", "Brasil e Italia", "Italia y Alemania Occidental"], correct: "Brasil e Italia", level: 4 },
-  { q: "¿Cuándo se construyó Stade Vélodrome?", options: ["1937", "1955", "1933"], correct: "1937", level: 5 },
-  { q: "¿Quién sorprendió al mundo derrotando a Italia en la Copa Mundial de la FIFA de 1994?", options: ["Noruega", "Escocia", "R de Irlanda"], correct: "R de Irlanda", level: 3 },
-  { q: "¿Qué club entrenó Arsène Wenger antes de marcharse al Arsenal?", options: ["AS Monaco", "Nagoya", "Fulham"], correct: "Nagoya", level: 4 },
-  { q: "¿Cuándo se construyó Veltins Arena?", options: ["2001", "1996", "1989"], correct: "2001", level: 5 },
-  { q: "¿Quién ganó a Holanda por 2-1 en la final de la Copa Mundial de la FIFA de 1974?", options: ["Brasil", "Alemania Occidental", "Polonia"], correct: "Alemania Occidental", level: 4 },
-  { q: "¿En qué año el Mönchengladbach derrotó al FC Köln para ganar su segunda copa alemana?", options: ["1975", "1974", "1973"], correct: "1973", level: 4 },
-  { q: "¿Cuál de estos equipos no forma parte de la Liga BBVA?", options: ["RC Deportivo", "Atlético Madrid", "Valencia CF"], correct: "RC Deportivo", level: 3 },
-  { q: "¿Cuántos equipos participaron en la Copa Mundial de la FIFA de 2006?", options: ["32", "34", "36"], correct: "32", level: 4 },
-  { q: "¿Cuántas veces el máximo goleador de la Serie A ha pertenecido al AC Milán?", options: ["18", "16", "21"], correct: "18", level: 4 },
-  { q: "¿Qué capitán argentino ganador de al menos una Copa Mundial de la FIFA se convirtió más adelante en el seleccionador en 1998?", options: ["Gabriel Batistuta", "Pedro Cea", "Daniel Passarella"], correct: "Daniel Passarella", level: 3 },
-  { q: "¿Cuál es el pie bueno de Alex?", options: ["Cualquiera", "Izquierdo", "Derecho"], correct: "Derecho", level: 3 },
-  { q: "Si el balón pasa por la línea de banda tras un saque, un pase o un rechace, el árbitro señala:", options: ["Córner", "Libre directo", "Saque de banda"], correct: "Saque de banda", level: 1 } ,
-  { q: "¿En qué estadio se celebró el partido inaugural de la Copa Mundial de la FIFA™ de 1998?", options: ["Santiago Bernabéu", "Stade Vélodrome", "Stade de France"], correct: "Stade de France", level: 3 },
-  { q: "¿Cuántos títulos de la Ligue 1 ha ganado el Valenciennes FC?", options: ["2", "1", "0"], correct: "0", level: 2 },
-  { q: "La prórroga se divide en:", options: ["2 partes de 20 minutos", "2 partes de 10 minutos", "2 partes de 15 minutos"], correct: "2 partes de 15 minutos", level: 2 },
-  { q: "¿En qué año ganó el París Saint-Germain su primera Ligue 1?", options: ["1994", "1990", "1986"], correct: "1986", level: 2 },
-  { q: "¿Cuántos títulos de la Ligue 2 ha ganado el Toulouse FC hasta el 2020?", options: ["5", "4", "3"], correct: "3", level: 2 },
-  { q: "¿Cuántas Coupe de France ha ganado el Marseilla?", options: ["8", "9", "10"], correct: "10", level: 1 },
-  { q: "¿Cuántas veces descendió el A.J. Auxerre hasta el 2010?", options: ["10", "11", "0"], correct: "0", level: 2 },
-  { q: "¿Qué equipo posee el estadio de mayor capacidad en Francia?", options: ["Paris", "Lyon", "Marseille"], correct: "Marseille", level: 3 },
-  { q: "¿En qué año ganó el Reims su último campeonato?", options: ["1965", "1967", "1962"], correct: "1962", level: 3 },
-  { q: "¿Cuántos títulos de la Ligue 1 ha ganado el AS Monaco FC hasta el 2015 ?", options: ["7", "6", "5"], correct: "7", level: 3 },
-  { q: "Brasil y Francia se enfrentaron en los cuartos de final de la Copa Mundial de la FIFA de 1986. ¿Cuál fue el resultado?", options: ["Francia ganó 4-3", "Francia ganó en los penaltis", "Brasil ganó en los penaltis"], correct: "Francia ganó en los penaltis", level: 4 },
-  { q: "¿Qué club ha disfrutado de la racha más prolongada de partidos sin sufrir una derrota del fútbol francés?", options: ["Marseille", "AS Saint-Étienne", "FC Nantes"], correct: "FC Nantes", level: 4 },
-  { q: "¿A quién ganó Francia en su primer partido de su exitosa campaña de la Copa Mundial de la FIFA de 1998?", options: ["Sudáfrica", "Arabia Saudí", "Dinamarca"], correct: "Sudáfrica", level: 5 },
-  { q: "¿Cuándo se construyó Parc des Princes?", options: ["1976", "1977", "1972"], correct: "1972", level: 3 },
-  { q: "¿Cuál es el estadio del Grenoble Foot 38?", options: ["Stade Municipal", "Stade Vélodrome", "Stade de Alpes"], correct: "Stade de Alpes", level: 2 },
-  { q: "¿Cuántas veces ha ganado el FC Sochaux-Montbé la Ligue 1 francesa?", options: ["3", "2", "0"], correct: "2", level: 3 },
-  { q: "¿En qué año ganó el SM Caen su primera Ligue 2?", options: ["1996", "1994", "1995"], correct: "1996", level: 3 },
-  { q: "¿Quién fue el máximo goleador de la Ligue 1 francesa en la temporada 2005-06?", options: ["Alexander Frei", "Juninho", "Pauleta"], correct: "Pauleta", level: 2 },
-  { q: "¿Quién fue el primer rival internacional de la República Checa?", options: ["Eslovaquia", "Turquía", "Alemania"], correct: "Turquía", level: 3 },
-  { q: "¿Cuál fue el primer club europeo de Maradona?", options: ["FC Barcelona", "Sevilla F.C.", "Napoli"], correct: "FC Barcelona", level: 4 },
-  { q: "¿Quién es el jugador con más convocatorias en la selección de Camerún?", options: ["Pierre Achille Webó", "Rigobert Song", "Samuel Eto'o"], correct: "Rigobert Song", level: 2 },
-  { q: "¿Qué jugador fue nombrado \"mejor jugador danés de todos los tiempos\" en su país?", options: ["Peter Schmeichel", "Jon Dahl Tomasson", "Michael Laudrup"], correct: "Michael Laudrup", level: 2 },
-  { q: "¿En qué año debutó Raúl?", options: ["1996", "1993", "1994"], correct: "1994", level: 4 },
-  { q: "¿Cuál es el nombre de pila del árbitro Pérez Lasa?", options: ["Miguel Ángel", "Antonio", "Juan José"], correct: "Miguel Ángel", level: 4 },
-  { q: "¿Cómo se llama el estadio del Racing de Santander?", options: ["Manzanares", "Estadio Mestalla", "El Sardinero"], correct: "El Sardinero", level: 1 },
-  { q: "¿Cuál es el apodo habitual del Newcastle United de la Barclays PL?", options: ["The Eagles", "The Magpies", "The Bluebirds"], correct: "The Magpies", level: 1 },
-  { q: "¿Cuántas Supercoppas Nazionale ha ganado el AC Milán hasta el 2015?", options: ["3", "6", "5"], correct: "6", level: 2 },
-  { q: "Los goles en propia puerta marcados de libre directo...", options: ["se sancionan con tarjeta", "no cuentan", "cuentan como gol"], correct: "no cuentan", level: 1 },
-  { q: "¿Cuál es la ciudad más grande de Inglaterra sin equipo de fútbol?", options: ["Winchester", "Basingstoke", "Bath"], correct: "Bath", level: 2 },
-  { q: "¿Quién fue el héroe inglés del hat-trick en la final de la Copa Mundial de la FIFA de 1966?", options: ["Bobby Moore", "Geoff Hurst", "Jimmy Greaves"], correct: "Geoff Hurst", level: 3 },
-  { q: "¿En qué temporada ganó el Messina la Serie B por primera vez?", options: ["1962-63", "1981-82", "1964-65"], correct: "1964-65", level: 3 },
-  { q: "¿Cuántos puntos tenía el Arminia Bielefeld antes de su descenso de categoría forzado en la temporada 1971-72?", options: ["Ninguno", "14", "20"], correct: "Ninguno", level: 4 },
-  { q: "¿En qué año se estableció el Mainz 05 como club de fútbol?", options: ["1908", "1905", "1903"], correct: "1905", level: 1 },
-  { q: "El Hamburger SV tiene el récord alemán de partidos invictos. ¿Cuántos consiguió?", options: ["36", "30", "25"], correct: "36", level: 2 },
-  { q: "El Newcastle United juega sus partidos como local en St. James' Park. ¿Qué otro equipo de fútbol juega en St. James' Park?", options: ["Berwick Rangers", "Raith Rovers", "Exeter City"], correct: "Exeter City", level: 2 },
-  { q: "¿A qué equipo ganó Inglaterra en los cuartos de final de la Copa Mundial de la FIFA™ de 1990?", options: ["R. de Irlanda", "Italia", "Camerún"], correct: "Camerún", level: 3 },
-  { q: "¿Quién echó a Alemania de la Copa Mundial de la FIFA™ de 1994 en un partido memorable?", options: ["Bulgaria", "Holanda", "Rumanía"], correct: "Bulgaria", level: 3 },
-  { q: "¿Con cuántos años de diferencia ganaron Cesare y Paolo Maldini la Copa de campeones como capitanes del AC Milán?", options: ["40", "36", "31"], correct: "40", level: 3 },
-  { q: "¿Antes de que los New York Red Bulls se llamaran Red Bulls, cuál era su nombre?", options: ["Mutiny", "Metrostars", "Fusion"], correct: "Metrostars", level: 2 },
-{ q: "¿Con qué gran club europeo firmó un acuerdo de cooperación de 10 años el Real Salt Lake?", options: ["Real Madrid", "Chelsea", "FC Barcelona"], correct: "Real Madrid", level: 1 },
-{ q: "¿Qué ciudad acogió la final de la Copa Mundial de la FIFA™ en 1994?", options: ["Chicago", "Los Ángeles", "Boston"], correct: "Los Ángeles", level: 3 },
-{ q: "¿Qué antiguo portero internacional italiano jugó en Nueva York?", options: ["Walter Zenga", "Roberto Donadoni", "Bruno Conti"], correct: "Walter Zenga", level: 2 },
-{ q: "¿Cuál es el único club que ha participado todos los años en competiciones europeas desde que se crearon los torneos en 1955?", options: ["Fútbol Club Barcelona", "Bayer 04", "Everton"], correct: "Fútbol Club Barcelona", level: 1 },
-{ q: "¿Cuándo se construyó Jalisco?", options: ["1960", "1999", "1998"], correct: "1960", level: 3 },
-{ q: "¿Quién derrotó a Corea del Sur en el partido por el tercer y cuarto puesto de la final de la Copa Mundial de la FIFA™ de 2002?", options: ["España", "Turquía", "Japón"], correct: "Turquía", level: 3 },
-{ q: "¿Cuándo se construyó HDI Arena?", options: ["1954", "1953", "1928"], correct: "1954", level: 3 },
-{ q: "¿Cuándo se construyó Allianz Arena?", options: ["1986", "1979", "2005"], correct: "2005", level: 3 },
-{ q: "¿Cuántos campeonatos de la MLS ha ganado el Colorado Rapids?", options: ["0", "1", "3"], correct: "1", level: 4 },
-{ q: "¿Cuántos títulos de la MLS tiene el DC United?", options: ["4", "5", "2"], correct: "4", level: 4 },
-{ q: "¿Qué jugador del New England Revolution tiene el record de más faltas cometidas a lo largo de su carrera?", options: ["Avery John", "Jay Heaps", "Joe Franchino"], correct: "Jay Heaps", level: 3 },
-{ q: "¿Contra qué equipo consiguió su primera victoria el Colorado Rapids?", options: ["The Dallas Burn", "Columbus Crew", "Tampa Bay Mutiny"], correct: "The Dallas Burn", level: 4 },
-{ q: "¿Cuál de estos jugadores marcó más goles que nadie en una única temporada de la MLS?", options: ["Roy Lassiter", "Mamadou Diallo", "Landon Donovan"], correct: "Roy Lassiter", level: 3 },
-{ q: "¿En qué año celebró la FIFA su primera Copa Mundial de la FIFA fuera de Europa y Sudamérica?", options: ["1998", "1994", "1986"], correct: "1986", level: 3 },
-{ q: "¿Quién fue el primer Jugador Más Valioso (MVP) de la MLS?", options: ["Preki", "Carlos Valderrama", "Roy Lassiter"], correct: "Carlos Valderrama", level: 3 },
-{ q: "A qué club se le llamaba GVAV?", options: ["FC Groningen", "Vitesse", "AZ"], correct: "FC Groningen", level: 3 },
-{ q: "¿Qué jugador de la Eredivisie tenía el récord de más goles marcados en un partido?", options: ["Coen Dillen", "Kees Kist", "Marco Van Basten"], correct: "Marco Van Basten", level: 4 },
-{ q: "¿En las filas de qué club holandés han jugado Romario y Ronaldo?", options: ["Ajax", "Feyenoord", "PSV"], correct: "PSV", level: 3 },
-{ q: "¿En qué año ganó el AZ Alkmaar su primer título de la liga holandesa?", options: ["1980", "1996", "1981"], correct: "1981", level: 4 },
-{ q: "¿Quién ganó la Eredivisie holandesa en la temporada 2004-05?", options: ["Ajax", "Feyenoord", "PSV"], correct: "PSV", level: 4 },
-{ q: "¿En qué año se fundó el FC Twente?", options: ["1925", "1960", "1965"], correct: "1965", level: 3 },
-{ q: "¿Qué jugador ha militado en las filas del Ajax, del Feyenoord y también del PSV?", options: ["Johan Cruyff", "Ruud Gullit", "Ronald Koeman"], correct: "Ronald Koeman", level: 3 },
-{ q: "¿Quién fue el jugador más veterano de la franquicia de Nueva York que ha participado en un partido?", options: ["Lothar Matthäus", "Tony Meola", "Chris Henderson"], correct: "Lothar Matthäus", level: 2 },
-{ q: "¿Quién fue el máximo goleador de la selección holandesa de todos los tiempos?", options: ["Dennis Bergkamp", "Patrick Kluivert", "Marco Van Basten"], correct: "Patrick Kluivert", level: 3 },
-{ q: "¿Qué futbolista se convirtió en cartero tras acabar su carrera deportiva?", options: ["Berry van Aerle", "Pier Tol", "Kees Kist"], correct: "Berry van Aerle", level: 3 },
-{ q: "¿Cuándo se fundó el Ajax?", options: ["1899", "1901", "1900"], correct: "1900", level: 4 },
-{ q: "¿De qué selección eran porteros Gómez, Bobadilla y Villar en la Copa Mundial de la FIFA de 2006?", options: ["Ecuador", "Australia", "Paraguay"], correct: "Paraguay", level: 3 },
-{ q: "¿Cuándo se construyó Amsterdam ArenA?", options: ["1996", "1992", "1988"], correct: "1996", level: 3 },
-{ q: "¿Quién fue el primer futbolista holandés en jugar en el extranjero?", options: ["Abe Lenstra", "Bep Bakhuys", "Faas Wilkes"], correct: "Faas Wilkes", level: 4 },
-{ q: "¿Qué selección quedó primera del grupo de Inglaterra en la Copa Mundial de la FIFA en 1986?", options: ["Portugal", "Marruecos", "Polonia"], correct: "Marruecos", level: 4 },
-{ q: "¿Cuándo se fundó la Eredivisie holandesa?", options: ["1956", "1974", "1986"], correct: "1956", level: 4 },
-{ q: "¿Cuándo se construyó Stamford Bridge?", options: ["1864", "1877", "1850"], correct: "1877", level: 3 },
-{ q: "¿Cuál fue el resultado tras los 90 minutos reglamentarios de la final de la Copa Mundial de la FIFA™ de 1966?", options: ["Inglaterra 4 - Alemania Occidental 2", "Inglaterra 1 - Alemania Occidental 1", "Inglaterra 2 - Alemania Occidental 2"], correct: "Inglaterra 2 - Alemania Occidental 2", level: 4 },
-{ q: "¿Quién fue el máximo goleador de la selección de Gales de todos los tiempos?", options: ["Ian Rush", "Dean Saunders", "Mark Hughes"], correct: "Ian Rush", level: 3 },
-{ q: "¿Quién es el único jugador que ha marcado en un derbi de Manchester, Merseyside y Glasgow?", options: ["Brian McClair", "Andrei Kanchelskis", "Maurice Johnston"], correct: "Andrei Kanchelskis", level: 4 },
-{ q: "¿Quién es el único portero inglés que posee una medalla de ganador de la Copa Mundial de la FIFA™?", options: ["Gordon Banks", "David Seaman", "Peter Shilton"], correct: "Gordon Banks", level: 3 },
-{ q: "¿Cómo se llama el estadio del Manchester Utd?", options: ["Stadio Olimpico", "Stade Felix Bollaert", "Old Trafford"], correct: "Old Trafford", level: 1 },
-{ q: "¿Cuándo se construyó St. James' Park?", options: ["1970", "2000", "1971"], correct: "1971", level: 4 },
-{ q: "Cuando sacas un libre directo, no puede haber ningún jugador rival a menos de:", options: ["5,35 metros del balón", "9,15 metros del balón", "7,75 metros del balón"], correct: "9,15 metros del balón", level: 2 },
-{ q: "¿Cuál es el apodo habitual del Charlton Athletic de la Barclays PL?", options: ["The Addicks", "The Bluebirds", "The Cottagers"], correct: "The Addicks", level: 2 },
-{ q: "El ancho de una portería es de:", options: ["8 metros", "7,32 metros", "6,5 metros"], correct: "7,32 metros", level: 1 },
-{ q: "¿Cuántos partidos permaneció imbatido el Boca Juniors consiguiendo el récord argentino?", options: ["45", "40", "35"], correct: "40", level: 3 },
-{ q: "¿Quién fue el jugador más viejo que ha jugado una fase final de la Copa Mundial de la FIFA?", options: ["Pat Jennings", "Peter Shilton", "Roger Milla"], correct: "Roger Milla", level: 3 },
-{ q: "No hay fuera de juego en:", options: ["un córner", "un saque de banda", "Ambos"], correct: "Ambos", level: 2 },
-{ q: "¿Cuándo se construyó White Hart Lane?", options: ["1877", "1899", "1896"], correct: "1899", level: 4 },
-{ q: "¿Cuántos goles llegó a marcar Just Fontaine en una única Copa Mundial de la FIFA?", options: ["15", "13", "14"], correct: "13", level: 3 },
-{ q: "¿Cuál fue el nombre original del Jeju United FC?", options: ["Yukong Elephants", "Bucheon Yukong", "Jeju SK"], correct: "Yukong Elephants", level: 2 },
-{ q: "¿En qué año ganó el Busan I'Park su primera K-League?", options: ["1997", "1987", "1991"], correct: "1991", level: 3 },
-{ q: "¿En qué año se fundó el Chunnam Dragons?", options: ["1995", "1994", "1996"], correct: "1994", level: 3 },
-{ q: "¿Cuál es el estadio del Daegu FC?", options: ["Dragon Dungeon", "Purple Arena", "Blue Arc"], correct: "Blue Arc", level: 1 },
-{ q: "¿En qué año se fundó el Daejeon Citizen?", options: ["1996", "1997", "1998"], correct: "1997", level: 3 },
-{ q: "¿En qué año ganó el Jeonbuk FC su primera copa coreana?", options: ["2000", "2003", "2002"], correct: "2000", level: 3 },
-{ q: "¿Cuál es la mascota del equipo que ha ganado más títulos de la K-League a fecha de 2008?", options: ["Elefante", "Dragón", "Pegaso"], correct: "Pegaso", level: 3 },
-{ q: "¿En qué año ganó el Suwon su primer título de liga?", options: ["1998", "2004", "1999"], correct: "1998", level: 4 },
-{ q: "¿Cuál es el estadio del Gangwon FC?", options: ["Blue Arc", "Dragon Dungeon", "Gangneung Stadium"], correct: "Gangneung Stadium", level: 1 },
-{ q: "¿En qué año se fundó el FC Seoul?", options: ["2006", "1983", "2004"], correct: "2004", level: 2 },
-{ q: "¿Cuál es el apodo del Gwangju Sangmu?", options: ["Águilas", "Phoenix", "Pájaros"], correct: "Phoenix", level: 1 },
-{ q: "¿Qué colores lleva el Incheon United?", options: ["Negro y oro", "Azul y oro", "Negro y azul"], correct: "Negro y azul", level: 1 },
-{ q: "¿Qué animal aparece en el escudo del Ulsan Hyundai?", options: ["Pantera", "Tigre", "León"], correct: "Tigre", level: 1 },
-{ q: "¿En qué año se convirtió el Gyeongnam FC en el 14º equipo de la K-League?", options: ["2004", "2005", "2006"], correct: "2005", level: 2 },
-{ q: "Polonia jugó en la Copa Mundial de la FIFA por primera vez en el año:", options: ["1938", "1934", "1930"], correct: "1938", level: 3 },
-{ q: "La competición de la Copa Polaca está dividida en:", options: ["dos fases", "tres fases", "no se divide"], correct: "dos fases", level: 1 },
-{ q: "La Asociación Polaca de Fútbol (PZPN) fue reconocida oficialmente por la FIFA en:", options: ["1906", "1945", "1923"], correct: "1923", level: 4 },
-{ q: "La primera Copa Polaca se jugó en:", options: ["1926", "1946", "1966"], correct: "1926", level: 4 },
-{ q: "El trofeo que se entrega al vencedor de la Ekstraklasa permanece en el club durante:", options: ["un mes", "una temporada", "un año"], correct: "una temporada", level: 1 },
-{ q: "En 2006, el vencedor de la Ekstraklasa fue:", options: ["Legia Warszawa", "Widzew Łódź", "Korona Kielce"], correct: "Legia Warszawa", level: 2 },
-{ q: "Los gastos de los desplazamientos de los equipos para partidos de la Ekstraklasa los paga:", options: ["el rival", "El propio equipo", "la Asociación Polaca de Fútbol (PZPN)"], correct: "El propio equipo", level: 2 },
-{ q: "¿Quién ganó la Copa Polaca en 2006?", options: ["Legia Warszawa", "Wisła Kraków", "Wisła Płock"], correct: "Wisła Płock", level: 3 },
-{ q: "El equipo que ha jugado más tiempo seguido en la Ekstraklasa es:", options: ["Wisła Płock", "Arka Gdynia", "Legia Warszawa"], correct: "Legia Warszawa", level: 1 },
-{ q: "¿Cuáles son los colores del Hoffenheim?", options: ["Rojo y blanco", "Negro y azul", "Azul claro y blanco"], correct: "Azul claro y blanco", level: 3 },
-{ q: "¿En qué año se fundó el SV Wehen Wiesbaden?", options: ["1908", "1987", "1920"], correct: "1920", level: 3 },
-{ q: "¿Con qué nombre antiguo ganó el Karlsruher SC su primer campeonato alemán en 1909?", options: ["Phönix Karlsruhe", "SCFC Karlsruher", "Karlsruher FC"], correct: "Phönix Karlsruhe", level: 3 },
-{ q: "El Hannover 96 es el único equipo de fuera de la Bundesliga que ganó una copa alemana. ¿En qué año?", options: ["1992", "1990", "1963"], correct: "1992", level: 3 },
-{ q: "¿Cuántas tarjetas se mostraron en el partido de la Copa Mundial de la FIFA™ de 2002 que enfrentó a Alemania y Camerún?", options: ["16", "14", "15"], correct: "16", level: 3 },
-{ q: "¿En qué año se fundó el Friburgo?", options: ["1905", "1903", "1904"], correct: "1904", level: 2 },
-{ q: "¿Qué selecciones jugaron la final de la Copa Mundial de la FIFA™ de 2002?", options: ["Brasil e Italia", "Brasil y Alemania", "Italia y Alemania"], correct: "Brasil y Alemania", level: 2 },
-{ q: "¿Cuál es el apodo del Erzgebirge Aue?", options: ["Die Fohlen", "Veilchen", "Kartoffelkäfer"], correct: "Veilchen", level: 2 },
-{ q: "¿Cómo se llama el estadio del Alemannia Aachen?", options: ["Signal Iduna Park", "Tivoli", "Bay Arena"], correct: "Tivoli", level: 2 },
-{ q: "¿Cuál es el apodo del VfL Osnabrück?", options: ["Osna", "Los Violetas", "VFL"], correct: "Los Violetas", level: 1 },
-{ q: "¿Cómo se llama el estadio del Carl Zeiss Jena?", options: ["Bay Arena", "Tivoli", "Ernst-Abbe-Sportfeld"], correct: "Ernst-Abbe-Sportfeld", level: 1 },
-{ q: "¿A qué equipo derrotó el Kickers Offenbach cuando ganó su única copa alemana en 1970?", options: ["FC Köln", "Bayern de Múnich", "Bayer Leverkusen"], correct: "FC Köln", level: 3 },
-{ q: "¿A qué gigante español derrotó el Kaiserslautern por 5-0 en 1982?", options: ["FC Barcelona", "Real Madrid", "Sevilla"], correct: "Real Madrid", level: 3 },
-{ q: "¿Cuándo se construyó Stade Felix Bollaert?", options: ["1932", "1959", "1938"], correct: "1932", level: 3 },
-{ q: "¿En qué año se fundó el Solna?", options: ["1891", "1896", "1890"], correct: "1891", level: 3 },
-{ q: "¿Qué selección cayó en la semifinal ante Brasil en la Copa Mundial de la FIFA™ de 1994?", options: ["Suecia", "Bulgaria", "Holanda"], correct: "Suecia", level: 4 },
-{ q: "¿En qué año se fundó el Malmö?", options: ["1915", "1910", "1925"], correct: "1910", level: 3 },
-{ q: "¿En qué año ganó el Halmstads una copa sueca?", options: ["1992", "1991", "1993"], correct: "1993", level: 1 },
-{ q: "¿En qué año se fundó el Trelleborgs?", options: ["1926", "1920", "1923"], correct: "1926", level: 1 },
-{ q: "¿Cuántas veces ha ganado la Allsvenskan el IFK Goteborg?", options: ["9", "13", "11"], correct: "13", level: 1 },
-{ q: "¿Contra quién jugó Suecia su primer partido de la Copa Mundial de la FIFA™ de 1994?", options: ["Rusia", "Brasil", "Camerún"], correct: "Camerún", level: 5 },
-{ q: "¿A qué equipo ganó Hungría en la semifinal de la Copa Mundial de la FIFA™ de 1938?", options: ["Inglaterra", "Italia", "Suecia"], correct: "Suecia", level: 5 },
-{ q: "¿En qué año ganó el Kalmar la copa sueca por última vez?", options: ["2003", "2007", "2008"], correct: "2007", level: 3 },
-{ q: "¿Qué club sueco es el principal rival futbolístico del Elfsborg?", options: ["Göteborg", "Kalmar FF", "Hammarby"], correct: "Hammarby", level: 2 },
-{ q: "¿Cómo se llama el estadio del Orebro?", options: ["Örjans Vall", "Behrn Arena", "Vångavallen"], correct: "Behrn Arena", level: 1 },
-{ q: "¿Cuántos clubes han ganado la Barclays Premier League?", options: ["4", "3", "8"], correct: "4", level: 3 },
-{ q: "¿Quién fue el primer jugador en ser traspasado por un millón y medio de euros?", options: ["Gary Lineker", "Trevor Francis", "Chris Woods"], correct: "Trevor Francis", level: 4 },
-{ q: "El Lask Linz derrotó al Inter en 1985. ¿Cuál fue el marcador?", options: ["2-0", "2-1", "1-0"], correct: "1-0", level: 3 },
-{ q: "¿Qué equipo juega en el estadio Tivoli Neu?", options: ["FC Tyrol Innsbruck", "SK Rapid Wien", "SC Unterstiebenbrunn"], correct: "FC Tyrol Innsbruck", level: 3 },
-{ q: "¿En qué año se fundó el Red Bull Salzburg?", options: ["1934", "1933", "1932"], correct: "1933", level: 1 },
-{ q: "¿En qué año ganó el Rapid de Viena la Bundesliga Alemana?", options: ["1938", "1941", "1942"], correct: "1941", level: 1 },
-{ q: "¿A qué equipo ganó el Sydney FC la final de la primera temporada de la Hyundai A-League?", options: ["Wellington Phoenix FC", "Central Coast Mariners", "Brisbane Roar"], correct: "Central Coast Mariners", level: 2 },
-{ q: "¿En qué año se fundó el Gold Coast United?", options: ["2006", "2008", "2007"], correct: "2008", level: 1 },
-{ q: "¿En qué temporada se coronó el Newcastle Jets como campeón de la Hyundai A-League?", options: ["2007-08", "2006-07", "2005-06"], correct: "2007-08", level: 1 },
-{ q: "¿En qué año se fundó el Adelaide United?", options: ["2002", "2004", "2003"], correct: "2003", level: 3 },
-{ q: "¿Cuántos minutos estuvo el Wellington Phoenix sin encajar goles entre el 30 de agosto y el 21 de septiembre de 2008?", options: ["250", "200", "199"], correct: "199", level: 4 },
-{ q: "¿Qué 'Bota de Oro' marcó en todas las rondas de la Copa Mundial de la FIFA™ de 1994 hasta las semifinales?", options: ["Romario", "Jürgen Klinsmann", "Hristo Stoichkov"], correct: "Hristo Stoichkov", level: 1 },
-{ q: "El Celtic fue el primer equipo británico en ganar la Copa de Campeones. ¿Cuándo lo consiguió?", options: ["1965", "1967", "1972"], correct: "1967", level: 3 },
-{ q: "¿Qué club escocés juega en Kirkcaldy?", options: ["Queens Park Rangers", "Raith Rovers", "Clyde F.C."], correct: "Raith Rovers", level: 3 },
-{ q: "¿Cómo se conoce popularmente al Monterrey?", options: ["Rayos", "Zorros", "Rayados"], correct: "Rayados", level: 3 },
-{ q: "¿Cómo se llama al derbi entre los Tigres U.A.N.L y su rival, el Monterrey?", options: ["Clásico Regiomontano", "Clásico Mayor", "El Superclásico"], correct: "Clásico Regiomontano", level: 3 },
-{ q: "El St. Johnstone FC juega en Perth, Escocia. ¿Por qué se llama St. Johnstone?", options: ["Antes Perth recibía el nombre de St. John's Town", "El equipo se trasladó desde Johnston a Perth", "El equipo fue fundado por Gordon Johnston"], correct: "Antes Perth recibía el nombre de St. John's Town", level: 2 },
-{ q: "¿Por qué recordará Tommy Boyd el primer partido de Escocia contra Brasil en la Copa Mundial de la FIFA de 1998?", options: ["Por marcar un hat-trick", "Por marcar un gol en propia puerta", "Por ser expulsado"], correct: "Por marcar un gol en propia puerta", level: 3 },
-{ q: "¿Quién marcó el primer gol de Escocia en la Copa Mundial de la FIFA de 1998?", options: ["John Collins", "Jim Leighton", "Paul Lambert"], correct: "John Collins", level: 5 },
-{ q: "¿Cuándo ganó el Hearts su primer título de la Clydesdale Bank Premier League?", options: ["1894", "1896", "1959"], correct: "1894", level: 4 },
-{ q: "¿Con qué equipo falló una prueba Kenny Dalglish?", options: ["Rangers", "Everton", "Partick Thistle"], correct: "Rangers", level: 3 },
-{ q: "El clásico de 1960 entre el Real Madrid y el Eintracht Frankfurt atrajo la entrada más numerosa de una final de la Champions Cup. ¿Dónde se jugó?", options: ["Camp Nou", "Wembley", "Hampden Park"], correct: "Hampden Park", level: 4 },
-{ q: "Tienes una entrada para una grada de Copeland Road. ¿A qué estadio te diriges?", options: ["Goodison Park", "Ibrox", "St Andrews"], correct: "Ibrox", level: 3 },
-{ q: "¿Cuántas Copas Interamericanas ha ganado el América?", options: ["3", "2", "4"], correct: "2", level: 3 },
-{ q: "¿Cuál es el apodo del Necaxa?", options: ["Rayados", "Rayos", "Zorros"], correct: "Rayos", level: 3 },
-{ q: "¿Cuál es el único club de la historia mexicana que solo ha tenido jugadores nacionales representando sus colores?", options: ["CD Guadalajara (Chivas)", "Pachuca", "Chiapas"], correct: "CD Guadalajara (Chivas)", level: 3 },
-{ q: "El apodo del Guadalajara procede de una sociedad secreta de la Universidad Autónoma de Guadalajara. ¿Cuál es ese apodo?", options: ["Pumas", "Tecos", "Tigres"], correct: "Tecos", level: 3 },
-{ q: "¿Qué colores lleva el Atlas?", options: ["Negro y rojo", "Rojo y blanco", "Negro y blanco"], correct: "Negro y rojo", level: 3 },
-{ q: "¿En qué año se fundó el Club de Fútbol América?", options: ["1916", "1902", "1952"], correct: "1916", level: 3 },
-{ q: "¿En qué estadio juega el Querétaro?", options: ["Estadio Víctor Manuel Reyna", "Estadio Corona", "Estadio Corregidora"], correct: "Estadio Corregidora", level: 3 },
-{ q: "¿Cuál es la capacidad del Estadio Azteca, sede del Club América?", options: ["114.465", "96.465", "136.465"], correct: "114.465", level: 3 },
-{ q: "¿Cuál es el apodo del Club Deportivo Veracruz?", options: ["Zorros", "Tiburones Rojos", "Tuneros"], correct: "Tiburones Rojos", level: 3 },
-{ q: "¿Qué dos equipos participan en el tradicional 'Superclásico' de México?", options: ["América y Guadalajara", "Cruz Azul y Guadalajara", "América y Cruz Azul"], correct: "América y Guadalajara", level: 2 },
-{ q: "¿Cuál es el apodo del Guadalajara?", options: ["Los tigres", "Los murciélagos", "Las cabras"], correct: "Las cabras", level: 2 },
-{ q: "¿Qué jugador nacido en México ha marcado más goles en la historia de la liga mexicana?", options: ["Cuauhtémoc Blanco", "Carlos Hermosillo", "J.F. Fonseca"], correct: "Carlos Hermosillo", level: 2 },
-{ q: "¿Cómo se llama el estadio del Cruz Azul?", options: ["Estadio Azul", "Estadio Cruz", "Estadio Azteca"], correct: "Estadio Azul", level: 3 },
-{ q: "¿Cuál es el apodo del Club Deportivo Guadalajara?", options: ["Tecos", "Tigres", "Chivas"], correct: "Chivas", level: 2 },
-{ q: "¿En qué equipo comenzó su carrera la estrella internacional Cuauhtémoc Blanco?", options: ["América", "Guadalajara", "U.N.A.M."], correct: "América", level: 2 },
-{ q: "¿Qué país norteamericano organizó la Copa Mundial de la FIFA de 1970 y 1986?", options: ["Colombia", "Argentina", "México"], correct: "México", level: 3 },
-{ q: "¿En qué año se coronó el FC Luzern como campeón suizo por primera vez?", options: ["1989", "1990", "1988"], correct: "1989", level: 4 },
-{ q: "¿Cómo se llama el estadio del FC Sion?", options: ["Stade de Suisse", "Stade Allmend", "Stade Tourbillon"], correct: "Stade Tourbillon", level: 1 },
-{ q: "¿Cómo se llama el estadio del Neuchatel Xamax?", options: ["Stade La Maladiere", "Stade de Suisse", "Stade Tourbillon"], correct: "Stade La Maladiere", level: 1 },
-{ q: "¿En qué año ganó el Grasshopper una supercopa suiza?", options: ["1991", "1990", "1989"], correct: "1989", level: 1 },
-{ q: "¿Cuándo se construyó Stade Gerland?", options: ["1920", "1957", "1959"], correct: "1920", level: 4 },
-{ q: "¿En qué año se fundó el FC Thun?", options: ["1898", "1896", "1897"], correct: "1898", level: 2 },
-{ q: "¿Cuántas derrotas sufrió Suiza entre 1954 y 1966?", options: ["7", "9", "8"], correct: "8", level: 5 },
-{ q: "¿En qué año ganó el FC Zurich su décimo título de liga?", options: ["2005", "2006", "2007"], correct: "2006", level: 2 },
-{ q: "¿Contra quién jugó Noruega su primer partido de la Copa Mundial de la FIFA de 1998?", options: ["Brasil", "Marruecos", "Escocia"], correct: "Marruecos", level: 5 },
-{ q: "¿Qué equipo europeo tiene el récord de 58 partidos imbatido?", options: ["Nottingham Forest", "Olympique Lyonnais", "Milan"], correct: "Milan", level: 2 },
-{ q: "¿Quién no ostentó el récord de más goles marcados en la Copa Mundial de la FIFA™?", options: ["Ronaldo", "Gerd Müller", "Pelé"], correct: "Pelé", level: 3 },
-{ q: "¿Qué equipo es el rival del KV Kortrijk?", options: ["Standard Liège", "Lierse SK", "Zulte-Waregem"], correct: "Zulte-Waregem", level: 2 },
-{ q: "¿Qué equipo juega en el Ottenstadium?", options: ["Club Brugge KV", "KFC Rhodienne-Verrewinkel", "KAA Gent"], correct: "KAA Gent", level: 2 },
-{ q: "¿Cuándo se construyó Constant Vanden Stock?", options: ["1918", "1933", "1905"], correct: "1918", level: 3 },
-{ q: "¿Cómo se conoce más popularmente al estadio del Standard Luik, 'Le Stade Maurice Dufrasne'?", options: ["Sclessin", "Dufrasne", "Stadia"], correct: "Sclessin", level: 2 },
-{ q: "¿Qué club ganó el campeonato belga en 2006?", options: ["KAA Gent", "RSC Anderlecht", "Club Brugge KV"], correct: "RSC Anderlecht", level: 2 },
-{ q: "¿Qué club no juega en Bruselas?", options: ["FC Molenbeek Brussel", "Beerschot AC", "Anderlecht"], correct: "Beerschot AC", level: 2 },
-{ q: "¿Cómo se llama la asociación responsable de organizar la Pro League belga?", options: ["KBVB", "KBBV", "KVBB"], correct: "KBVB", level: 3 },
-{ q: "¿Cuántas veces ha ganado el Palmeiras la Liga do Brasil hasta el 2015?", options: ["1", "4", "5"], correct: "4", level: 4 },
-{ q: "¿Cuándo ganó el Corinthians la liga brasileña por primera vez?", options: ["1990", "2000", "2005"], correct: "1990", level: 4 },
-{ q: "¿Cuál es el nombre completo del KAA Gent?", options: ["Koninklijke Avond Associatie Gent", "Koninklijke Associatie Gent", "Koninklijke Atletiek Associatie Gent"], correct: "Koninklijke Atletiek Associatie Gent", level: 2 },
-{ q: "¿Qué equipo es el rival del RSC Anderlecht?", options: ["KV Oostende", "Club Brugge", "KRC Genk"], correct: "Club Brugge", level: 1 },
-{ q: "¿Dónde se encuentra el estadio del RSC Anderlecht?", options: ["Elizabethlaan", "Verheydenstraat", "Astridpark"], correct: "Astridpark", level: 2 },
-{ q: "¿Qué capitán brasileño fue el primer jugador en disputar tres finales de la Copa Mundial de la FIFA?", options: ["Ronaldo", "Cafú", "Pelé"], correct: "Cafú", level: 3 },
-{ q: "¿Qué club tiene más títulos nacionales belgas a día de hoy?", options: ["Union", "RSC Anderlecht", "Standard Luik"], correct: "RSC Anderlecht", level: 2 },
-{ q: "¿Cuál es el apodo del Anderlecht?", options: ["Negriazules", "Rojiblancos", "Blanquimorados"], correct: "Blanquimorados", level: 3 },
-{ q: "¿Cuándo se fusionaron el Racing White y el Daring Molenbeek para convertirse en el RWDM?", options: ["1973", "1974", "1972"], correct: "1973", level: 4 },
-{ q: "¿Cuál fue el primer club profesional de Ronaldinho?", options: ["Cruzeiro", "Santos", "Grêmio"], correct: "Grêmio", level: 3 },
-{ q: "¿Cuál de los siguientes equipos es el propietario del estadio Beira-Rio?", options: ["Cruzeiro", "Internacional", "Flamengo"], correct: "Internacional", level: 2 },
-{ q: "¿Qué equipo brasileño tiene el mote de 'los zorros'?", options: ["Vasco da Gama", "Juventude", "Cruzeiro"], correct: "Cruzeiro", level: 2 },
-{ q: "¿En qué estado brasileño está el estadio 'Arena da Baixada'?", options: ["Paraná", "São Paulo", "Minas Gerais"], correct: "Paraná", level: 2 },
-{ q: "¿Quiénes fueron los campeones de la Liga do Brasil en 2004?", options: ["São Paulo", "Santos", "Atlético Paranaense"], correct: "Santos", level: 2 },
-{ q: "¿Cuál es la única selección que ha participado en las fases finales de todas las Copas Mundiales de la FIFA?", options: ["Argentina", "Alemania", "Brasil"], correct: "Brasil", level: 3 },
-{ q: "¿Quiénes de los siguientes jugadores han jugado en el São Paulo?", options: ["Ronaldinho y Adriano", "Roberto Carlos y Ronaldo", "Kaká y Luiz Fabiano"], correct: "Kaká y Luiz Fabiano", level: 3 },
-{ q: "¿Quién de los siguientes jugadores fue el máximo goleador de la liga brasileña en 2003?", options: ["Luiz Fabiano - São Paulo", "Washington - Clube Atlético Paranaense", "Dimba - Goiás EC"], correct: "Dimba - Goiás EC", level: 3 }        
-];
-
 let goals = 0;
 let rivalGoals = 0;
 let totalGameSecs = 0;
@@ -805,6 +471,19 @@ let mediaIQGlobal = calcularMediaGlobal();
 // 2. CACHE CORREGIDO (Cambiamos 'ball' por 'ballElem')
 const ballElement = document.getElementById('ball');
 const aimLineElement = document.getElementById('aim-line')
+
+async function cargarPreguntasDeArchivo() {
+    try {
+        const respuesta = await fetch('preguntas.json'); // Ruta a tu archivo
+        if (!respuesta.ok) throw new Error("No se pudo encontrar el archivo de preguntas");
+        
+        questions = await respuesta.json();
+        console.log("Base de datos de Scouting cargada con éxito.");
+    } catch (error) {
+        console.error("Error al cargar el pool de preguntas:", error);
+        document.getElementById('q-text').innerText = "ERROR: No se pudo cargar el archivo JSON.";
+    }
+}
     
 function calcularMediaGlobal() {
     // IMPORTANTE: Volver a leer el historial del storage por si acaso
@@ -825,12 +504,24 @@ function shuffleArray(array) {
     return array;
 }
 
-function startGame() {
-    // Si usas un archivo externo para las preguntas, asegúrate de que 'questions' esté definido
-    if (typeof questions === 'undefined' || questions.length === 0) {
-        console.error("Error: No hay preguntas cargadas.");
+async function startGame() {
+    // Si por algún motivo el array sigue vacío, intentamos cargar
+    if (questions.length === 0) {
+        const btn = document.querySelector("#start-screen .opt-btn");
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "<span>CARGANDO DATOS...</span>";
+        
+        await cargarPreguntasDeArchivo();
+        
+        btn.innerHTML = textoOriginal;
+    }
+
+    // Verificación de seguridad
+    if (questions.length === 0) {
+        alert("Error crítico: No hay preguntas disponibles.");
         return;
     }
+
     document.getElementById('start-screen').style.display = 'none';
     availableQuestions = shuffleArray([...questions]);
     nextQuestion();
@@ -843,7 +534,7 @@ function startGame() {
         }
     }, 100);
 }
-
+    
 function updateClock() {
     let m = Math.floor(totalGameSecs / 60).toString().padStart(2, '0');
     let s = (totalGameSecs % 60).toString().padStart(2, '0');
@@ -1201,12 +892,16 @@ function borrarHistorial() {
     }
 }
     // Esto se ejecuta SOLITO cada vez que se abre el juego o se recarga
-window.onload = function() {
+window.onload = async function() {
+    // Lógica de IQ que ya tenías
     const media = calcularMediaGlobal();
     const display = document.getElementById('iq-valor-inicio');
     if (display) {
         display.innerText = media;
     }
+
+    // Pre-carga asíncrona para que el Kick Off sea instantáneo
+    await cargarPreguntasDeArchivo();
 };
 </script>
 </body>
