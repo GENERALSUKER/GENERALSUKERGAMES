@@ -124,7 +124,7 @@
 <div id="controles-inicio">
     <button onclick="comenzarJuego('global')">ARCHIVOS GLOBALES</button><br>
     <button onclick="comenzarJuego('politicos_es')">POLÍTICOS ESPAÑA</button>
-    <button onclick="comenzarJuego('deportistas_es')">DEPORTISTAS ESPAÑA</button>
+    <button onclick="comenzarJuego('deportistas_es')">FUTBOLISTAS ESPAÑA</button>
     <button onclick="comenzarJuego('espectaculo_es')">Famosos & Cine</button>
 </div>
 </div>
@@ -312,27 +312,29 @@ async function comenzarJuego(modo) {
     let datosRaw = null;
 
     if (modo !== 'global') {
-        // SELECCIÓN DE MODO
-        if (modo === 'politicos_es') {
-            datosRaw = precargaPoliticos;
-        } else if (modo === 'deportistas_es') {
-            datosRaw = precargaDeportistas;
-        } else if (modo === 'espectaculo_es') {
-            datosRaw = precargaEspectaculo;
-        }
+        // Asignar precarga
+        if (modo === 'politicos_es') datosRaw = precargaPoliticos;
+        if (modo === 'deportistas_es') datosRaw = precargaDeportistas;
+        if (modo === 'espectaculo_es') datosRaw = precargaEspectaculo;
 
-        // Si no hay precarga, intenta bajarlo en el momento
-        if (!datosRaw) {
+        // Si la precarga está vacía, forzar descarga inmediata
+        if (!datosRaw || datosRaw.length === 0) {
+            console.log("Descargando datos en caliente para modo: " + modo);
             try {
                 let q = (modo === 'politicos_es') ? getQueryPoliticos() : 
                         (modo === 'deportistas_es') ? getQueryDeportistas() : getQueryEspectaculo();
-                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } });
+                
+                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(q), { 
+                    headers: { 'Accept': 'application/json' } 
+                });
                 const data = await res.json();
                 datosRaw = data.results.bindings;
-            } catch (e) { console.error("Error de red"); }
+            } catch (e) {
+                console.error("Error de conexión con Wikidata");
+            }
         }
 
-        // PROCESADO Y LIMPIEZA
+        // Procesar los datos si tenemos algo
         if (datosRaw && datosRaw.length > 0) {
             const mapaUnicos = new Map();
             datosRaw.forEach(p => {
@@ -348,19 +350,21 @@ async function comenzarJuego(modo) {
             partida = shuffle(Array.from(mapaUnicos.values())).slice(0, 30);
         }
     } else {
-        // MODO LOCAL (DICTADORES)
-        partida = shuffle([...poolOriginal]).slice(0, 30);
+        // Modo global con pool local
+        if (typeof poolOriginal !== 'undefined') {
+            partida = shuffle([...poolOriginal]).slice(0, 30);
+        }
     }
 
-    // LANZAMIENTO
-    if (partida.length > 0) {
+    // Finalizar carga e iniciar
+    if (partida && partida.length > 0) {
         loader.style.display = 'none';
         document.getElementById('pantalla-inicio').classList.remove('activa');
         document.getElementById('pantalla-juego').classList.add('activa');
         actualizarVidas();
         mostrar();
     } else {
-        alert("Error: No hay datos.");
+        alert("Error: No se han podido cargar los datos de " + modo);
         loader.style.display = 'none';
         btnContainer.style.display = 'block';
     }
