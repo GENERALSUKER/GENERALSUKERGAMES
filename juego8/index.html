@@ -125,6 +125,7 @@
     <button onclick="comenzarJuego('global')">ARCHIVOS GLOBALES</button><br>
     <button onclick="comenzarJuego('politicos_es')">POLÍTICOS ESPAÑA</button>
     <button onclick="comenzarJuego('deportistas_es')">DEPORTISTAS ESPAÑA</button>
+    <button onclick="comenzarJuego('espectaculo_es')">Famosos & Cine</button>
 </div>
 </div>
 
@@ -219,6 +220,7 @@ let partida = [], indice = 0, aciertos = 0, vidas = 5;
 let timer, tiempoRestante;
 let precargaPoliticos = null;
 let precargaDeportistas = null;
+let precargaEspectaculo = null; // Al principio del script
 
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -256,29 +258,42 @@ function getQueryDeportistas() {
               wdt:P27 wd:Q29; 
               wdt:P19/wdt:P17 wd:Q29; 
               wdt:P18 ?img;
-              wdt:P569 ?fecha;
               wikibase:sitelinks ?sitelinks.
         
-        ?item wdt:P106 ?occ.
+        ?item wdt:P106 wd:Q102357. # FORZAMOS SOLO FUTBOLISTAS para equilibrar
         
-        # Ampliamos los IDs para que el fútbol tenga más peso:
-        # Q102357 (futbolista), Q10841764 (piloto), Q212955 (ciclista)
-        VALUES ?occ { wd:Q102357 wd:Q10841764 wd:Q212955 wd:Q3122943 wd:Q10833314 } 
+        MINUS { ?item wdt:P106 wd:Q3665646 } # Sin Basket
+        MINUS { ?item wdt:P106 wd:Q10833314 } # QUITAMOS TENISTAS de esta lista para probar
         
-        # BLOQUEO TOTAL de lo que no queremos
-        MINUS { ?item wdt:P106 wd:Q3665646 } # Baloncesto
-        MINUS { ?item wdt:P106 wd:Q33999 }   # Actores
-        MINUS { ?item wdt:P106 wd:Q177220 }  # Cantantes
-        
-        FILTER(?fecha >= "1980-01-01T00:00:00Z"^^xsd:dateTime) # Gente más joven = más fútbol moderno
-        FILTER(?sitelinks > 12) 
+        FILTER(?sitelinks > 8) # Filtro muy bajo para que entren cientos de futbolistas
         
         SERVICE wikibase:label { 
             bd:serviceParam wikibase:language "es". 
             ?item rdfs:label ?name. 
             ?item schema:description ?desc. 
         }
-    } ORDER BY UUID() LIMIT 150`; 
+    } ORDER BY UUID() LIMIT 200`; 
+}
+function getQueryEspectaculo() {
+    return `SELECT DISTINCT ?name ?img ?desc WHERE {
+        ?item wdt:P31 wd:Q5; 
+              wdt:P27 wd:Q29; 
+              wdt:P19/wdt:P17 wd:Q29; 
+              wdt:P18 ?img;
+              wikibase:sitelinks ?sitelinks.
+        
+        ?item wdt:P106 ?occ.
+        # Actor, Cantante, Presentador de TV, Humorista
+        VALUES ?occ { wd:Q33999 wd:Q177220 wd:Q11024447 wd:Q245068 } 
+        
+        FILTER(?sitelinks > 10) 
+        
+        SERVICE wikibase:label { 
+            bd:serviceParam wikibase:language "es". 
+            ?item rdfs:label ?name. 
+            ?item schema:description ?desc. 
+        }
+    } ORDER BY UUID() LIMIT 60`; 
 }
 async function comenzarJuego(modo) {
     const btnContainer = document.getElementById('controles-inicio');
@@ -287,7 +302,6 @@ async function comenzarJuego(modo) {
     btnContainer.style.display = 'none';
     loader.style.display = 'block';
 
-    // Reset de variables
     indice = 0; aciertos = 0; vidas = 5; partida = [];
     clearInterval(timer);
     
@@ -295,75 +309,58 @@ async function comenzarJuego(modo) {
     document.getElementById('zona-input').style.display = "block";
     document.getElementById('num-aciertos').innerText = "0";
 
-    // 1. VARIABLE PARA GUARDAR LOS DATOS (Definida aquí para que sea visible)
     let datosRaw = null;
 
     if (modo !== 'global') {
-        // Elegimos qué precarga usar según el botón
-        datosRaw = (modo === 'politicos_es') ? precargaPoliticos : precargaDeportistas;
-
-        // Si la precarga no está lista (null), hacemos la petición en caliente
-        if (!datosRaw) {
-            console.log("Datos no listos en precarga, descargando ahora...");
-            try {
-                const query = (modo === 'politicos_es') ? getQueryPoliticos() : getQueryDeportistas();
-                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(query), { 
-                    headers: { 'Accept': 'application/json' } 
-                });
-                const data = await res.json();
-                datosRaw = data.results.bindings;
-            } catch (e) {
-                console.error("Fallo total de red:", e);
-            }
+        // SELECCIÓN DE MODO
+        if (modo === 'politicos_es') {
+            datosRaw = precargaPoliticos;
+        } else if (modo === 'deportistas_es') {
+            datosRaw = precargaDeportistas;
+        } else if (modo === 'espectaculo_es') {
+            datosRaw = precargaEspectaculo;
         }
 
-        // PROCESAMIENTO DE DATOS DE ESPAÑA (Dentro del modo no-global)
+        // Si no hay precarga, intenta bajarlo en el momento
+        if (!datosRaw) {
+            try {
+                let q = (modo === 'politicos_es') ? getQueryPoliticos() : 
+                        (modo === 'deportistas_es') ? getQueryDeportistas() : getQueryEspectaculo();
+                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                datosRaw = data.results.bindings;
+            } catch (e) { console.error("Error de red"); }
+        }
+
+        // PROCESADO Y LIMPIEZA
         if (datosRaw && datosRaw.length > 0) {
             const mapaUnicos = new Map();
-
             datosRaw.forEach(p => {
                 const nombre = p.name.value;
-                const imagen = p.img.value.replace("http://", "https://");
-                const descripcion = p.desc ? p.desc.value : "Figura destacada de España.";
-
                 if (!mapaUnicos.has(nombre)) {
                     mapaUnicos.set(nombre, {
                         n: nombre,
-                        u: imagen,
-                        d: descripcion
+                        u: p.img.value.replace("http://", "https://"),
+                        d: p.desc ? p.desc.value : "Personalidad de España."
                     });
                 }
             });
-
-            let listaLimpia = Array.from(mapaUnicos.values());
-            partida = shuffle(listaLimpia).slice(0, 30);
-        } else {
-            alert("No se han podido obtener los datos de España.");
-            loader.style.display = 'none';
-            btnContainer.style.display = 'block';
-            return; // Detenemos la ejecución si no hay datos
+            partida = shuffle(Array.from(mapaUnicos.values())).slice(0, 30);
         }
-
     } else {
-        // MODO GLOBAL: Aquí sí usamos el pool local (Asegúrate de que poolOriginal exista)
-        if (typeof poolOriginal !== 'undefined') {
-            partida = shuffle([...poolOriginal]).slice(0, 30);
-        } else {
-            console.error("poolOriginal no está definido.");
-            return;
-        }
+        // MODO LOCAL (DICTADORES)
+        partida = shuffle([...poolOriginal]).slice(0, 30);
     }
 
-    // 2. LANZAR EL JUEGO (Fuera de los ifs de carga)
+    // LANZAMIENTO
     if (partida.length > 0) {
         loader.style.display = 'none';
         document.getElementById('pantalla-inicio').classList.remove('activa');
         document.getElementById('pantalla-juego').classList.add('activa');
-        
         actualizarVidas();
         mostrar();
     } else {
-        alert("Error crítico: Partida vacía.");
+        alert("Error: No hay datos.");
         loader.style.display = 'none';
         btnContainer.style.display = 'block';
     }
@@ -480,20 +477,27 @@ function editDistance(s1, s2) {
     }
     return costs[s2.length];
 }
-(async function preCargarDatos() { // Sin guion
-    console.log("Iniciando archivos secretos...");
+(async function preCargarDatos() {
+    console.log("Iniciando descarga de expedientes...");
     try {
+        // 1. Políticos
         const resPol = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(getQueryPoliticos()), { headers: { 'Accept': 'application/json' } });
         const dataPol = await resPol.json();
         precargaPoliticos = dataPol.results.bindings;
 
+        // 2. Deportistas
         const resDep = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(getQueryDeportistas()), { headers: { 'Accept': 'application/json' } });
         const dataDep = await resDep.json();
         precargaDeportistas = dataDep.results.bindings;
+
+        // 3. NUEVO: Espectáculo
+        const resEsp = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(getQueryEspectaculo()), { headers: { 'Accept': 'application/json' } });
+        const dataEsp = await resEsp.json();
+        precargaEspectaculo = dataEsp.results.bindings;
         
-        console.log("Expedientes de España listos.");
+        console.log("¡Todo listo! Políticos, Deportistas y Famosos cargados.");
     } catch (e) {
-        console.error("Error en la pre-carga:", e);
+        console.error("Error en la carga silenciosa:", e);
     }
 })();
 </script>
