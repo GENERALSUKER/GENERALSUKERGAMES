@@ -253,16 +253,19 @@ function getQueryPoliticos() {
     } ORDER BY UUID() LIMIT 60`; 
 }
 function getQueryDeportistas() {
-    // Solo futbolistas españoles (Q102357) con más de 10 wikipedias
     return `SELECT DISTINCT ?name ?img ?desc WHERE {
         ?item wdt:P31 wd:Q5; 
               wdt:P27 wd:Q29; 
               wdt:P18 ?img; 
               wdt:P106 wd:Q102357. 
         ?item wikibase:sitelinks ?sitelinks.
-        FILTER(?sitelinks > 10)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name; schema:description ?desc. }
-    } ORDER BY UUID() LIMIT 100`;
+        FILTER(?sitelinks > 15)
+        SERVICE wikibase:label { 
+            bd:serviceParam wikibase:language "es". 
+            ?item rdfs:label ?name. 
+            ?item schema:description ?desc. 
+        }
+    } ORDER BY UUID() LIMIT 100`; 
 }
 
 function getQueryEspectaculo() {
