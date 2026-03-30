@@ -258,21 +258,20 @@ function getQueryDeportistas() {
               wdt:P27 wd:Q29; 
               wdt:P19/wdt:P17 wd:Q29; 
               wdt:P18 ?img;
+              wdt:P569 ?fecha;
               wikibase:sitelinks ?sitelinks.
         
-        ?item wdt:P106 wd:Q102357. # FORZAMOS SOLO FUTBOLISTAS para equilibrar
+        ?item wdt:P106 wd:Q102357. # Único ID: Futbolista
         
-        MINUS { ?item wdt:P106 wd:Q3665646 } # Sin Basket
-        MINUS { ?item wdt:P106 wd:Q10833314 } # QUITAMOS TENISTAS de esta lista para probar
-        
-        FILTER(?sitelinks > 8) # Filtro muy bajo para que entren cientos de futbolistas
+        FILTER(?fecha >= "1975-01-01T00:00:00Z"^^xsd:dateTime)
+        FILTER(?sitelinks > 10) # Filtro de fama suficiente
         
         SERVICE wikibase:label { 
             bd:serviceParam wikibase:language "es". 
             ?item rdfs:label ?name. 
             ?item schema:description ?desc. 
         }
-    } ORDER BY UUID() LIMIT 200`; 
+    } ORDER BY UUID() LIMIT 100`; 
 }
 function getQueryEspectaculo() {
     return `SELECT DISTINCT ?name ?img ?desc WHERE {
