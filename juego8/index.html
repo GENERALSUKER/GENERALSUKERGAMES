@@ -250,49 +250,28 @@ function getQueryPoliticos() {
             ?item rdfs:label ?name. 
             ?item schema:description ?desc. 
         }
-    } ORDER BY UUID() LIMIT 50`; 
+    } ORDER BY UUID() LIMIT 60`; 
 }
 function getQueryDeportistas() {
+    // Solo futbolistas españoles (Q102357) con más de 10 wikipedias
     return `SELECT DISTINCT ?name ?img ?desc WHERE {
         ?item wdt:P31 wd:Q5; 
               wdt:P27 wd:Q29; 
-              wdt:P19/wdt:P17 wd:Q29; 
-              wdt:P18 ?img;
-              wdt:P569 ?fecha;
-              wikibase:sitelinks ?sitelinks.
-        
-        ?item wdt:P106 wd:Q102357. # Único ID: Futbolista
-        
-        FILTER(?fecha >= "1975-01-01T00:00:00Z"^^xsd:dateTime)
-        FILTER(?sitelinks > 10) # Filtro de fama suficiente
-        
-        SERVICE wikibase:label { 
-            bd:serviceParam wikibase:language "es". 
-            ?item rdfs:label ?name. 
-            ?item schema:description ?desc. 
-        }
-    } ORDER BY UUID() LIMIT 100`; 
+              wdt:P18 ?img; 
+              wdt:P106 wd:Q102357. 
+        ?item wikibase:sitelinks ?sitelinks.
+        FILTER(?sitelinks > 10)
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name; schema:description ?desc. }
+    } ORDER BY UUID() LIMIT 100`;
 }
+
 function getQueryEspectaculo() {
     return `SELECT DISTINCT ?name ?img ?desc WHERE {
-        ?item wdt:P31 wd:Q5; 
-              wdt:P27 wd:Q29; 
-              wdt:P19/wdt:P17 wd:Q29; 
-              wdt:P18 ?img;
-              wikibase:sitelinks ?sitelinks.
-        
-        ?item wdt:P106 ?occ.
-        # Actor, Cantante, Presentador de TV, Humorista
-        VALUES ?occ { wd:Q33999 wd:Q177220 wd:Q11024447 wd:Q245068 } 
-        
-        FILTER(?sitelinks > 10) 
-        
-        SERVICE wikibase:label { 
-            bd:serviceParam wikibase:language "es". 
-            ?item rdfs:label ?name. 
-            ?item schema:description ?desc. 
-        }
-    } ORDER BY UUID() LIMIT 60`; 
+        ?item wdt:P31 wd:Q5; wdt:P27 wd:Q29; wdt:P18 ?img; wikibase:sitelinks ?sitelinks.
+        ?item wdt:P106 ?occ. VALUES ?occ { wd:Q33999 wd:Q177220 wd:Q11024447 }
+        FILTER(?sitelinks > 15)
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "es". ?item rdfs:label ?name; schema:description ?desc. }
+    } ORDER BY UUID() LIMIT 60`;
 }
 async function comenzarJuego(modo) {
     const btnContainer = document.getElementById('controles-inicio');
@@ -301,8 +280,9 @@ async function comenzarJuego(modo) {
     btnContainer.style.display = 'none';
     loader.style.display = 'block';
 
+    // Reset total
     indice = 0; aciertos = 0; vidas = 5; partida = [];
-    clearInterval(timer);
+    if(timer) clearInterval(timer);
     
     document.getElementById('feedback-area').style.display = "none";
     document.getElementById('zona-input').style.display = "block";
@@ -311,51 +291,53 @@ async function comenzarJuego(modo) {
     let datosRaw = null;
 
     if (modo !== 'global') {
-        // Asignar precarga
+        // 1. Intentar pillar de la precarga
         if (modo === 'politicos_es') datosRaw = precargaPoliticos;
-        if (modo === 'deportistas_es') datosRaw = precargaDeportistas;
-        if (modo === 'espectaculo_es') datosRaw = precargaEspectaculo;
+        else if (modo === 'deportistas_es') datosRaw = precargaDeportistas;
+        else if (modo === 'espectaculo_es') datosRaw = precargaEspectaculo;
 
-        // Si la precarga está vacía, forzar descarga inmediata
+        // 2. Si no hay precarga (o está vacía), descargar YA
         if (!datosRaw || datosRaw.length === 0) {
-            console.log("Descargando datos en caliente para modo: " + modo);
+            console.warn("Precarga vacía para " + modo + ". Descargando...");
             try {
-                let q = (modo === 'politicos_es') ? getQueryPoliticos() : 
-                        (modo === 'deportistas_es') ? getQueryDeportistas() : getQueryEspectaculo();
-                
-                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(q), { 
+                let query;
+                if (modo === 'politicos_es') query = getQueryPoliticos();
+                else if (modo === 'deportistas_es') query = getQueryDeportistas();
+                else query = getQueryEspectaculo();
+
+                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(query), { 
                     headers: { 'Accept': 'application/json' } 
                 });
                 const data = await res.json();
                 datosRaw = data.results.bindings;
             } catch (e) {
-                console.error("Error de conexión con Wikidata");
+                console.error("Error de red en descarga directa");
             }
         }
 
-        // Procesar los datos si tenemos algo
+        // 3. Procesar y limpiar (Set/Map para evitar repeticiones)
         if (datosRaw && datosRaw.length > 0) {
             const mapaUnicos = new Map();
             datosRaw.forEach(p => {
                 const nombre = p.name.value;
-                if (!mapaUnicos.has(nombre)) {
+                if (!mapaUnicos.has(nombre) && p.img) {
                     mapaUnicos.set(nombre, {
                         n: nombre,
                         u: p.img.value.replace("http://", "https://"),
-                        d: p.desc ? p.desc.value : "Personalidad de España."
+                        d: p.desc ? p.desc.value : "Figura pública de España."
                     });
                 }
             });
             partida = shuffle(Array.from(mapaUnicos.values())).slice(0, 30);
         }
     } else {
-        // Modo global con pool local
+        // Modo global (poolOriginal)
         if (typeof poolOriginal !== 'undefined') {
             partida = shuffle([...poolOriginal]).slice(0, 30);
         }
     }
 
-    // Finalizar carga e iniciar
+    // Comprobación final
     if (partida && partida.length > 0) {
         loader.style.display = 'none';
         document.getElementById('pantalla-inicio').classList.remove('activa');
@@ -363,7 +345,7 @@ async function comenzarJuego(modo) {
         actualizarVidas();
         mostrar();
     } else {
-        alert("Error: No se han podido cargar los datos de " + modo);
+        alert("Error: No hay datos disponibles para " + modo);
         loader.style.display = 'none';
         btnContainer.style.display = 'block';
     }
