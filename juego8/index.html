@@ -253,7 +253,7 @@ function getQueryPoliticos() {
     } ORDER BY UUID() LIMIT 60`; 
 }
 function getQueryDeportistas() {
-    return `SELECT DISTINCT ?name ?img ?desc WHERE {
+    return `SELECT ?name ?img ?desc WHERE {
         ?item wdt:P31 wd:Q5; 
               wdt:P27 wd:Q29; 
               wdt:P18 ?img; 
@@ -265,7 +265,7 @@ function getQueryDeportistas() {
             ?item rdfs:label ?name. 
             ?item schema:description ?desc. 
         }
-    } ORDER BY UUID() LIMIT 100`; 
+    } ORDER BY UUID() LIMIT 80`; 
 }
 
 function getQueryEspectaculo() {
@@ -300,21 +300,26 @@ async function comenzarJuego(modo) {
         else if (modo === 'espectaculo_es') datosRaw = precargaEspectaculo;
 
         // 2. Si no hay precarga (o está vacía), descargar YA
+// 2. Si no hay precarga (o está vacía), descargar YA
         if (!datosRaw || datosRaw.length === 0) {
-            console.warn("Precarga vacía para " + modo + ". Descargando...");
+            console.warn("Precarga vacía para " + modo + ". Descargando ahora mismo...");
             try {
-                let query;
-                if (modo === 'politicos_es') query = getQueryPoliticos();
-                else if (modo === 'deportistas_es') query = getQueryDeportistas();
-                else query = getQueryEspectaculo();
+                let qText;
+                if (modo === 'politicos_es') qText = getQueryPoliticos();
+                else if (modo === 'deportistas_es') qText = getQueryDeportistas();
+                else qText = getQueryEspectaculo();
 
-                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(query), { 
+                const res = await fetch("https://query.wikidata.org/sparql?query=" + encodeURIComponent(qText), { 
                     headers: { 'Accept': 'application/json' } 
                 });
+                
+                if (!res.ok) throw new Error("Error en la respuesta de Wikidata");
+                
                 const data = await res.json();
                 datosRaw = data.results.bindings;
+                console.log("Descarga exitosa:", datosRaw.length, "elementos.");
             } catch (e) {
-                console.error("Error de red en descarga directa");
+                console.error("Error de red en descarga directa:", e);
             }
         }
 
