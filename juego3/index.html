@@ -143,22 +143,23 @@
     <h1>Hispania</h1>
     <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
     
-    <p>Selecciona el periodo histórico:</p>
-    <select id="pack-selector" class="btn-esp" style="background: white; color: black; margin-bottom: 20px; width: 80%; cursor: pointer;">
-        <option value="banco1">Pack 1: Guerra civil</option>
-        <option value="banco2">Pack 2: Franquismo:1</option>
-        <option value="banco3">Pack 3: Franquismo:2</option>
-    </select>
+<p>Selecciona los periodos (puedes marcar varios):</p>
+<div id="pack-selector-multi" style="text-align: left; display: inline-block; margin-bottom: 20px;">
+    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+        <input type="checkbox" value="banco1" class="pack-checkbox" checked> Pack 1: Guerra Civil
+    </label>
+    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+        <input type="checkbox" value="banco2" class="pack-checkbox"> Pack 2: Franquismo 1
+    </label>
+    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+        <input type="checkbox" value="banco3" class="pack-checkbox"> Pack 3: Franquismo 2
+    </label>
+</div>
 
-    <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
-        <button class="btn-esp" onclick="startGame('normal', document.getElementById('pack-selector').value)">
-            Modo Crónica
-        </button>
-        <button class="btn-esp" style="background: var(--azul-real);" 
-                onclick="startGame('repaso', document.getElementById('pack-selector').value)">
-            Modo Erudito
-        </button>
-        
+<div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+    <button class="btn-esp" onclick="startGame('normal')">Modo Crónica</button>
+    <button class="btn-esp" style="background: var(--azul-real);" onclick="startGame('repaso')">Modo Erudito</button>
+    </div>
         <button class="btn-esp" style="background: #444; font-size: 0.8rem; padding: 10px; margin-top: 10px;" onclick="resetHistorial()">
             Reiniciar Archivo Histórico
         </button>
@@ -445,6 +446,7 @@ banco3: [  { q: "¿Qué plan de 1959 puso fin definitivamente a la autarquía en
     let indice = 0;
     let aciertos = 0;
     let modoActual = 'normal';
+    let totalPreguntasPool = 0;
 
     // --- LÓGICA DE PERSISTENCIA ---
     function getAciertosGuardados() {
@@ -477,24 +479,47 @@ function shuffle(array) {
     return array;
     }
 
-function startGame(modo, nombrePack) {
-    modoActual = modo;
-    const bancoDePreguntas = bibliotecas[nombrePack]; // Selecciona el pack
-    const yaHechas = getAciertosGuardados();
-    
-    let poolPreguntas = (modo === 'repaso') 
-        ? bancoDePreguntas.filter(p => !yaHechas.includes(p.q))
-        : [...bancoDePreguntas];
 
-    if (poolPreguntas.length === 0) {
-        alert("¡Archivo completado! Prueba otro pack o modo.");
+
+function startGame(modo) {
+    modoActual = modo;
+    
+    // 1. Obtener los packs seleccionados
+    const checkboxes = document.querySelectorAll('.pack-checkbox:checked');
+    let bancoCombinado = [];
+    
+    checkboxes.forEach(cb => {
+        const pack = bibliotecas[cb.value];
+        if (pack) bancoCombinado = bancoCombinado.concat(pack);
+    });
+
+    if (bancoCombinado.length === 0) {
+        alert("Por favor, selecciona al menos un pack.");
         return;
     }
 
+    // Guardamos el total para el mensaje final
+    totalPreguntasPool = bancoCombinado.length;
+
+    // 2. Filtrar si es modo repaso
+    const yaHechas = getAciertosGuardados();
+    let poolPreguntas = (modo === 'repaso') 
+        ? bancoCombinado.filter(p => !yaHechas.includes(p.q))
+        : [...bancoCombinado];
+
+    if (poolPreguntas.length === 0) {
+        alert("¡No quedan preguntas nuevas en los packs seleccionados!");
+        return;
+    }
+
+    // 3. Iniciar interfaz
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('quiz-ui').style.display = 'block';
     
+    // Mezclar y limitar a 20 (o al máximo disponible)
     preguntasPartida = shuffle(poolPreguntas).slice(0, 20);
+    indice = 0;
+    aciertos = 0;
     renderQuestion();
 }
 
@@ -560,18 +585,20 @@ function startGame(modo, nombrePack) {
         }
     }
 
-    function showFinal() {
-        document.getElementById('quiz-ui').style.display = 'none';
-        const screen = document.getElementById('results-screen');
-        screen.style.display = 'block';
-        document.getElementById('final-score').innerText = `${aciertos}/${preguntasPartida.length}`;
-        
-        const yaHechas = getAciertosGuardados().length;
-        document.getElementById('final-msg').innerHTML = `
-            Has completado este capítulo.<br>
-            <strong>Progreso total del archivo: ${yaHechas} de ${banco.length} preguntas dominadas.</strong>
-        `;
-    }
+function showFinal() {
+    document.getElementById('quiz-ui').style.display = 'none';
+    const screen = document.getElementById('results-screen');
+    screen.style.display = 'block';
+    document.getElementById('final-score').innerText = `${aciertos}/${preguntasPartida.length}`;
+    
+    // CORRECCIÓN DE banco.length:
+    // Ahora usamos totalPreguntasPool que definimos al inicio de la partida
+    const yaHechasTotal = getAciertosGuardados().length;
+    document.getElementById('final-msg').innerHTML = `
+        Has completado este capítulo.<br>
+        <strong>Progreso histórico global: ${yaHechasTotal} preguntas dominadas en total.</strong>
+    `;
+}
 </script>
 </body>
 </html>
