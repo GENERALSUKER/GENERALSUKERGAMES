@@ -139,34 +139,39 @@
 <body>
 
 <div id="game-container">
-<div id="start-screen">
-    <h1>Hispania</h1>
-    <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
-    
-<p>Selecciona los periodos (puedes marcar varios):</p>
-<div id="pack-selector-multi" style="text-align: left; display: inline-block; margin-bottom: 20px;">
-    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
-        <input type="checkbox" value="banco1" class="pack-checkbox" checked> Pack 1: Guerra Civil
-    </label>
-    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
-        <input type="checkbox" value="banco2" class="pack-checkbox"> Pack 2: Franquismo 1
-    </label>
-    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
-        <input type="checkbox" value="banco3" class="pack-checkbox"> Pack 3: Franquismo 2
-    </label>
-</div>
+    <div id="start-screen">
+        <h1>Hispania</h1>
+        <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
+        
+        <p>Selecciona los periodos (puedes marcar varios):</p>
+        <div id="pack-selector-multi" style="text-align: left; display: inline-block; margin-bottom: 20px; color: #333; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 5px; border: 1px solid var(--oro);">
+            <label style="display: block; margin-bottom: 10px; cursor: pointer; font-weight: bold;">
+                <input type="checkbox" value="banco1" class="pack-checkbox" checked> Pack 1: Guerra Civil
+            </label>
+            <label style="display: block; margin-bottom: 10px; cursor: pointer; font-weight: bold;">
+                <input type="checkbox" value="banco2" class="pack-checkbox"> Pack 2: Franquismo 1
+            </label>
+            <label style="display: block; margin-bottom: 10px; cursor: pointer; font-weight: bold;">
+                <input type="checkbox" value="banco3" class="pack-checkbox"> Pack 3: Franquismo 2
+            </label>
+        </div>
 
-<div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
-    <button class="btn-esp" onclick="startGame('normal')">Modo Crónica</button>
-    <button class="btn-esp" style="background: var(--azul-real);" onclick="startGame('repaso')">Modo Erudito</button>
+        <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+            <button class="btn-esp" onclick="startGame('normal')">
+                Modo Crónica
+            </button>
+            <button class="btn-esp" style="background: var(--azul-real);" 
+                    onclick="startGame('repaso')">
+                Modo Erudito
+            </button>
+            
+            <button class="btn-esp" style="background: #444; font-size: 0.8rem; padding: 10px; margin-top: 10px;" onclick="resetHistorial()">
+                Reiniciar Archivo Histórico
+            </button>
+        </div>
     </div>
-        <button class="btn-esp" style="background: #444; font-size: 0.8rem; padding: 10px; margin-top: 10px;" onclick="resetHistorial()">
-            Reiniciar Archivo Histórico
-        </button>
-    </div>
-</div>
 
-    <div id="quiz-ui">
+    <div id="quiz-ui" style="display: none;">
         <div class="stats-bar">
             <span>Legajo: <span id="current-q">1</span> de 20</span>
             <span>Aciertos: <span id="current-score">0</span></span>
@@ -181,7 +186,7 @@
         <button id="next-btn" class="btn-esp" onclick="handleNext()">Siguiente Capítulo ➔</button>
     </div>
 
-    <div id="results-screen">
+    <div id="results-screen" style="display: none; text-align: center;">
         <h2>Fin de la Crónica</h2>
         <div id="final-score" style="font-size: 3rem; margin: 20px;">0/20</div>
         <p id="final-msg"></p>
