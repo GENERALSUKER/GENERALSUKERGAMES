@@ -139,17 +139,27 @@
 <body>
 
 <div id="game-container">
- <div id="start-screen">
+<div id="start-screen">
     <h1>Hispania</h1>
     <span class="subtitle">Crónica de Reyes, Conquistas y Cortes</span>
-    <p>Elige tu camino para explorar la historia:</p>
     
+    <p>Selecciona el periodo histórico:</p>
+    <select id="pack-selector" class="btn-esp" style="background: white; color: black; margin-bottom: 20px; width: 80%; cursor: pointer;">
+        <option value="banco1">Pack 1: Guerra civil</option>
+        <option value="banco2">Pack 2: Franquismo:1</option>
+        <option value="banco3">Pack 3: Franquismo:2</option>
+    </select>
+
     <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
-        <button class="btn-esp" onclick="startGame('normal')">Modo Crónica</button>
-        <button class="btn-esp" style="background: var(--azul-real);" onclick="startGame('repaso')">
+        <button class="btn-esp" onclick="startGame('normal', document.getElementById('pack-selector').value)">
+            Modo Crónica
+        </button>
+        <button class="btn-esp" style="background: var(--azul-real);" 
+                onclick="startGame('repaso', document.getElementById('pack-selector').value)">
             Modo Erudito
         </button>
-        <button class="btn-esp" style="background: #444; font-size: 0.8rem; padding: 10px;" onclick="resetHistorial()">
+        
+        <button class="btn-esp" style="background: #444; font-size: 0.8rem; padding: 10px; margin-top: 10px;" onclick="resetHistorial()">
             Reiniciar Archivo Histórico
         </button>
     </div>
@@ -180,8 +190,10 @@
 
 <script>
     // BASE DE DATOS (Aquí puedes cambiar las preguntas a tu gusto)
-    const banco = [
-    { q: "¿En qué fecha exacta se extendió el golpe militar a la Península?", c: "18 de julio de 1936", i: ["17 de julio de 1936", "19 de julio de 1936", "20 de julio de 1936"] },
+const bibliotecas = {
+
+
+banco1: [    { q: "¿En qué fecha exacta se extendió el golpe militar a la Península?", c: "18 de julio de 1936", i: ["17 de julio de 1936", "19 de julio de 1936", "20 de julio de 1936"] },
 { q: "¿Qué proporción de la Armada permaneció leal a la República según las fuentes?", c: "Casi la mitad", i: ["Un tercio", "La totalidad", "Un cuarto"] },
 { q: "¿Quién fue asesinado el 13 de julio de 1936, sirviendo de detonante final?", c: "Calvo Sotelo", i: ["José del Castillo", "José Sanjurjo", "José Antonio Primo de Rivera"] },
 { q: "¿Qué unidades militares lideró Franco tras volar al Protectorado de Marruecos?", c: "Legión y Regulares", i: ["Requetés y Falangistas", "Guardia Civil y Asalto", "Brigadas Mixtas"] },
@@ -221,46 +233,7 @@
 { q: "¿Qué suceso provocó la caída de Largo Caballero en mayo de 1937?", c: "Enfrentamientos armados en Barcelona (Telefónica)", i: ["La pérdida de Bilbao", "El bombardeo de Guernica", "El robo del Oro de Moscú"] },
 { q: "¿Qué líder del POUM fue asesinado tras los sucesos de mayo de 1937?", c: "Andreu Nin", i: ["Federica Montseny", "Santiago Carrillo", "Julián Besteiro"] },
 { q: "¿Qué países reconocieron oficialmente al gobierno de Franco en febrero de 1939?", c: "Francia e Inglaterra", i: ["Alemania e Italia", "USA e URSS", "Portugal y el Vaticano"] },
-{ q: "¿Qué título militar y político ostentaba Franco desde 1936?", c: "Caudillo y Generalísimo", i: ["Presidente del Consejo", "Regente Vitalicio", "Jefe del Movimiento"] },
-{ q: "¿Qué norma fundamental quedó inmediatamente anulada tras la victoria franquista?", c: "La Constitución de 1931", i: ["La Ley de Reforma Agraria", "El Código Civil", "La Ley de Vagos y Maleantes"] },
-{ q: "¿Cuál fue el nombre del partido único según el Decreto de Unificación?", c: "FET y de las JONS", i: ["Falange Española", "Movimiento Nacional", "Unión Patriótica"] },
-{ q: "¿En qué áreas la Iglesia Católica obtuvo control legítimo sobre la sociedad?", c: "Educación, Censure y Moral", i: ["Economía y Hacienda", "Defensa y Orden Público", "Industria y Agricultura"] },
-{ q: "¿Qué nombre recibió el sistema que sustituía al parlamentarismo liberal?", c: "Democracia Orgánica", i: ["Dictadura Proletaria", "Estado Corporativo", "Monarquía de Julio"] },
-{ q: "¿Qué familia política técnica, ligada al Opus Dei, ascendió en los 50?", c: "Tecnócratas", i: ["Falangistas", "Tradicionalistas", "Donjuanistas"] },
-{ q: "¿Qué sector social se benefició del sistema de recomendados?", c: "Clases medias del bando nacional", i: ["Clase obrera industrial", "Campesinado andaluz", "Aristocracia exiliada"] },
-{ q: "¿Qué ley de 1942 pretendía dar una imagen parlamentaria al régimen?", c: "Ley de Creación de las Cortes", i: ["Ley de Referéndum", "Fuero de los Españoles", "Ley de Sucesión"] },
-{ q: "¿Qué establecía la Ley de Sucesión de 1947 sobre la forma del Estado?", c: "España era un Reino", i: ["España era una República", "España era una Dictadura Militar", "España era un Protectorado"] },
-{ q: "¿Cuál fue la cifra estimada de ejecutados por el franquismo tras la guerra?", c: "50.000 personas", i: ["10.000 personas", "30.000 personas", "100.000 personas"] },
-{ q: "¿Qué ley de 1939 permitía confiscar bienes y propiedades a los vencidos?", c: "Ley de Responsabilidades Políticas", i: ["Ley de Vagos y Maleantes", "Ley de Seguridad del Estado", "Fuero del Trabajo"] },
-{ q: "¿A qué grupo se vinculaba la Masonería en la ley represiva de 1940?", c: "Al Comunismo", i: ["Al Capitalismo", "Al Anarquismo", "Al Separatismo"] },
-{ q: "¿Cómo se denominó al proceso de expulsión de docentes no afectos?", c: "Depuración de maestros", i: ["Exilio interior", "Reciclaje Nacional", "Tribunal de Orden Público"] },
-{ q: "¿Qué castigo humillante físico era común para las mujeres 'rojas'?", c: "Rapado de pelo y toma de aceite de ricino", i: ["Servicio militar obligatorio", "Prohibición de casarse", "Destierro a Canarias"] },
-{ q: "¿Quién fue el psiquiatra que teorizó sobre la 'patología' del marxismo?", c: "Vallejo-Nájera", i: ["Ramón y Cajal", "Gregorio Marañón", "Juan José López Ibor"] },
-{ q: "¿En qué año se eliminaron definitivamente las cartillas de racionamiento?", c: "1952", i: ["1945", "1950", "1959"] },
-{ q: "¿Qué organismo estatal se creó en 1941 para impulsar la industria?", c: "INI", i: ["RENFE", "SEAT", "CAMPSA"] },
-{ q: "¿Qué nombre recibía el mercado negro clandestino durante la autarquía?", c: "Estraperlo", i: ["Maquis", "Zoco", "Cambalache"] },
-{ q: "¿Por qué España fue excluida del Plan Marshall (1948-1952)?", c: "Por ser aliada de las potencias fascistas del Eje", i: ["Por no haber participado en la guerra", "Porque Franco lo consideró una injerencia", "Porque la URSS vetó su entrada"] },
-{ q: "¿Qué porcentaje alcanzó la inflación en España en 1958?", c: "15%", i: ["5%", "10%", "25%"] },
-{ q: "¿En qué instituciones internacionales ingresó España en 1958 para evitar la quiebra?", c: "FMI (NDF) y Banco Mundial", i: ["ONU y OTAN", "CEE y Plan Marshall", "UNESCO y UNICEF"] },
-{ q: "¿Quién ostentó la presidencia de la República en el exilio hasta 1962?", c: "Martínez Barrio", i: ["Manuel Azaña", "José Giral", "Claudio Sánchez Albornoz"] },
-{ q: "¿Cómo se denominaba a la guerrilla armada antifranquista?", c: "Maquis", i: ["Viriatos", "Requetés", "Camisas Azules"] },
-{ q: "¿En qué zona pirenaica fracasó la invasión de los Maquis en 1944?", c: "Valle de Arán", i: ["Valle de Baztán", "Roncesvalles", "Formigal"] },
-{ q: "¿Qué documento de 1945 presentaba a la monarquía como alternativa democrática?", c: "Manifiesto de Lausana", i: ["Manifiesto de Estoril", "Pacto de San Sebastián", "Carta de Roma"] },
-{ q: "¿Qué acuerdo alcanzaron Franco y Don Juan de Borbón en 1948?", c: "La educación de Juan Carlos en España bajo tutela de Franco", i: ["La vuelta inmediata del Rey", "El exilio definitivo de la casa de Borbón", "La legalización de sindicatos monárquicos"] },
-{ q: "¿Qué protesta social en Barcelona en 1951 marcó un hito de resistencia?", c: "Boicot a los tranvías", i: ["Huelga de la Minería", "Cierre de comercios", "Manifestación de estraperlistas"] },
-{ q: "¿Qué ley técnica de 1958 permitió negociar salarios directamente con patronos?", c: "Ley de Convenios Colectivos ", i: ["Ley de Unidad Sindical", "Fuero del Trabajo", "Ley de Bases"] },
-{ q: "¿Qué estatus diplomático tuvo España al inicio de la II Guerra Mundial?", c: "Neutral", i: ["Aliado militar", "Beligerante", "Enemigo"] },
-{ q: "¿Dónde se produjo la famosa entrevista entre Franco y Hitler en 1940?", c: "Hendaya", i: ["Berlín", "Bordighera", "Madrid"] },
-{ q: "¿Qué reclamó Franco a Hitler para entrar en la guerra?", c: "Protectorado francés en Marruecos, Orán y Guinea", i: ["Gibraltar y el Rosellón", "Portugal y las Azores", "Filipinas y Cuba"] },
-{ q: "¿Cómo se llamó la unidad de voluntarios enviada contra la URSS?", c: "División Azul", i: ["División Acorazada", "Legión Cóndor", "Tercio de Extranjeros"] },
-{ q: "¿Qué mineral estratégico exportaba España para la industria nazi?", c: "Wolframio", i: ["Hierro", "Cobre", "Carbón"] },
-{ q: "¿Cuál fue la recomendación de la ONU en 1946 sobre el régimen de Franco?", c: "Retirada de embajadores y condena diplomática", i: ["Admisión inmediata", "Bloqueo naval total", "Cambio de bandera obligatorio"] },
-{ q: "¿Qué factor internacional facilitó el fin del aislamiento en los 50?", c: "El inicio de la Guerra Fría", i: ["La muerte de Stalin", "El descubrimiento de petróleo", "El fin de la autarquía"] },
-{ q: "¿Qué recibió España por los Pactos de Madrid (1953) con EE.UU.?", c: "Ayuda económica y militar a cambio de bases", i: ["La entrada en la OTAN", "La soberanía sobre Gibraltar", "Un asiento en el Plan Marshall"] },
-{ q: "¿En qué año fue admitida finalmente España en la ONU?", c: "1955", i: ["1945", "1950", "1953"] },
-{ q: "¿Qué territorio cedió Franco en 1956 por presiones internacionales?", c: "Protectorado de Marruecos", i: ["Guinea Ecuatorial", "Sáhara Occidental", "Ifni"] },
-{ q: "¿Qué presidente estadounidense visitó oficialmente España en 1959?", c: "Eisenhower", i: ["Truman", "Kennedy", "Roosevelt"] },
-{ q: "¿Qué nombre recibían las unidades de trabajos forzados para presos?", c: "Batallones de Trabajadores", i: ["Colonias Escolares", "Reformatorios de Adultos", "Centros de Reeducación Social"] },
+
    
 { q: "¿Qué fuerzas de orden público se mantuvieron mayoritariamente leales a la República en ciudades como Barcelona?", c: "La Guardia Civil y la Guardia de Asalto.", i: ["La Legión y los Regulares del Protectorado.", "Los Requetés y las milicias falangistas.", "Las Juntas de Defensa y el Ejército de África."] },
     { q: "¿Cuál fue el principal obstáculo constitucional del Estatuto de Estella (Lizarra) en 1931?", c: "La potestad de negociar un Concordato propio con el Vaticano.", i: ["La falta de apoyo de la mayoría de los alcaldes.", "La inclusión de Navarra como territorio soberano.", "El rechazo explícito a la bandera tricolor republicana."] },
@@ -302,7 +275,49 @@
     { q: "¿Qué país apoyó a la República con la 'Legión de San Patricio'?", c: "Irlanda (apoyo nacionalista).", i: ["URSS", "México (apoyo diplomático).", "Estados Unidos (voluntarios)."] },
     { q: "¿Qué ley franquista de febrero de 1939 imposibilitaba la paz pactada?", c: "Ley de Responsabilidades Políticas", i: ["Ley de Seguridad del Estado.", "Fuero del Trabajo.", "Ley de Prensa y Censura."] },
     { q: "¿Cuándo finalizó oficialmente la guerra civil?", c: "1 de abril de 1939.", i: ["28 de marzo de 1939.", "5 de marzo de 1939.", "18 de julio de 1939."] },
-    { q: "¿Qué define institucionalmente al Franquismo como una 'Dictadura Personal'?", c: "La concentración de todos los poderes en la figura del Caudillo.", i: ["El control de la economía a través de sindicatos obreros.", "La rotación de cargos entre los generales del bando nacional.", "La sumisión del Estado a las órdenes directas del Vaticano."] },
+],
+    
+banco2: [{ q: "¿Qué título militar y político ostentaba Franco desde 1936?", c: "Caudillo y Generalísimo", i: ["Presidente del Consejo", "Regente Vitalicio", "Jefe del Movimiento"] },
+{ q: "¿Qué norma fundamental quedó inmediatamente anulada tras la victoria franquista?", c: "La Constitución de 1931", i: ["La Ley de Reforma Agraria", "El Código Civil", "La Ley de Vagos y Maleantes"] },
+{ q: "¿Cuál fue el nombre del partido único según el Decreto de Unificación?", c: "FET y de las JONS", i: ["Falange Española", "Movimiento Nacional", "Unión Patriótica"] },
+{ q: "¿En qué áreas la Iglesia Católica obtuvo control legítimo sobre la sociedad?", c: "Educación, Censure y Moral", i: ["Economía y Hacienda", "Defensa y Orden Público", "Industria y Agricultura"] },
+{ q: "¿Qué nombre recibió el sistema que sustituía al parlamentarismo liberal?", c: "Democracia Orgánica", i: ["Dictadura Proletaria", "Estado Corporativo", "Monarquía de Julio"] },
+{ q: "¿Qué familia política técnica, ligada al Opus Dei, ascendió en los 50?", c: "Tecnócratas", i: ["Falangistas", "Tradicionalistas", "Donjuanistas"] },
+{ q: "¿Qué sector social se benefició del sistema de recomendados?", c: "Clases medias del bando nacional", i: ["Clase obrera industrial", "Campesinado andaluz", "Aristocracia exiliada"] },
+{ q: "¿Qué ley de 1942 pretendía dar una imagen parlamentaria al régimen?", c: "Ley de Creación de las Cortes", i: ["Ley de Referéndum", "Fuero de los Españoles", "Ley de Sucesión"] },
+{ q: "¿Qué establecía la Ley de Sucesión de 1947 sobre la forma del Estado?", c: "España era un Reino", i: ["España era una República", "España era una Dictadura Militar", "España era un Protectorado"] },
+{ q: "¿Cuál fue la cifra estimada de ejecutados por el franquismo tras la guerra?", c: "50.000 personas", i: ["10.000 personas", "30.000 personas", "100.000 personas"] },
+{ q: "¿Qué ley de 1939 permitía confiscar bienes y propiedades a los vencidos?", c: "Ley de Responsabilidades Políticas", i: ["Ley de Vagos y Maleantes", "Ley de Seguridad del Estado", "Fuero del Trabajo"] },
+{ q: "¿A qué grupo se vinculaba la Masonería en la ley represiva de 1940?", c: "Al Comunismo", i: ["Al Capitalismo", "Al Anarquismo", "Al Separatismo"] },
+{ q: "¿Cómo se denominó al proceso de expulsión de docentes no afectos?", c: "Depuración de maestros", i: ["Exilio interior", "Reciclaje Nacional", "Tribunal de Orden Público"] },
+{ q: "¿Qué castigo humillante físico era común para las mujeres 'rojas'?", c: "Rapado de pelo y toma de aceite de ricino", i: ["Servicio militar obligatorio", "Prohibición de casarse", "Destierro a Canarias"] },
+{ q: "¿Quién fue el psiquiatra que teorizó sobre la 'patología' del marxismo?", c: "Vallejo-Nájera", i: ["Ramón y Cajal", "Gregorio Marañón", "Juan José López Ibor"] },
+{ q: "¿En qué año se eliminaron definitivamente las cartillas de racionamiento?", c: "1952", i: ["1945", "1950", "1959"] },
+{ q: "¿Qué organismo estatal se creó en 1941 para impulsar la industria?", c: "INI", i: ["RENFE", "SEAT", "CAMPSA"] },
+{ q: "¿Qué nombre recibía el mercado negro clandestino durante la autarquía?", c: "Estraperlo", i: ["Maquis", "Zoco", "Cambalache"] },
+{ q: "¿Por qué España fue excluida del Plan Marshall (1948-1952)?", c: "Por ser aliada de las potencias fascistas del Eje", i: ["Por no haber participado en la guerra", "Porque Franco lo consideró una injerencia", "Porque la URSS vetó su entrada"] },
+{ q: "¿Qué porcentaje alcanzó la inflación en España en 1958?", c: "15%", i: ["5%", "10%", "25%"] },
+{ q: "¿En qué instituciones internacionales ingresó España en 1958 para evitar la quiebra?", c: "FMI (NDF) y Banco Mundial", i: ["ONU y OTAN", "CEE y Plan Marshall", "UNESCO y UNICEF"] },
+{ q: "¿Quién ostentó la presidencia de la República en el exilio hasta 1962?", c: "Martínez Barrio", i: ["Manuel Azaña", "José Giral", "Claudio Sánchez Albornoz"] },
+{ q: "¿Cómo se denominaba a la guerrilla armada antifranquista?", c: "Maquis", i: ["Viriatos", "Requetés", "Camisas Azules"] },
+{ q: "¿En qué zona pirenaica fracasó la invasión de los Maquis en 1944?", c: "Valle de Arán", i: ["Valle de Baztán", "Roncesvalles", "Formigal"] },
+{ q: "¿Qué documento de 1945 presentaba a la monarquía como alternativa democrática?", c: "Manifiesto de Lausana", i: ["Manifiesto de Estoril", "Pacto de San Sebastián", "Carta de Roma"] },
+{ q: "¿Qué acuerdo alcanzaron Franco y Don Juan de Borbón en 1948?", c: "La educación de Juan Carlos en España bajo tutela de Franco", i: ["La vuelta inmediata del Rey", "El exilio definitivo de la casa de Borbón", "La legalización de sindicatos monárquicos"] },
+{ q: "¿Qué protesta social en Barcelona en 1951 marcó un hito de resistencia?", c: "Boicot a los tranvías", i: ["Huelga de la Minería", "Cierre de comercios", "Manifestación de estraperlistas"] },
+{ q: "¿Qué ley técnica de 1958 permitió negociar salarios directamente con patronos?", c: "Ley de Convenios Colectivos ", i: ["Ley de Unidad Sindical", "Fuero del Trabajo", "Ley de Bases"] },
+{ q: "¿Qué estatus diplomático tuvo España al inicio de la II Guerra Mundial?", c: "Neutral", i: ["Aliado militar", "Beligerante", "Enemigo"] },
+{ q: "¿Dónde se produjo la famosa entrevista entre Franco y Hitler en 1940?", c: "Hendaya", i: ["Berlín", "Bordighera", "Madrid"] },
+{ q: "¿Qué reclamó Franco a Hitler para entrar en la guerra?", c: "Protectorado francés en Marruecos, Orán y Guinea", i: ["Gibraltar y el Rosellón", "Portugal y las Azores", "Filipinas y Cuba"] },
+{ q: "¿Cómo se llamó la unidad de voluntarios enviada contra la URSS?", c: "División Azul", i: ["División Acorazada", "Legión Cóndor", "Tercio de Extranjeros"] },
+{ q: "¿Qué mineral estratégico exportaba España para la industria nazi?", c: "Wolframio", i: ["Hierro", "Cobre", "Carbón"] },
+{ q: "¿Cuál fue la recomendación de la ONU en 1946 sobre el régimen de Franco?", c: "Retirada de embajadores y condena diplomática", i: ["Admisión inmediata", "Bloqueo naval total", "Cambio de bandera obligatorio"] },
+{ q: "¿Qué factor internacional facilitó el fin del aislamiento en los 50?", c: "El inicio de la Guerra Fría", i: ["La muerte de Stalin", "El descubrimiento de petróleo", "El fin de la autarquía"] },
+{ q: "¿Qué recibió España por los Pactos de Madrid (1953) con EE.UU.?", c: "Ayuda económica y militar a cambio de bases", i: ["La entrada en la OTAN", "La soberanía sobre Gibraltar", "Un asiento en el Plan Marshall"] },
+{ q: "¿En qué año fue admitida finalmente España en la ONU?", c: "1955", i: ["1945", "1950", "1953"] },
+{ q: "¿Qué territorio cedió Franco en 1956 por presiones internacionales?", c: "Protectorado de Marruecos", i: ["Guinea Ecuatorial", "Sáhara Occidental", "Ifni"] },
+{ q: "¿Qué presidente estadounidense visitó oficialmente España en 1959?", c: "Eisenhower", i: ["Truman", "Kennedy", "Roosevelt"] },
+{ q: "¿Qué nombre recibían las unidades de trabajos forzados para presos?", c: "Batallones de Trabajadores", i: ["Colonias Escolares", "Reformatorios de Adultos", "Centros de Reeducación Social"] },
+         { q: "¿Qué define institucionalmente al Franquismo como una 'Dictadura Personal'?", c: "La concentración de todos los poderes en la figura del Caudillo.", i: ["El control de la economía a través de sindicatos obreros.", "La rotación de cargos entre los generales del bando nacional.", "La sumisión del Estado a las órdenes directas del Vaticano."] },
     { q: "¿Cuál era la función principal de la 'Sección Femenina' de Falange?", c: "El control de la vida social, educación y moral femenina.", i: ["Reclutar mujeres para la industria de guerra pesada.", "Promover la igualdad salarial en el sector servicios.", "Gestionar los hospitales militares tras la posguerra."] },
     { q: "¿Qué sector social formaba el 'Franquismo Sociológico' de los años 60?", c: "Las clases medias agradecidas por el crecimiento económico.", i: ["Los exiliados que regresaron tras la Ley de Amnistía.", "Los latifundistas del sur beneficiados por la contrarreforma.", "Los militares que participaron en la División Azul."] },
     { q: "¿Cuál fue la causa de la instauración de la autarquía en los años 40?", c: "La ideología fascista y el aislamiento internacional.", i: ["El excedente de reservas de oro acumuladas en Madrid.", "Una imposición directa de los Estados Unidos.", "El deseo de competir comercialmente con la URSS."] },
@@ -341,8 +356,9 @@
     { q: "¿Qué sector de la burguesía apoyó a Franco por la 'paz social'?", c: "La industria-burgesia de Cataluña y Bizkaia.", i: ["Los pequeños comerciantes de Madrid y Valencia.", "Los intelectuales liberales de la Institución Libre de Enseñanza.", "Los sindicatos católicos del sector servicios."] },
     { q: "¿En qué consistió la entrevista de Hendaya (1940)?", c: "La negociación de la entrada de España en la guerra con Hitler.", i: ["Un acuerdo comercial para exportar naranjas a Alemania.", "La firma de la paz definitiva entre España y Francia.", "La entrega de refugiados republicanos a la Gestapo."] },
     { q: "¿Qué colonia obtuvo la independencia en 1956?", c: "Protectorado de Marruecos.", i: ["Guinea Ecuatorial.", "Ifni.", "Sáhara Occidental."] },
-    { q: "¿Quién visitó Madrid en 1959 para avalar el régimen?", c: "Dwight D. Eisenhower.", i: ["Harry Truman.", "Winston Churchill.", "Charles de Gaulle."] },
-  { q: "¿Qué plan de 1959 puso fin definitivamente a la autarquía en España?", c: "Plan de Estabilización", i: ["Plan de Desarrollo", "Plan Marshall", "Plan de Reforma Agraria"] },
+    { q: "¿Quién visitó Madrid en 1959 para avalar el régimen?", c: "Dwight D. Eisenhower.", i: ["Harry Truman.", "Winston Churchill.", "Charles de Gaulle."] },],
+    
+banco3: [  { q: "¿Qué plan de 1959 puso fin definitivamente a la autarquía en España?", c: "Plan de Estabilización", i: ["Plan de Desarrollo", "Plan Marshall", "Plan de Reforma Agraria"] },
   { q: "¿Qué grupo político-religioso entró en el gobierno en 1957 para impulsar reformas?", c: "Tecnócratas del Opus Dei", i: ["Falangistas", "Militares africanistas", "Carlistas"] },
   { q: "¿Cuál era el objetivo principal de los tecnócratas al entrar en el gobierno?", c: "Integrar a España en el mundo capitalista", i: ["Volver a la República", "Reforzar el aislamiento internacional", "Eliminar la propiedad privada"] },
   { q: "¿Qué medida se tomó en 1959 para frenar la inflación?", c: "Aumentar los tipos de interés", i: ["Bajar los impuestos", "Aumentar el gasto público", "Subir los salarios masivamente"] },
@@ -421,8 +437,9 @@
   { q: "¿Qué ciudad fue el escenario del último discurso de Franco?", c: "Madrid (Plaza de Oriente)", i: ["Barcelona", "Sevilla", "Burgos"] },
   { q: "¿Cómo se llamaba la ley de 1975 que puso la justicia militar sobre la civil?", c: "Decreto-ley de Terrorismo", i: ["Ley de Seguridad Nacional", "Ley de Defensa de la República", "Ley de Sucesión"] },
   { q: "¿Qué ministro aperturista era conocido por sus leyes sobre la prensa?", c: "Manuel Fraga", i: ["Torcuato Fernández Miranda", "José Solís", "López Bravo"] },
-  { q: "¿En qué mes de 1976 comenzó la transición política con Adolfo Suárez?", c: "Verano (Julio)", i: ["Enero", "Noviembre", "Diciembre"] }
-];
+  { q: "¿En qué mes de 1976 comenzó la transición política con Adolfo Suárez?", c: "Verano (Julio)", i: ["Enero", "Noviembre", "Diciembre"] } 
+
+         };
 
 
     let preguntasPartida = [];
@@ -453,36 +470,35 @@
     }
 
     // --- LÓGICA DEL JUEGO ---
-    function shuffle(array) {
-        return array.sort(() => Math.random() - 0.5);
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
     }
 
-    function startGame(modo) {
-        modoActual = modo;
-        const yaHechas = getAciertosGuardados();
-        
-        let poolPreguntas = [];
+function startGame(modo, nombrePack) {
+    modoActual = modo;
+    const bancoDePreguntas = bibliotecas[nombrePack]; // Selecciona el pack
+    const yaHechas = getAciertosGuardados();
+    
+    let poolPreguntas = (modo === 'repaso') 
+        ? bancoDePreguntas.filter(p => !yaHechas.includes(p.q))
+        : [...bancoDePreguntas];
 
-        if (modo === 'repaso') {
-            // Solo preguntas que NO están en la lista de aciertos
-            poolPreguntas = banco.filter(p => !yaHechas.includes(p.q));
-            
-            if (poolPreguntas.length === 0) {
-                alert("¡Increíble! Ya has acertado todas las preguntas del archivo. Juega en Modo Normal.");
-                return;
-            }
-        } else {
-            // Modo normal: todo el banco disponible
-            poolPreguntas = [...banco];
-        }
-
-        document.getElementById('start-screen').style.display = 'none';
-        document.getElementById('quiz-ui').style.display = 'block';
-        
-        // Seleccionamos 20 aleatorias (o las que queden si son menos de 20)
-        preguntasPartida = shuffle(poolPreguntas).slice(0, 20);
-        renderQuestion();
+    if (poolPreguntas.length === 0) {
+        alert("¡Archivo completado! Prueba otro pack o modo.");
+        return;
     }
+
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
+    
+    preguntasPartida = shuffle(poolPreguntas).slice(0, 20);
+    renderQuestion();
+}
 
     function renderQuestion() {
         const data = preguntasPartida[indice];
