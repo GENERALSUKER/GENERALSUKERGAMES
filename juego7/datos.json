@@ -107,7 +107,6 @@
   { "q": "¿En qué año se fundó la Liga BBVA?", "options": ["1932", "1929", "1920"], "correct": "1929", "level": 4 },
   { "q": "¿En qué temporada ganó Brasil su primera Copa Mundial de la FIFA?", "options": ["1954", "1958", "1962"], "correct": "1958", "level": 5 },
   { "q": "¿Cómo se llamaba al trofeo original de la Copa Mundial de la FIFA?", "options": ["Trofeo Rimet de la Copa Mundial de la FIFA", "Trofeo Jules Rimet", "Trofeo Jiles Rimet"], "correct": "Trofeo Jules Rimet", "level": 4 },
-  { "q": "¿Quién marcó los 2 goles de Chile en el empate a 2 contra Italia en la primera ronda de la Copa Mundial de la FIFA de 1998?", "options": ["Marcelo Salas", "Iván Zamorano", "Luis Sierra"], "correct": "Marcelo Salas", "level": 5 },
   { "q": "¿Cuándo se construyó Mercedes Benz Arena?", "options": ["1953", "1971", "1933"], "correct": "1933", "level": 5 },
   { "q": "¿En qué año se fundó la F.A. Cup inglesa?", "options": ["1871", "1881", "1891"], "correct": "1871", "level": 4 },
   { "q": "¿Qué dos selecciones se enfrentaron en la final de la Copa Mundial de la FIFA en 1970?", "options": ["Italia y Suecia", "Brasil e Italia", "Italia y Alemania Occidental"], "correct": "Brasil e Italia", "level": 4 },
