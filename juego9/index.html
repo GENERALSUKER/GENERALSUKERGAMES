@@ -125,7 +125,7 @@
 { type: 2, q: "Complete: 'We spent the afternoon shooting ...'", ans: "the breeze" },
 { type: 3, q: "Translate 'Hablar por hablar' to English:", ans: "To shoot the breeze" },
 { type: 4, q: "Context: They weren't working; they were just standing there to...", ans: "shoot the breeze" },
-{ type: 5, q: "Dialogue:<br>A: Are you guys discussing the contract?<br>B: No, we are just here to ___ ___ ___.", ans: "shoot the breeze" }
+{ type: 5, q: "Dialogue:<br>A: Are you guys discussing the contract?<br>B: No, we are just here to ___ ___ ___.", ans: "shoot the breeze" },
  
 // IDIOM: The straw that broke the camel's back
 { type: 1, q: "Definition: 'The straw that broke the camel's back' is...", opts: ["A heavy load", "The last small problem that makes everything fail", "A desert animal's problem"], ans: "The last small problem that makes everything fail" },
@@ -160,7 +160,7 @@
 { type: 2, q: "Complete: 'You need to choose a side! Don't sit on the...'", ans: "fence" },
 { type: 3, q: "Translate 'No mojarse / Estar indeciso' to English:", ans: "to sit on the fence" },
 { type: 4, q: "Context: He won't say if he agrees or not; he's just...", ans: "sitting on the fence" },
-{ type: 5, q: "Dialogue:<br>A: Which candidate do you prefer?<br>B: I'm still ___ ___ ___.", ans: "sitting on the fence" }
+{ type: 5, q: "Dialogue:<br>A: Which candidate do you prefer?<br>B: I'm still ___ ___ ___.", ans: "sitting on the fence" },
  
 // IDIOM: To be on the ball
 { type: 1, q: "Definition: 'To be on the ball' means...", opts: ["To play sports", "To be alert and efficient", "To be round"], ans: "To be alert and efficient" },
@@ -228,7 +228,7 @@ function nextRandomQuestion() {
     // Actualizamos el badge para mostrar el progreso (ej: 1/25)
     totalAnswered++;
     const badge = document.getElementById('type-badge');
-    badge.textContent = `Question ${totalAnswered} / 10`;
+    badge.textContent = `Question ${totalAnswered} / 14`;
 
     const qText = document.getElementById('question-text');
     const zone = document.getElementById('answer-zone');
@@ -290,7 +290,7 @@ if (currentQuestion.type === 1) {
     const container = document.getElementById('game-container');
     container.innerHTML = `
         <div class="level-indicator">🏆 Finished!</div>
-        <h2 class="question-text">¡Enhorabuena! Has completado los 10 desafíos de modismos.</h2>
+        <h2 class="question-text">¡Enhorabuena! Has completado los 14 desafíos de modismos.</h2>
         <p>Tu dominio del inglés está aumentando.</p>
         <button class="btn btn-check" onclick="location.reload()">Jugar de nuevo</button>
     `;
