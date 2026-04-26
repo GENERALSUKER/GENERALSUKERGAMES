@@ -193,16 +193,23 @@
 // IDIOM: Between the devil and the deep  (Alternative to Rock/Hard Place)
 { type: 1, q: "Definition: 'Between the devil and the deep' means...", opts: ["To be in a dilemma with two bad choices", "To be a professional diver", "To be lost at sea"], ans: "To be in a dilemma with two bad choices" },
 { type: 2, q: "Complete: 'I'm stuck between the devil and the...'", ans: "deep" },
-{ type: 3, q: "Translate 'Entre la espada y la pared' to English:", ans: "between the devil and the deep" },
+{ type: 3, q: "Translate 'Entre la espada y la pared' to English:", ans: "To be between the devil and the deep" },
 { type: 4, q: "Context: I can't please my boss and I can't please my team. I'm...", ans: "between the devil and the deep" },
 { type: 5, q: "Dialogue:<br>A: You look trapped.<br>B: I am. I'm caught ___ ___ ___ ___ ___ ___.", ans: "between the devil and the deep" },
 
-// IDIOM: The seal is broken
-{ type: 1, q: "Definition: 'The seal is broken' often implies...", opts: ["A letter was opened", "The first step is taken and there's no stopping now", "To fix a bathroom"], ans: "The first step is taken and there's no stopping now" },
-{ type: 2, q: "Complete: 'Well, I already ate one cookie, so the seal is...'", ans: "broken" },
-{ type: 3, q: "Translate 'Se ha roto la veda / Ya no hay marcha atrás' to English:", ans: "the seal is broken" },
-{ type: 4, q: "Context: We weren't going to spend money, but you bought a shirt. Now the...", ans: "seal is broken" },
-{ type: 5, q: "Dialogue:<br>A: Are we going to keep ordering more food?<br>B: Yes! The ___ ___ ___.", ans: "seal is broken" },
+// IDIOM: To be legless (UK Slang)
+{ type: 1, q: "Definition: 'To be legless' means...", opts: ["To lose a bet", "To be extremely drunk", "To run very fast"], ans: "To be extremely drunk" },
+{ type: 2, q: "Complete: 'After six pints, he was completely...'", ans: "legless" },
+{ type: 3, q: "Translate 'Estar borracho perdido / No poder ni con las piernas' to English:", ans: "to be legless" },
+{ type: 4, q: "Context: He drank a whole bottle of vodka and now he is...", ans: "legless" },
+{ type: 5, q: "Dialogue:<br>A: Is he coming to the dance floor?<br>B: No way, he's absolutely ___.", ans: "legless" },
+
+// IDIOM: To break the seal (Social drinking context)
+{ type: 1, q: "Definition: 'To break the seal' means...", opts: ["To open a bottle of wine", "To urinate for the first time while drinking, leading to many more trips", "To finish a task"], ans: "To urinate for the first time while drinking, leading to many more trips" },
+{ type: 2, q: "Complete: 'If I go to the bathroom now, I'll break the...'", ans: "seal" },
+{ type: 3, q: "Translate 'Romper la veda (ir al baño por primera vez)' to English:", ans: "to break the seal" },
+{ type: 4, q: "Context: We’ve been drinking for two hours and you just went to the toilet. You finally...", ans: "broke the seal" },
+{ type: 5, q: "Dialogue:<br>A: Why are you going to the bathroom again?<br>B: I shouldn't have gone the first time! I ___ ___ ___.", ans: "broke the seal" },
 
 // IDIOM: To be a bellend (Sutil: Comportarse como un tonto)
 { type: 1, q: "Definition: (UK Slang) 'To be a bellend' means to act...", opts: ["Like a hero", "In a stupid or annoying way", "Very quickly"], ans: "In a stupid or annoying way" },
@@ -212,23 +219,21 @@
 { type: 5, q: "Dialogue:<br>A: Why is he shouting at the waiter?<br>B: Because he's a ___.", ans: "bellend" } 
  ];
 
-    let currentQuestion = null;let questionsRemaining = [...quizData]; 
-let totalAnswered = 0; // Contador de progreso
+let currentQuestion = null;
+let questionsRemaining = [...quizData];
+let totalAnswered = 0;
 
 function nextRandomQuestion() {
-    // Si ya no quedan preguntas, mostramos el final
+    // Lógica Circular
     if (questionsRemaining.length === 0) {
-        showEndScreen();
-        return;
+        questionsRemaining = [...quizData];
     }
 
     const randomIndex = Math.floor(Math.random() * questionsRemaining.length);
     currentQuestion = questionsRemaining.splice(randomIndex, 1)[0];
     
-    // Actualizamos el badge para mostrar el progreso (ej: 1/25)
     totalAnswered++;
-    const badge = document.getElementById('type-badge');
-    badge.textContent = `Question ${totalAnswered} / 14`;
+    document.getElementById('type-badge').textContent = `Activity #${totalAnswered}`;
 
     const qText = document.getElementById('question-text');
     const zone = document.getElementById('answer-zone');
@@ -238,10 +243,12 @@ function nextRandomQuestion() {
     feedback.textContent = "";
     nextBtn.classList.add('hidden');
     zone.innerHTML = "";
-    
     qText.innerHTML = currentQuestion.q;
 
-if (currentQuestion.type === 1) {
+    // Área de interacción (Opciones o Input)
+    const interactionArea = document.createElement('div');
+
+    if (currentQuestion.type === 1) {
         const grid = document.createElement('div');
         grid.className = "options-grid";
         currentQuestion.opts.forEach(opt => {
@@ -251,7 +258,7 @@ if (currentQuestion.type === 1) {
             b.onclick = () => check(opt);
             grid.appendChild(b);
         });
-        zone.appendChild(grid);
+        interactionArea.appendChild(grid);
     } else {
         const input = document.createElement('input');
         input.type = "text";
@@ -264,36 +271,62 @@ if (currentQuestion.type === 1) {
         b.textContent = "Verify";
         b.onclick = () => check(input.value);
         
-        zone.appendChild(input);
-        zone.appendChild(b);
-        input.focus();
+        interactionArea.appendChild(input);
+        interactionArea.appendChild(b);
     }
+
+    // CONTENEDOR DE BOTONES EXTRA (Skip y Reveal separados)
+    const extraButtons = document.createElement('div');
+    extraButtons.style.display = "flex";
+    extraButtons.style.gap = "10px";
+    extraButtons.style.marginTop = "15px";
+
+    // BOTÓN REVEAL (Solo muestra la respuesta)
+    const revealBtn = document.createElement('button');
+    revealBtn.className = "btn";
+    revealBtn.style.flex = "1";
+    revealBtn.style.background = "#fab1a0"; // Color suave
+    revealBtn.style.color = "#d63031";
+    revealBtn.textContent = "Reveal Answer";
+    revealBtn.onclick = () => {
+        feedback.textContent = `The answer is: "${currentQuestion.ans}"`;
+        feedback.style.color = "var(--text)";
+    };
+
+    // BOTÓN SKIP (Pasa a la siguiente pregunta)
+    const skipBtn = document.createElement('button');
+    skipBtn.className = "btn";
+    skipBtn.style.flex = "1";
+    skipBtn.style.background = "#dfe6e9";
+    skipBtn.style.color = "#636e72";
+    skipBtn.textContent = "Skip →";
+    skipBtn.onclick = () => nextRandomQuestion();
+
+    extraButtons.appendChild(revealBtn);
+    extraButtons.appendChild(skipBtn);
+
+    zone.appendChild(interactionArea);
+    zone.appendChild(extraButtons);
+
+    const inputField = document.getElementById('user-input');
+    if (inputField) inputField.focus();
 }
 
-    function check(val) {
-        const feedback = document.getElementById('feedback');
-        const nextBtn = document.getElementById('next-btn');
-        
-        const userVal = val.toLowerCase().trim().replace(/[.!?]$/, "");
-        const correctVal = currentQuestion.ans.toLowerCase().trim();
+function check(val) {
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    
+    const userVal = val.toLowerCase().trim().replace(/[.!?]$/, "");
+    const correctVal = currentQuestion.ans.toLowerCase().trim();
 
-        if (userVal === correctVal) {
-            feedback.textContent = "Correct! 🌟";
-            feedback.style.color = "var(--success)";
-            nextBtn.classList.remove('hidden');
-        } else {
-            feedback.textContent = "Incorrect, try again! ❌";
-            feedback.style.color = "var(--error)";
-        }
+    if (userVal === correctVal) {
+        feedback.textContent = "Correct! 🌟";
+        feedback.style.color = "var(--success)";
+        nextBtn.classList.remove('hidden');
+    } else {
+        feedback.textContent = "Not quite, try again! ❌";
+        feedback.style.color = "var(--error)";
     }
-    function showEndScreen() {
-    const container = document.getElementById('game-container');
-    container.innerHTML = `
-        <div class="level-indicator">🏆 Finished!</div>
-        <h2 class="question-text">¡Enhorabuena! Has completado los 14 desafíos de modismos.</h2>
-        <p>Tu dominio del inglés está aumentando.</p>
-        <button class="btn btn-check" onclick="location.reload()">Jugar de nuevo</button>
-    `;
 }
 </script>
 </body>
